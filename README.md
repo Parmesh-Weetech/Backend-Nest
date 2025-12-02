@@ -103,3 +103,11 @@
 
 ### Seprating levels of abstraction can decrease the lines of code and easy to read.
 
+### Always use the don't repeat yourself (DRY) principle because it helps to improve the codebase, readability, decrease the size of codes.
+
+### Every piece of logic, knowledge should exists exactly once in codebase and whenever you need it reuse it. So, it helps if there is a change in multiple places then only need to change the one function or file and it is cleaner and shorter.
+
+### But when doing the clean code use common sense also, bindly using this concept in cleaning code can increase readability.
+
+### This rules are guidence or laws.
+
