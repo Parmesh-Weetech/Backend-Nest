@@ -122,3 +122,25 @@
 ### If the functions are impure then side-effect will be there but that should not be unexpected.
 
 ### Testing matters when writing code in order to give cleaner code which is readable, understandable, maintained.
+
+### In if-else condition first rule of clean code is guard clause means in function starting checking for specific case that might throw error or return false and if that comes at the point exit from the function with proper error message or return statements. 
+
+### Guard is very easy to read and understand.
+
+### Another concept is fail fast means you detect the errors as soon as it happens and handle that because If you don't handle this then this error might cause some serious problems in future and by handling this error it improves the safety.
+
+### Two if statement is better than nested if statements because nested if statements are less readable then two if statement.
+
+### Don't catch exceptions or ignore errors can cause problems or bugs and can lead to some serious failure.
+
+### Sometimes throwing none or null is valid instead of throwing errors if you are finding for something and not found. Return optional values for non-exception errors
+
+### Use centralized error handling in order to handle errors every point which is same.
+
+### Always provide a detailed error message if needs to throw proper error message.
+
+### Do not put the so much code inside the try-catch
+
+### Always use the factory functions means functions that only tells what object does and hide implementation.
+
+### This factory function helps because if you want to change the implementation of multiple objects then you only need to change the one factory functions no need to change the entire code.
