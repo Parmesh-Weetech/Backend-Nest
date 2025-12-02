@@ -111,3 +111,14 @@
 
 ### This rules are guidence or laws.
 
+### There is a another concept of pure functions means function that takes input generate the same output that called as a pure function.
+
+### Impure functions are less predictable and pure functions are more predictable. And pure functions doesn't have side-effects.
+
+### Side-effect means that changes the state of program or system
+
+### sending http request, console.log, create session all are side-effects but unexpected side-effects are bad and can cause problems.
+
+### If the functions are impure then side-effect will be there but that should not be unexpected.
+
+### Testing matters when writing code in order to give cleaner code which is readable, understandable, maintained.
