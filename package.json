@@ -1,0 +1,23 @@
+{
+  "name": "learn-clean-code",
+  "version": "1.0.0",
+  "description": "simple nodejs",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Parmesh-Weetech/Backend-Nest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Parmesh-Weetech/Backend-Nest/issues"
+  },
+  "homepage": "https://github.com/Parmesh-Weetech/Backend-Nest#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

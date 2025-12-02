@@ -141,6 +141,28 @@
 
 ### Do not put the so much code inside the try-catch
 
-### Always use the factory functions means functions that only tells what object does and hide implementation.
+### Always use the factory functions.
+
+### Factory functions are functions that are creating the objects, maps, or lists.  
 
 ### This factory function helps because if you want to change the implementation of multiple objects then you only need to change the one factory functions no need to change the entire code.
+
+### Classes should do Single Reposibility Principle (SPA) means one class only do one thing not more than that because it is hard to manage then.
+
+### If class is doing so many thing break them into different ones. Classes should be small and focused.
+
+### Do not do deep inheritance in classes it makes hard to understand, and maintain for others.
+
+### Keep methods of class should be small and should do one thing rather than big ones
+
+### Give proper names to classes and methods of that class as discussed above
+
+### Avoid large constructor functions of that class.
+
+## The difference between Real Objects and data-structures
+
+### real objects follows the abstraction means hiding properties and variables and only apis are public using which we can update the object properties.
+
+### In data structures all things are public means no abstraction.
+
+### Real objects follow abstaction, encapsulation, polymorphism, inheritence while data-structure cannot.
