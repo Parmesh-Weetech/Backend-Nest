@@ -186,3 +186,10 @@
 ### If all methods are not using all properties then it has no cohesion.
 ### we always between this two. we do not have 100% high cohesion or 0% no cohesion.
 ### But we need the highly cohesion always and try for it.
+
+## Law of demeter
+### Objects should follow Law of demeter or we can say Principle of least knowledge means An object should only interact with its own methods, its parameters, or its direct collaborators. It should not interact with the internals of other objects or call methods on objects that are far away in the object hierarchy.
+### The benefits are maintainable, loose couple, increase readability, flexibility.
+### This objects should not talk to friends of friends.
+
+## SOLID Principle
