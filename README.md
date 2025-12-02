@@ -77,3 +77,29 @@
 
 ### If there are three arguments or more than three arguments then pass it with labels and take it as container where the function definition is there.
 
+### We can use the spread operator if there are n numbers of parameters are there.
+
+### Functions could not modify the incoming parameter and always send the request output.
+
+### And in such case where incoming parameter is modified name that function clearly.
+
+### Function body should not be more it should be clean containing less code.
+
+### Good function are always a function that doing one thing means sperate one function body into multiple function based on level of abstraction.
+
+### There are two level of abstraction high level and low level means suppose if one line is checking email is valid or not in js then that code is one line code but if particular lines are saving user in db then that is the high level so make new function for saving user and use that next to email validation line.
+
+### But there is a way to write the high level and low level code where to write what
+
+### Hight level function tells what to do not how to do
+
+### Low level function tells how to do not what to do
+
+### In clean code, all operations should be on same level is easier to understand. Mixing the code operations can lead to bad codes.
+
+### Another rule is if two functions are doing two different things but we can create a one functions combining that two functions execution then do that because calling one functions is more easy and understand then two seprate. so means merge the related code.
+
+### Use the global error handler for throwing and console.logging different error so no need to write this console.log again and again add it in function and then use it when needed.
+
+### Seprating levels of abstraction can decrease the lines of code and easy to read.
+
