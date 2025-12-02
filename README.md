@@ -166,3 +166,23 @@
 ### In data structures all things are public means no abstraction.
 
 ### Real objects follow abstaction, encapsulation, polymorphism, inheritence while data-structure cannot.
+
+### data structure primary use is to store with primarily concerned with organizing and storing data.
+
+### data structure cannot have that real world behaviour that object has.
+
+### data structures focus on how to store, organize, and access data in an efficient way.
+
+### Do not use this both in single codebase because every messy and hard to understand and maintain.
+
+## Polymorphism:
+### ability of an object to take many forms is called as polymorphism.
+
+### Use polymorphism while working with classes because it solves lots of problems.
+
+## Cohesion
+### Cohesion means how much your class methods using the class properties
+### If all methods are using all properties then it has high cohesion.
+### If all methods are not using all properties then it has no cohesion.
+### we always between this two. we do not have 100% high cohesion or 0% no cohesion.
+### But we need the highly cohesion always and try for it.
