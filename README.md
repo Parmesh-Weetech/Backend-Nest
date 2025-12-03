@@ -193,3 +193,15 @@
 ### This objects should not talk to friends of friends.
 
 ## SOLID Principle
+### SOLID principle means
+1. Single Responsibility Principle - Means a class or method should have only one job to do.
+2. Open-Closed Principle - Means software entities should be open to extension but closed for modification means You can add new methods, properties, or classes. You should not modify existing ones, especially if they are already working correctly and are being used by other parts of your application.
+3. Liskov Substitution Principle - Means objects of super-class can be replaceable with object of sub-class but the correctness should not be changed. In simpler terms, if you have a class B that extends class A, you should be able to use an instance of B anywhere you'd use an instance of A, and the behavior should remain correct.
+4. Interface Segregation Principle - No Client should be forced to depend on method which they don't want to use.
+5. Dependency Inversion Principle - High-level modules should not be depend on low-level modules but both should be depend on abstractions. Both should be depend on abstractions because low-level details can change without affecting high-level logic. High-level design have business logic and low-level design has implementations. and abstraction decouples both.
+
+### Single Responsibility doesn't mean doing only one task. One class can have multiple methods but all should be related to that class.
+
+### In single responsibity, every time classes cannot be 100% single responsible but we need to try to make a high cohesive and single responsibilty doesn't mean only one method in class.
+
+### Single responsibilty and open-closed principles are two most important one among others.
