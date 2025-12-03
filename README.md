@@ -57,3 +57,22 @@
 - If you open this then you will notice something new that branch is nothing but latest commit hash which is in human readable format.
 - Git get to know that which branch is current one using HEAD file which is inside the .git folder.
 - You can also create tag but keep in mind that it is immutable means once you create it doesn't change.
+
+- HEAD is always pointing specific branch latest commits.
+
+## Local Repository and Remote Repository
+- local repository means repository which is on our local machine.
+- remote repository means repository on github / gitlab.
+- we need to connect to them in order to push our code to the github.
+- in order to do that the command is used that is `git remote add origin <URL>`.
+- Here the remote means repository is remote repository.
+- add means establish the connection.
+- origin means alias to that url means in future if we want to perform any action then we can use this origin instead of that long url.
+- git push and git pull is two commands that used to push the local codebase to the github and get the codebase from github to local respectively.
+
+## Stash and Stage
+- Stash means putting changes into stash stack like structure that can be take back when needed.
+- Stage means these changes are ready to commit.
+- In Stage you can handle what need to changes need to commit and what doesn't need to commit.
+- Stash simply means save my work in protected and safe area I will use it after some time.
+- Stage means these are the changes that I need to make or I want to push it to the github or gitlab.
