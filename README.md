@@ -50,3 +50,10 @@
 - If you go to that folder containing hash file of the commit and run `git cat-file <put your hash>` you will see the author commiter tree id.
 - In git file names are controlled by tree object not by files.
 - A commit points to the tree which captures a snapshot of entire state of repository. Tree points to blob or it can points to other trees to create a hierarchichal structure.
+- If you create a two files with same content inside then git only create one reference to it it does not create another one. It doesn't matter if the second file is created in another folder
+- so means two files are in different folder then git create a different tree structure but does not create different blob but that both trees points to that same blob and that's why the names of files are controlled by trees not by blob.
+
+- All braches are stored inside the heads folder which is inside refs folder in .git.
+- If you open this then you will notice something new that branch is nothing but latest commit hash which is in human readable format.
+- Git get to know that which branch is current one using HEAD file which is inside the .git folder.
+- You can also create tag but keep in mind that it is immutable means once you create it doesn't change.
