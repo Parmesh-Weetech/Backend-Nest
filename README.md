@@ -59,6 +59,10 @@
 - You can also create tag but keep in mind that it is immutable means once you create it doesn't change.
 
 - HEAD is always pointing specific branch latest commits.
+- If we have three branches and we can different commit history then HEAD always changes if you switch between branches.
+
+- Detached HEAD is HEAD when you checkout specific commit in current working branch then that head becomes the Detached HEAD.
+- Detached HEAD simply telling that this commit is not part of any branch. It stat that we are working with specific commit not with latest commit.
 
 ## Local Repository and Remote Repository
 - local repository means repository which is on our local machine.
@@ -76,3 +80,4 @@
 - In Stage you can handle what need to changes need to commit and what doesn't need to commit.
 - Stash simply means save my work in protected and safe area I will use it after some time.
 - Stage means these are the changes that I need to make or I want to push it to the github or gitlab.
+- In order to check the staging area we run the command `git ls-files`.
