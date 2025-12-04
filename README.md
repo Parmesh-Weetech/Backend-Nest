@@ -73,12 +73,60 @@
 - add means establish the connection.
 - origin means alias to that url means in future if we want to perform any action then we can use this origin instead of that long url.
 - git push and git pull is two commands that used to push the local codebase to the github and get the codebase from github to local respectively.
+- `git branch -a` is the command that can be used to check remote tracking branches as well as local branches.
+
+## Remote tracking branch
+- When we run the command `git push origin master` then git first create a remote tracking branch first which is in between local branch and remote branch. It is basically local copies of remote branch.
+- There is always a remote tracking branch in between local branch and remote branch whenever we do push or pull. There is no direct connection between local branch and remote branch.
+- `git branch -r` gives all remote branch no local branch.
 
 ## Stash and Stage
 - Stash means putting changes into stash stack like structure that can be take back when needed.
+- In stash we put uncommited and unstaged changes.
+- In order to do the stash we can run the command `git stash`. In order to apply those stash back to the tree then we can run `git stash apply <index_number>` of that stash entry.
+- We can list the stash by running `git stash list`. We can pop the changes from the stash using `git stash pop <index_number>`. We can drop the changes from stash using `git stash drop <index_number>` and we can clear the stash using `git stash clear` command.
 - Stage means these changes are ready to commit.
 - In Stage you can handle what need to changes need to commit and what doesn't need to commit.
 - Stash simply means save my work in protected and safe area I will use it after some time.
 - Stage means these are the changes that I need to make or I want to push it to the github or gitlab.
 - In order to check the staging area we run the command `git ls-files`.
 - If you delete any files files from directory then also that files in staging area and if you commit the new changes then that deleted files can also be commit so if you want to delete that files from staging area also you need to run the `git rm` command.
+
+## reset and restore
+- git reset is a powerful command that mainly used to working with branches and moving the HEAD pointer from one commit to another.
+- git restore is a newer and powerful command mainly focused on local state of a file in the working directory. Introduce in 2.23 version of git.
+
+## Undoing unstaged files
+- If you want to unstage the untrack changes means you want to delete the changes that you have made to the files which is not yet tracked then you can run this `git checkout <file_name>` for specific file or `git checkout .` for all files that has been changed from last commit.
+- We can also use the `git restore <file_name>` for specific file or `git restore .` for all files that has been changed from last commit.
+- If we want to remove the unwanted files from untracked files then we can run `git clean -dn` which tells git that list that all files and directory that you are going to delete and then `git clean -df` that tells git that delete all untracked files that has been changed from last commit without asking anything.
+
+## Bring back the last commit which is deleted using `git reflog`
+- If we run the `git reflog` then we can see the all history whatever we done merge, push, commit, remove everything.
+- From that we can this git reset --hard command and copy that deleted file hash entry in git reflog stack and we can get back the deleted files, folders.
+- Using reflog command we can get back deleted branch, changes, files, folders everything.
+
+## git merge command
+- there are basically two types of merge in git
+1. fast-forward - this merge means we doesn't have any commit in specific branch after which we created a new branch. So in this git moves the HEAD of the previous branch to the latest commit of that newly created branch. In this new commits does not created.
+- The `git merge --squash` command combines all changes from a specified feature branch into a single, new commit on your current branch
+2. non fast-forward or recursive merge - This will happen suppose if you have two commits in two seprate branch and second branch is created after some commits in first branch and now we have commits in first branch also and we have commits in second branch also in this case recursive merge happens.
+- Now we want to merge the second branch commit to the first branch then which ever number of commits are there in feature branch that all commits created in first branch and also one merge commits created in first branch.
+
+## git rebase command
+- the git rebase command create a new commits to the first branch that commits was in second branch. This commits are copies of commits of second branch.
+- So If you are in local branches then it is safe to use the rebase but if you are at public open source projects where number of developers are working then not recommended.
+
+## The merge conflict
+- If in two different branch two person is working on same file and line then merge conflict is there
+- We need to then resolve this conflict by accepting upcoming changes or current changes or both changes.
+
+## The cherry-pick command
+- If we want to pick only specific commit from second branch to the first branch not the whole branch then we can use this.
+- `git cherry-pick <that_commit_id>`.
+
+## git fetch and git pull
+- if we use git fetch then git only create a remote tracking branches but if we use the git pull then it also create a new local branch also
+
+- git fetch works in remote tracking branch and git push or git pull works in local tracking branch
+- local tracking branch is in between remote tracking brancha and local branch
