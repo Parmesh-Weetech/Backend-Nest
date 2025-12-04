@@ -81,3 +81,4 @@
 - Stash simply means save my work in protected and safe area I will use it after some time.
 - Stage means these are the changes that I need to make or I want to push it to the github or gitlab.
 - In order to check the staging area we run the command `git ls-files`.
+- If you delete any files files from directory then also that files in staging area and if you commit the new changes then that deleted files can also be commit so if you want to delete that files from staging area also you need to run the `git rm` command.
