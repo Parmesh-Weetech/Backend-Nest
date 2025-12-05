@@ -21,9 +21,19 @@
 - We can highly use the chrome developer tools to efficiently debug the code if there is a logical, syntax or language related errors any kind of error.
 
 ## Truthy values
-- JS has special case where in conditions if you write non-empty string or non-zero number treated as true and 0 or non-empty string treated as false.
+- JS has special case where in conditions if you write non-empty string or non-zero number treated as true and 0 or empty string treated as false.
 - But empty objects, arrays treated as true.
 - null, undefined, NaN treated as false.
 - So, In js what is happening is in condition if there no true or false values then js try to convert it to the true or false values.
 - JS has explicit and implicit type conversion
-- conversion means explicit type conversion and implicit means coercion
+- conversion means explicit type conversion and implicit means coercion.
+
+## Labels are the most important thing in js mostly working with loops
+- Used when we have nested loops and we want to stop outer loop after some iteration using inner loop.
+- In order to provide a labels the syntax is `label_name:`.
+
+## Browser compilation of JS
+- Browser has special engine called V8 engine that the main thing which interprete and compile the code
+- Compiler is Just in time compiler
+- Interpreter gives a byte code to the compiler and compiler then execute it and it doesn't re-compile the already compiled code if it doesn't changed.
+V8 is written in C++.
