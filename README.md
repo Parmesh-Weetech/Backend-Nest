@@ -65,3 +65,15 @@
 - Function with name is called function declaration and function output stored in variable and function which is without name that called as function expression
 - function expression best example is useeffect call-back function.
 - Function declaration hoisted on top where express is hoisted but not initialized.
+
+## Spread Operator and Rest Operator
+- spread operator is used when we want to destructure existing objects or array to new one.
+- Rest operator is mostly used in functions paramter where we don't know the number of parameter that are coming.
+- When there is a rest operator do not pass any paramter after the rest operator because rest operator will take all passing arguments.
+
+## If you don't pass any arguments then JavaScript has default `argument` keyword which contains all arguments. If you don't want to use the rest operator then you can use this.
+
+## What are iterable?
+- object that implement iterable protocol and has @@iterable method that called as iterable.
+- Simple definition is objects on which you can use the for...of loop.
+- An object is considered iterable if it implements the Symbol.iterator method.
