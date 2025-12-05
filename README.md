@@ -16,3 +16,14 @@
 - If your script rely on html then recommended to use the `defer`.
 - When scripts are completely independent then you can use the `async`.
 - But both the keywords will not work if there is a inline scripts means js in html file in between script.
+
+## Debugging the JS
+- We can highly use the chrome developer tools to efficiently debug the code if there is a logical, syntax or language related errors any kind of error.
+
+## Truthy values
+- JS has special case where in conditions if you write non-empty string or non-zero number treated as true and 0 or non-empty string treated as false.
+- But empty objects, arrays treated as true.
+- null, undefined, NaN treated as false.
+- So, In js what is happening is in condition if there no true or false values then js try to convert it to the true or false values.
+- JS has explicit and implicit type conversion
+- conversion means explicit type conversion and implicit means coercion
