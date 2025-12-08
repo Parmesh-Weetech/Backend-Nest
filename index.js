@@ -19,18 +19,37 @@
 //     1: "5"
 // }
 
-const obj1 = {
-    name: "Max",
-    age: 20,
-    hobbies: ["Sports", "Cooking"]
-};
+// const obj1 = {
+//     name: "Max",
+//     age: 20,
+//     hobbies: ["Sports", "Cooking"]
+// };
 
-const obj2 = Object.assign({}, obj1);
-obj1.name = "Manu";
+// const obj2 = Object.assign({}, obj1);
+// obj1.name = "Manu";
 
-console.log(obj1);
-console.log(obj2);
+// console.log(obj1);
+// console.log(obj2);
 
-obj1.hobbies.push("Reading");
-console.log(obj1);
-console.log(obj2);
+// obj1.hobbies.push("Reading");
+// console.log(obj1);
+// console.log(obj2);
+
+class Person {
+    #name;
+    age;
+
+    constructor(name) {
+        this.#name = name;
+    }
+
+    get name() {
+        return this.#name;
+    }
+    static greet() {
+        console.log('Hello there!');
+    }
+}
+
+const person = new Person('Max');
+console.log(person.name.toUpperCase());

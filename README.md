@@ -139,3 +139,17 @@
 - So, this context is depends on who is calling the normal function and where the arrow function is declared.
 
 ## We can use the getters and setters to get and set the properties values to the object. Getters and Setters are the build in JavaScript methods to do it.
+
+## Static methods
+- static methods are the methods that don't need the objects to call them because that static methods are called as class utility methods or we can say that same for all objects that's why this kind of static methods can be called directly without need of objects.
+- static methods stored directly on class not on class prototype.
+
+## Access Modifiers in JS
+- private variable or methods are defined using # symbol ahead of the name.
+- protected variable or methods are defined using _ symbol ahead of the name.
+- public variable or methods doesn't require any symbols.
+
+## What is constructor functions?
+- When we create a class object behind the scene it create a function with class_name as function_name and properties and assign the values to function properties that we have passed to that class object including that functions.
+- But the inner magic is happened when we use the new keyword because when we use new keyword when we are creating the new object that new keyword create this constructor function with empty this object and assign the properties and values as well as functions to them.
+- So this class keyword or syntax is just syntactic sugar we can say.
