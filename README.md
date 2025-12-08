@@ -111,3 +111,31 @@
 - If you want to join the array into single string values then you can use the join method.
 
 ## You can use the array destructuring if you have n numbers of array elements and want specific list of them into variables.
+
+## Objects shallow copy problem
+- Suppose you have an object with three properties name, age, hobbies where name is type of string, age is number, and hobbies is type of array.
+- Now you created a another object using spread operator.
+- Now you changed objects one person age so second object person age doesn't change.
+- But if you changed object one person hobbies array then it change the second object person hobbies also matches object one hobby array.
+- This is called shallow copy problem or we can top level spread operator copy problem.
+
+## Object destructuring
+- We can also destructure the objects but has to give a name exacting same as key is there in object.
+
+## This keyword
+- this is a special keyword that refers to its calling object.
+- this is mostly used to modify the current object properties with specific operation.
+- Sometimes this can be very complex or hard to debug and manage.
+- Sometimes when you destructure the method that has this keyword use can cause problem because in this case this keyword refers to the global window object and that global window object doesn't have that properties and method which is refers to this.
+- In this case we need to use the call, apply, or bind methods of js.
+- The difference between call and apply is only that call method takes arguments as individual, seprated by commas and apply takes it as array.
+- The call and apply method invokes immediately.
+- The bind method returns a new function without executing the original. The new function is permanently bound to the specified this value.
+
+## This keyword weird behaviour
+- This keyword behave very weird with both arrow function and normal function.
+- This depends on where to use which one.
+- generally normal function is defined to declare in objects and arrow functions is defined to declare in loops or call-backs.
+- So, this context is depends on who is calling the normal function and where the arrow function is declared.
+
+## We can use the getters and setters to get and set the properties values to the object. Getters and Setters are the build in JavaScript methods to do it.
