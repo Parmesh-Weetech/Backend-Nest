@@ -153,3 +153,8 @@
 - When we create a class object behind the scene it create a function with class_name as function_name and properties and assign the values to function properties that we have passed to that class object including that functions.
 - But the inner magic is happened when we use the new keyword because when we use new keyword when we are creating the new object that new keyword create this constructor function with empty this object and assign the properties and values as well as functions to them.
 - So this class keyword or syntax is just syntactic sugar we can say.
+
+## Closures
+- closures are can be most important topics sometimes in js.
+- closures means when a inner function remembers the state of outer function even after outer function completes its execution.
+- This is because of JS lexical scoping means in js function remembers where they are created not when they are created.
