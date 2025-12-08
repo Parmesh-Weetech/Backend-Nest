@@ -77,3 +77,37 @@
 - object that implement iterable protocol and has @@iterable method that called as iterable.
 - Simple definition is objects on which you can use the for...of loop.
 - An object is considered iterable if it implements the Symbol.iterator method.
+
+## What is the difference between splice and slice method?
+- slice method extract the portion of an array into new one means it doesn't affect the original array.
+- While splice method doesn't extract the portion but change the original array.
+- splice method is used to replace, add, delete an element from an array.
+- Due to this behaviour splice is called as destructive and slice is non-destructive method.
+- Slice takes two arguemtns first is starting index and second one is end index in which start index is included but end index doesn't.
+
+## The difference between push, pop and shift, unshift method?
+- push and pop method treat an array as stack and shift, unshift treat method as queue.
+- that's why using push and pop elements removed or add from back or from end of an array where using shift and unshift elements are added or removed from start.
+
+## The concat method
+- If you want to add add to another array then we can use this method and it takes array as an arguments and return new concat array.
+
+## IndexOf and LastIndexOf methods
+- If you want to search something in array then you can use this methods
+- indexOf method takes search element to search in array an start searching from starting position which is 0 if you doesn't specify the starting position to search.
+- lastIndexOf method takes search element to search in array an start searching from last position of an array if you doesn't specify the position to search.
+- indexOf starting from left to right where lastIndexOf starting from right to left.
+- Both methods returns -1 if it doesn't find any matches index.
+
+## The find and findIndex method
+- In order to find an object whether it is a part of an array or not then we can use the find and findIndex method.
+- find method finds the object and return it and findIndex find the index and then return that index values this is the difference between find and index method.
+
+## Includes method
+- We want to return true of false whether that element is included in array or not then we can use the includes method.
+
+## split and join method
+- If you want to split a string into array then use split method.
+- If you want to join the array into single string values then you can use the join method.
+
+## You can use the array destructuring if you have n numbers of array elements and want specific list of them into variables.
