@@ -35,21 +35,48 @@
 // console.log(obj1);
 // console.log(obj2);
 
-class Person {
-    #name;
-    age;
+// class Person {
+//     #name;
+//     age;
 
-    constructor(name) {
-        this.#name = name;
-    }
+//     constructor(name) {
+//         this.#name = name;
+//     }
 
-    get name() {
-        return this.#name;
-    }
-    static greet() {
-        console.log('Hello there!');
-    }
-}
+//     get name() {
+//         return this.#name;
+//     }
+//     static greet() {
+//         console.log('Hello there!');
+//     }
+// }
 
-const person = new Person('Max');
-console.log(person.name.toUpperCase());
+// const person = new Person('Max');
+// console.log(person.name.toUpperCase());
+
+// get the user position
+// const button = document.querySelector('button');
+// button.addEventListener('click', () => {
+//     navigator.geolocation.getCurrentPosition(posData => {
+//         console.log(posData);
+//     }, err => {
+//         console.log(err);
+//     });
+// });
+
+// Promise
+const myPromise = new Promise((resolve, reject) => {
+    const n = Math.random();
+    if( n > 0.5 ) {
+        resolve('Success! Number is ' + n);
+    } else {
+        reject('Failed! Number is ' + n);
+    }
+});
+
+myPromise.catch( errData => {
+    console.log('Error occurred!');
+    console.log(errData);
+}).then( resData => {
+    console.log(resData);
+})

@@ -192,3 +192,14 @@
 - BigInt doesn't have decimal places. If you declare you get an error.
 - We can perform all operations like +, -, *, / with bigint but cannot mix integers with bigint if do so get error.
 - BigInt works perfectly with =, -, /, * operations but we have any decimal place answer while working with this operations then js will simply cut-off decimal places like we do 5n / 2n then we got 2n instead of 2.5n.
+
+## The Single-threaded JavaScript and Event loop
+- JavaScript is single-threaded but javascript doesn't block the execution of code as we know using the event loop
+- For more information about event loop: read this article [Event loop explained by Parmesh Bhatt](https://prmes119.hashnode.dev/from-v8-to-event-loop-the-inner-anatomy-of-nodejs)
+
+## Handling promise with .then() and .catch()
+- when we want to get whether the promise is rejected or resolved we have to use the .then and .catch
+- But the orders matter when we have multiple promise together and we have multiple .then and .catch blocks because
+- suppose we have three promise so as per theory we need 3 .then and 3 .catch methods but the orders matters
+- because if 2nd promise gives errors so go to the second .catch block but suppose we have 1st promise .then and .catch block after that 2nd promise .then and .catch so 2nd promise gives error goes to 2nd .catch but after that 3rd promise .then will be executed.
+- in order to prevent this need to have 3 .then but only one .catch method in the end that catches all promise error and won't executes anything which is there in any .then blocks of any promise.
