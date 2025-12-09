@@ -65,18 +65,30 @@
 // });
 
 // Promise
-const myPromise = new Promise((resolve, reject) => {
+const myPromise1 = new Promise((resolve, reject) => {
     const n = Math.random();
     if( n > 0.5 ) {
-        resolve('Success! Number is ' + n);
+        resolve('Success Promise 1! Number is ' + n);
     } else {
-        reject('Failed! Number is ' + n);
+        reject('Failed Promise 1! Number is ' + n);
     }
 });
 
-myPromise.catch( errData => {
-    console.log('Error occurred!');
-    console.log(errData);
-}).then( resData => {
-    console.log(resData);
-})
+const myPromise2 = new Promise((resolve, reject) => {
+    setTimeout(() => {}, 2000);
+
+    const n = Math.random();
+    if( n > 0.5 ) {
+        resolve('Success Promise 2! Number is ' + n);
+    } else {
+        reject('Failed Promise 2! Number is ' + n);
+    }
+});
+
+Promise.allSettled([myPromise1, myPromise2])
+    .then(result => {
+        console.log(result);
+    })
+    .catch(err => {
+        console.log(err);
+    }); 

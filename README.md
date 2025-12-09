@@ -203,3 +203,19 @@
 - suppose we have three promise so as per theory we need 3 .then and 3 .catch methods but the orders matters
 - because if 2nd promise gives errors so go to the second .catch block but suppose we have 1st promise .then and .catch block after that 2nd promise .then and .catch so 2nd promise gives error goes to 2nd .catch but after that 3rd promise .then will be executed.
 - in order to prevent this need to have 3 .then but only one .catch method in the end that catches all promise error and won't executes anything which is there in any .then blocks of any promise.
+
+## Promise methods
+- `all` waits for all promise to resolve if any gets rejected then all rejected.
+- `allSettled` waits for all promise to resolve or rejected.
+- `race` waits for first promise to resolve or reject. The first Promise to resolve or reject wins the race.
+- `any` resolves as soon as any one promise gets resolved if all promise gets reject then it throw error named AggregateError.
+
+## Modules in JS or Deviding single files into the multiple
+- whatever code you write in multiple file as a single module it getting parsed only once after that js executed in browser so if you have single console.log in file to see how many times it runs then it only one time whether it is a dynamic import or static import, named import or default import.
+- This modules runs in strict mode so this keyword values always undefined
+
+## Formatting and webpack with serve package environment
+- For formatting and checking code quality we can use the prettier and eslint which is most powerful and enough to handle large projects as well.
+- webpack is static module blundler which blundle the n number of file in most optimized production ready file structure that you can use to deploy on server.
+- serve is a package on npm that used provide a small production type environment on your local system.
+- You can setup this all on your system by following official guide.
