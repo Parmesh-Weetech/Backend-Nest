@@ -155,6 +155,40 @@
 - So this class keyword or syntax is just syntactic sugar we can say.
 
 ## Closures
-- closures are can be most important topics sometimes in js.
-- closures means when a inner function remembers the state of outer function even after outer function completes its execution.
+- closures are can be most important topic sometimes in js.
+- closures means when a inner scope remembers the state of outer scope / function even after outer scope / function completes its execution.
 - This is because of JS lexical scoping means in js function remembers where they are created not when they are created.
+
+## Prototype
+- prototype is a object that used to share the properties, methods to other objects.
+- prototypes are the mechanism by which objects can inherit properties and methods from other objects.
+- Every JS object has this prototype which is refers to another object.
+- When we create a method in class or constructor function it goes in prototype and when we call that method JS first look in object if it doesn't found it goes to the prototype chain and which ever object it found returns it but if doesn't found then it returns null.
+- The last object in which JS looks is global object named `Object`.
+
+## Why static methods are not in prototype chain or object?
+- Static methods are belongs to the class or constructor function not to the prototype chain and hold special meaning because static methods are mainly used for utility methods and factory function
+- Static methods are attached to class not to instance.
+
+## The difference between prototype and __proto__?
+- When we create a class or we can say constructor function then that class gets `prototype` and when we create a object for that class then that object gets `__proto__` which is links to that `prototype`.
+
+## IIFE - Immediately Invoked Function Expression
+- This kind of function invoked immediately once defined and don't need to call it from anywhere else.
+- Using this function we can have encapsulation with prevent local variable to access from global scope.
+
+## Numbers in JS always floating point numbers even integer numbers like 1, 2, 3 stored as 1.0, 2.0, 3.0.
+
+## Numbers without decimal places doesn't exists in js.
+
+## Numbers are stored as 64 floating numbers means numbers have 64 bits containing 0 or 1 where first bit represents the sign of that number whether it is a negative or positive.
+
+## BigInt
+- JavaScript has some limit to represent the number with or without floating points and if we want to work with larger than that numbers then we need the larger container to handle that for this use we have bigint or big integer
+- BigInt is used to handle the number with or without floating points
+- We have declare bigint number using `n` at the end of numbers like `123456789101231224123453n` <-- this is bigint.
+- JS stores and manage bigint as string
+- BigInt is can be negative numbers.
+- BigInt doesn't have decimal places. If you declare you get an error.
+- We can perform all operations like +, -, *, / with bigint but cannot mix integers with bigint if do so get error.
+- BigInt works perfectly with =, -, /, * operations but we have any decimal place answer while working with this operations then js will simply cut-off decimal places like we do 5n / 2n then we got 2n instead of 2.5n.
