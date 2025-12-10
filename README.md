@@ -331,3 +331,7 @@
 
 ## How to prevent this DoS and DDoS attacks?
 - Restrict the number of request that server can accept from specific IP in specific timeframe.
+- Use the IDS and IPS system
+- Perform regular network scan
+
+- This are the most impactful attacks and we can prevent it.
