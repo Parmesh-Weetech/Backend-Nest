@@ -261,3 +261,74 @@
 ## What is the difference between reflect and proxy?
 - proxy is a guard in between js and we as user and let you decide what to do with specific case in-between this.
 - reflect is just normal function or object operation.
+
+## How to protect the code?
+- The thumb rule is don't send or store the important information on the client side because If you do so then there is no way for you save it from hackaers to steal your information.
+- So keep that files, codes on server side and then hacker / other user cannot see it.
+
+## XSS Attack
+- One of the most dangerous attack is XSS which is called cross side scripting attack.
+- In this XSS attack, any malious code can be inserted into the client side script to get the user related information, database information, prevent sending request from client to server instead of that sending request to that hackers server and eventually hacker can get the information.
+- This XSS attack can be fixed using npm package named `sanitize-html` which will prevent this kind of XSS or cross side scripting attacks or there is a another way which is do not use `innerHTML` while working with html and js use `textContent` instead of that.
+- This XSS attack can lead to various consequences, such as account compromise, account deletion, privilege escalation, malware infection, and many more.
+
+## Types of XSS
+1. Reflected XSS
+- means one hacker is there and hacker found website in which hacker can add this malicious script using which hacker can get the users information. After that every time any user visit this website that users cookies, sessions, information goes to that hacker.
+
+2. Stored XSS
+- means malicious codes are stored in database and once you visit that software or website hacker steal that information.
+
+3. DOM-Based XSS
+- In this hacker will manipulate the DOM and steal your information.
+
+## How to prevent this kind of attack?
+- 1. enable CSP - Content Security Policy to prevent this kind of attack.
+- 2. use dompurify package to prevent dom-based xss attack
+- 3. use textContent instead of innerHTML.
+
+## Before using any library or package if that package of library is open-source then check its source code and if you found any malicious like accessing dom or localStorage then do not use it
+
+## CSRF attack
+- another most dangerous attack is CSRF cross origin resource foregy
+- means you visit any website login to your account then visit any malicious website which sends the request to that same backend server endpoint so browser send cookie with it also now backend server thinks cookies are there so this is a valid request so don't stop it and that hacker can now perform any kind of activity with your account.
+
+## How to prevent this?
+- use the csrf token - we need to generate the csrf tokens whenever user log into their account.
+
+## CORS attack
+- CORS means only frontend pages from myclient.com can read API responses.
+- CORS means from which ever location the page is generated to that domain, port, protocol this web-page can make request other to not this is called CORS.
+
+## What happens when client send a request to server - CORS?
+- CORS simply meaning Cross Origin Resource Sharing
+- 1. When client make a request to server
+- 2. server check whether this client endpoint is allowed to fetch the data and make changes to db or not
+- 3. If yes then sends the `Allow-Control-Allow-Origin` as true, or site url
+- 4. now client checks its and if it is allowed then it display the data otherwise not.
+- When browser first request to server automatically it adds the origin option along with request.
+- If server don't allow then we get the CORS error.
+
+## Why browser first send the OPTION request then?
+- When there is a request made by browser it has to be have simple methods like GET, HEAD with no custom headers and with content-type should be form-urlencoded, multipart-file, or plain text
+- Other than this anything is there browser first send the OPTION request for checking whether this request is allowed or not if server allows then send the actual request that's why we have OPTION request first.
+- This OPTION request is called preflight request which means asking for permissions to send request.
+
+## SQL Injection
+- SQL Injection means hacker manipulate the sql queries by injecting malicious sql queries that can harm the data, steal the data.
+- This happens when server doesn't verify or validate the user input and directly enter into the db records. So, It is recommended to perform server side validation also of user input data.
+
+## To Prevent this SQL Injection
+- use prepared statements
+- Limit database privileges means only some user grant the permission to delete, edit the table record.
+
+## DoS Attack
+- Suppose one server has limit to handle the request upto 100 now once 101 request come server said unable to handle this request or resource not available.
+- Now this is common but what if one single user sending that all 100 request once at a time so all server resource is occupied in single resource this is called DoS - Distributed of Service
+
+## The another version is DDoS - Distributed Denial of Service
+- In this hacker hacks the n number of system and from that system make n numbers of request so it become n * n numbers of request to that server which is so much larger than server capabilities to handle.
+
+## How to prevent this DoS and DDoS attacks?
+- Restrict the number of request that server can accept from specific IP in specific timeframe.
+- 
