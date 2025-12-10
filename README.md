@@ -331,4 +331,3 @@
 
 ## How to prevent this DoS and DDoS attacks?
 - Restrict the number of request that server can accept from specific IP in specific timeframe.
-- 
