@@ -219,3 +219,45 @@
 - webpack is static module blundler which blundle the n number of file in most optimized production ready file structure that you can use to deploy on server.
 - serve is a package on npm that used provide a small production type environment on your local system.
 - You can setup this all on your system by following official guide.
+
+## Symbols
+- Symbols is simply premitive data type introduce in ECMAScript 6 version to represent the unique and immutable values.
+- Symbols cannot mutable because it only exists for that specific window means If you reload the window or do refresh then that symbol will be deleted and new one is created.
+- Symbols is like secret key which is guaranteed to be unique.
+- Inorder to store the symbols for specific time period need to store it in database or in local-storage of browser.
+- There are also pre-build symbols in js that can be used.
+
+## Iterator
+- Iterator is a JS object that allows you to access the element of a collection one by one we can use this iterator with loops.
+- Every iterator must have to implement the `next()` method because without it iterator doesn't work.
+- Next method has two things value which has current iteration values and done boolean paramter that holds false or true value based on iteration is completed or not.
+
+## Generators
+- generators are a special type of function that allow you to pause and resume execution, producing a sequence of values over time.
+- useful for handling asynchronous operations, managing state, and working with large datasets in a more memory-efficient way.
+- Syntax is `function* <function_name>` so that `*` is important otherwise it treat that function as normal function.
+- Generator can pause its execusion at any time with using the `yield` keyword.
+- It also use the next function so whether it is a generator or iterator that next function is very important.
+- This Iterator and generators sometimes can be confusing due to its complexity.
+
+## Using this iterator and generators we can build our own looping logics.
+
+## The difference between return and yield?
+- return is used in normal function and used to return the final output after that function execution is terminated. So, if you call the function another time then new execution is started.
+- yield is used in generator function and used to return the current state values to its caller and can be resumed once call by next method.
+
+## Reflect API
+- Reflect added to JS in ES6 version 2015.
+- reflect is a object that contains add, update, delete, get methods that can be helpful while working with objects.
+- It becomes so much easy to work with object using reflect apis.
+- There is Object API is there also but many methods are not there in Object API which is there in Reflect API.
+- In Object API many methods might throw unwanted response on error that not able to handle on client side.
+- Reflect is a toolbox for working with objects in a safe and consistent way.
+
+## Proxy API
+- proxy is object that wrap other objects.
+- proxy will trap the object and modify its properties, get the properties, etc.
+
+## What is the difference between reflect and proxy?
+- proxy is a guard in between js and we as user and let you decide what to do with specific case in-between this.
+- reflect is just normal function or object operation.
