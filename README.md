@@ -19,3 +19,12 @@
 
 - Nullish coalescing operator or ??
 - this is used to tell that only returns a values of right side if left of this operator is null or undefined.
+
+## Generating tsconfig file
+- We can generate tsconfig file by firing command: `tsc --init`.
+
+- If you want to enable tsconfig file to check the whole project means all files then need to fire the command: `tsc` only no file name require.
+
+- We can also enable the watch mode by firing command: `tsc --watch`.
+
+- This will constant watch our folders and automatically generate the js files.
