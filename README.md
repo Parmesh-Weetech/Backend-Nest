@@ -28,3 +28,36 @@
 - We can also enable the watch mode by firing command: `tsc --watch`.
 
 - This will constant watch our folders and automatically generate the js files.
+
+## Classes in TypeScript
+- In typescript, we can create a class as we can create in javascript but there is an extra feature that is `constructor parameter properties` means in typescript, it is require to create variable before assigning some values in constructor function
+- now the constructor parameter properties means we can directly using public variable_name: type in constructor of a class in typescript and it will directly create a variable that we want this is not available in JavaScript.
+
+## Access Modifiers in TypeScript
+- There are three access modifiers: Public, Private, and Protected.
+- These keywords are not available in JavaScript because typescript explicitly adds this to provide the public, private, and protected variables to specific class.
+
+## readonly properties
+- we can also define any properties as readonly properties means that cannot be changed.
+
+## Setter and Getters
+- We can use the getters and setters also in order to set and get the values of variables from class especially the private variable values.
+
+- One more feature that is not available in JavaScript but present in TypeScript which is abstract class
+
+## abstract class
+- abstract class is a class that doesn't have any method implementation but it provides just a function name and paramter that function can have.
+- Every other class which is related to that should have to extend this abstract class and should have to implement this method in order to provide the feature.
+
+## Interface
+- this is also a typescript feature which is not provided by javascript
+- Interface mostly used to define the object type but there is a type declaration is also there.
+
+## The difference between type declaration and interface
+- the main difference between this two is declaration merging means we can define the interface with same name more than one time but typescript simply do that it will merge this all into one final one so we can define as many interface with the same name again and again.
+- But most of the time the type declaration is used instead of interface.
+
+- Interface inherit interface by using `extends` keyword.
+- Class inherit interface by using `implements` keyword.
+
+- We can merge this type declaration using intersection or `&` symbol this will merge two type declaration into one.

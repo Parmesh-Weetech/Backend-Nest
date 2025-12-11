@@ -16,4 +16,6 @@
 //     return "Alice";
 // }
 
-console.log("Hello, World!");
+type d = {
+    [key: string]: any
+}
