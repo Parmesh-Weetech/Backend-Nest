@@ -61,3 +61,20 @@
 - Class inherit interface by using `implements` keyword.
 
 - We can merge this type declaration using intersection or `&` symbol this will merge two type declaration into one.
+
+## Index Signature
+- the syntax is `type D = { [key: string]: any;};`.
+- this allows object to have any number of properties, and here is the type of their keys and values.
+
+## `as const` keyword
+- this is a keyword that is there in typescript only not in javascript
+- this mostly used when we want to make the fields readonly means not editable.
+
+## Generics
+- generics is about combination of multiple types.
+- generics is about working flexibly with different types.
+- generics means it can work with many types but still maintain type-safety.
+- allow to make component re-useable
+- help typescript to understand the return type also.
+- Generics is most useful and important feature that typescript has along with type declaration and interface with classes.
+- We as a developer can handle n number of posibilities of having n number of user input and return type.
