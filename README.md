@@ -334,4 +334,4 @@
 - Use the IDS and IPS system
 - Perform regular network scan
 
-- This are the most impactful attacks and we can prevent it.
+- This are the most impactful attacks and this how we can prevent it.
