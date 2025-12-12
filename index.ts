@@ -35,29 +35,29 @@
 
 // Decorators
 function Logger() {
-  console.log("outer login...");
+    console.log("outer login...");
 
-  return function (target: Function) {
-    console.log("Logging...");
-  };
+    return function (target: Function) {
+        console.log("Logging...");
+    };
 }
 
 function AnotherDecorator() {
-  console.log("outer another decorator...");
-  return function (target: Function) {
-    console.log("Another decorator executed.");
-  };
+    console.log("outer another decorator...");
+    return function (target: Function) {
+        console.log("Another decorator executed.");
+    };
 }
 
 @Logger()
 @AnotherDecorator()
 class Person {
-  name: string;
+    name: string;
 
-  constructor(name: string) {
-    this.name = name;
-    console.log("Person created:", this.name);
-  }
+    constructor(name: string) {
+        this.name = name;
+        console.log("Person created:", this.name);
+    }
 }
 
 const person = new Person("Alice");

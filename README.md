@@ -45,9 +45,11 @@
 
 - One more feature that is not available in JavaScript but present in TypeScript which is abstract class
 
-## abstract class
+## abstract class and methods
 - abstract class is a class that doesn't have any method implementation but it provides just a function name and paramter that function can have.
 - Every other class which is related to that should have to extend this abstract class and should have to implement this method in order to provide the feature.
+- Methods can be abstract but we have to implement this whenever we extends this class
+- Methods can not be private if it is abstract method and private method cannot be abstracted.
 
 ## Interface
 - this is also a typescript feature which is not provided by javascript
@@ -105,3 +107,10 @@
 - Experimental Decorator are mostly used in many framework and libraries like Angular.Js, or in backend framework Nest.Js.
 - We can define multiple decorator to single class, function, variable but the order to bottom-top means last decorator is there in declaration that executes first then upper-ones.
 - But factory decorator order is which they are there in declaration order means top-bottom order.
+
+## ES Modules
+- ES modules are introduce in 2015 in es6 version of ECMAScript
+- Which means we can use the import and export statements in files and divide the one project into multiple file.
+- Before this namespace is used but now namespace is not used mostly but es modules is used.
+- For this we need to specify the type in package.json as module.
+- In importing files in another file we need to specify the type of the file whether it is a js file or ts file because browser won't know which file needs to import and use.
