@@ -71,6 +71,7 @@
 - this mostly used when we want to make the fields readonly means not editable.
 
 ## Generics
+- Generics in TypeScript are a tool for creating reusable, flexible, and type-safe components that can work with a variety of data types, rather than a single specific one.
 - generics is about combination of multiple types.
 - generics is about working flexibly with different types.
 - generics means it can work with many types but still maintain type-safety.
@@ -78,3 +79,26 @@
 - help typescript to understand the return type also.
 - Generics is most useful and important feature that typescript has along with type declaration and interface with classes.
 - We as a developer can handle n number of posibilities of having n number of user input and return type.
+
+## Generics Constraints
+- generics constraints means creating flexible function or class that has many types but not all types. So, this means setting the constraints.
+- Using generics constraints we can you limit what types a generic can accept, so that typescript got to know that what are the properties and methods I can apply to this arguments.
+
+- Generics can be also used in classes and interfaces.
+- Generics in classes and interfaces lets you define reusable structure that can hold user defined types at run-time.
+- But it keeps the typescript safety.
+
+## Decorators
+- decorators are functions that can be added to the functions, classes, properties which adds a extra feature, behaviour, meaning, power to them.
+- Decorators defined using the `@` symbol.
+- This functions are getting called at run-time no at compile-time.
+- Decorator must returns function which is decorator function otherwise it returns an error.
+- We can also pass arguments to the decorator also but make sure it follow above line.
+- Decorator does change the behaviour or what the class, function, property is doing but mostly it will be not.
+- We can't use the decorators directly in simple function or variables. It is a OOP concept and it has to be used in some class
+- Function decorator executes first and then class decorator because class is initialized after method which is inside that class.
+- Order matter while creating decorator for class, methods, and variables because sometime we want one decorator answer input for other or other decorator is depending on previous one.
+- Decorators has two kinds: Experimental and ECMAScript Decorator
+- Experimental Decorator is already in TS
+- ECMAScript Decorator is added to JS in es2022 version.
+- We can also pass the arguments to the decorator but for this we need to wrap the decorator into another function which takes the arguments which is passed into decorator and inner function take target field, context field.
