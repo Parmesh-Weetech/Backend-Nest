@@ -43,6 +43,9 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    // "experimentalDecorators": true
+    "experimentalDecorators": true,
+    // "useDefineForClassFields": true,
+    // "emitDecoratorMetadata": false,
+
   }
 }

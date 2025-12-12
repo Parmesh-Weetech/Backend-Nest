@@ -1,8 +1,8 @@
-import type { privateRequest, loginRequiredRequest, publicRouteRequest } from "./models.ts";
+import type { Request } from "./models.ts";
 
-function Private(req: privateRequest) {
+function Private(req: Request) {
   return function (target: Function) {
-    if (req.url === "/admin" && req.headers.hasOwnProperty("authorization")) {
+    if (req.url === "/admin" && req.headers.hasOwnProperty("authorization") && req.role === "admin") {
       console.log("Access granted to admin route.");
     } else {
       console.log("Access denied. Admins only.");
@@ -10,7 +10,7 @@ function Private(req: privateRequest) {
   };
 }
 
-function LoginRequired(req: loginRequiredRequest) {
+function LoginRequired(req: Request) {
     return function (target: Function) {
         if(req.url === "/api" && !req.headers.hasOwnProperty("authorization")) {
             console.log("login is require to access this route.");
@@ -20,7 +20,7 @@ function LoginRequired(req: loginRequiredRequest) {
     }
 }
 
-function Public(req: publicRouteRequest) {
+function Public(req: Request) {
     if(req.url === "/public") {
         console.log("Accessing public route.");
     } else {

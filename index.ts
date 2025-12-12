@@ -34,17 +34,23 @@
 // console.log(merge("20", 30));
 
 // Decorators
-function Logger(arg1: number, arg2: number) {
-  return function (target: Function, ctx: ClassDecoratorContext) {
+function Logger() {
+  console.log("outer login...");
+
+  return function (target: Function) {
     console.log("Logging...");
-    console.log("Target:", target);
-    console.log("Arguments:", arg1, arg2);
-    console.log("Context:", ctx);
   };
 }
 
+function AnotherDecorator() {
+  console.log("outer another decorator...");
+  return function (target: Function) {
+    console.log("Another decorator executed.");
+  };
+}
 
-@Logger(10, 20)
+@Logger()
+@AnotherDecorator()
 class Person {
   name: string;
 
@@ -55,4 +61,3 @@ class Person {
 }
 
 const person = new Person("Alice");
-

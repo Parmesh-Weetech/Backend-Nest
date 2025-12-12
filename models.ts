@@ -1,16 +1,7 @@
-export type privateRequest = {
-  url: "/admin",
+export type Request = {
+  url: string,
   headers: {
-    authorization: "Bearer token",
+    authorization: string,
   },
-};
-
-export type publicRouteRequest = {
-  url: "/public",
-  headers: {},
-};
-
-export type loginRequiredRequest = {
-  url: "/api",
-  headers: {},
+  role?: string
 };

@@ -1,27 +1,32 @@
 import { Private, LoginRequired, Public } from './Decorators.js'
 import type {
-  privateRequest,
-  loginRequiredRequest,
-  publicRouteRequest,
+    Request
 } from "./models.ts";
 
 // Using the decorators
 @Private({
-    url: "/admin",
-    headers: {},
-} as privateRequest)
+  url: "/admin",
+  headers: {
+    authorization: "Bearer token",
+  },
+  role: "admin",
+} as Request)
 class AdminRoute {}
+
 
 @LoginRequired({
   url: "/api",
   headers: {
     authorization: "Bearer token",
   },
-} as loginRequiredRequest)
+} as Request)
 class ApiRoute {}
 
+
 Public({
-    url: "/public",
-    headers: {},
-} as publicRouteRequest);
+  url: "/public",
+  headers: {
+    authorization: "Bearer token",
+  },
+} as Request);
 class PublicApi {}

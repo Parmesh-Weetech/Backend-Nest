@@ -8,7 +8,12 @@
 //         notifications: true
 //     }
 // };
-export {};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 // console.log(data.user.name);
 // function getName(cb: { (): void }): string {
 //     cb()
@@ -31,21 +36,29 @@ export {};
 // console.log(merge(5, "10"));
 // console.log(merge("20", 30));
 // Decorators
-// function Logger(arg1: number, arg2: number) {
-//   return function (target: Function) {
-//     console.log("Logging...");
-//     console.log("Target:", target);
-//     console.log("Arguments:", arg1, arg2);
-//     console.log(target.prototype)
-//   };
-// }
-// @Logger(10, 20)
-// class Person {
-//   name: string;
-//   constructor(name: string) {
-//     this.name = name;
-//     console.log("Person created:", this.name);
-//   }
-// }
-// const person = new Person("Alice");
+function Logger() {
+    console.log("outer login...");
+    return function (target) {
+        console.log("Logging...");
+    };
+}
+function AnotherDecorator() {
+    console.log("outer another decorator...");
+    return function (target) {
+        console.log("Another decorator executed.");
+    };
+}
+let Person = class Person {
+    name;
+    constructor(name) {
+        this.name = name;
+        console.log("Person created:", this.name);
+    }
+};
+Person = __decorate([
+    Logger(),
+    AnotherDecorator()
+], Person);
+const person = new Person("Alice");
+export {};
 //# sourceMappingURL=index.js.map

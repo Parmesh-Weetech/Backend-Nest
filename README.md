@@ -101,4 +101,7 @@
 - Decorators has two kinds: Experimental and ECMAScript Decorator
 - Experimental Decorator is already in TS
 - ECMAScript Decorator is added to JS in es2022 version.
-- We can also pass the arguments to the decorator but for this we need to wrap the decorator into another function which takes the arguments which is passed into decorator and inner function take target field, context field.
+- We can also pass the arguments to the decorator but for this we need to wrap the decorator into another function which takes the arguments which is passed into decorator and inner function take target field, context field. This is called decorator factory which is used to define a decorator function.
+- Experimental Decorator are mostly used in many framework and libraries like Angular.Js, or in backend framework Nest.Js.
+- We can define multiple decorator to single class, function, variable but the order to bottom-top means last decorator is there in declaration that executes first then upper-ones.
+- But factory decorator order is which they are there in declaration order means top-bottom order.
