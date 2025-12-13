@@ -1,5 +1,4 @@
 import { Private, LoginRequired, Public } from "./Decorators.js";
-import type { Request } from "./models.ts";
 
 // Using the decorators
 @Private({
@@ -8,7 +7,7 @@ import type { Request } from "./models.ts";
         authorization: "Bearer token",
     },
     role: "admin",
-} as Request)
+})
 class AdminRoute { }
 
 @LoginRequired({
@@ -16,13 +15,13 @@ class AdminRoute { }
     headers: {
         authorization: "Bearer token",
     },
-} as Request)
+})
 class ApiRoute { }
 
-Public({
-    url: "/public",
+@Public({
+    url: "/publi",
     headers: {
         authorization: "Bearer token",
     },
-} as Request);
+})
 class PublicApi { }

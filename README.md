@@ -114,3 +114,9 @@
 - Before this namespace is used but now namespace is not used mostly but es modules is used.
 - For this we need to specify the type in package.json as module.
 - In importing files in another file we need to specify the type of the file whether it is a js file or ts file because browser won't know which file needs to import and use.
+
+## Using typescript with third party libraries
+- The best example of it is Zod validation library.
+
+## For enabling maps in your project
+- For enabling maps in your project we can use the geocoding google map api. It is not free but free tier is there for every monthly use.

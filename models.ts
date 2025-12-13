@@ -5,3 +5,17 @@ export type Request = {
   },
   role?: string
 };
+type APIResponse = {
+  status: number,
+  body: string
+};
+
+export const APIResponse: APIResponse = {
+  status: 200,
+  body: ""
+};
+
+export type DecoratorResponse = {
+  // apiResponse?: APIResponse,
+  target?: Function
+}
