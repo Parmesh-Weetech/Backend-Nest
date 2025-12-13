@@ -35,11 +35,18 @@
 - `express.Router()` is a mountable, modular handler that used to group the route and middleware related codes.
 
 ## Folder structure
-- config
-- routes
-- controllers
-- middlewares
-- utils
-- models
-- views
-- Public
+- `/config`
+- `/routes`
+- `/controllers`
+- `/middlewares`
+- `/utils`
+- `/models`
+- `/views`
+- `/Public`
+
+## Template engines
+- template engines are the tool that used to generate dynamic HTML Content on server side.
+- It allows to merge the static files with dynamic content.
+- You can replace the placeholder in that engine file with proper values.
+- Most global used template engine is ejs or electron.js.
+- Other example are Pug, Handlebars
