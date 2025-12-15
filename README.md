@@ -62,3 +62,28 @@
 - This separation of concerns makes code cleaner, more maintainable, scalable, and easier to collaborate on, widely used in web, desktop, and mobile development for organizing complex UIs and business logic.
 - Model doesn't matter if we are storing data in db, files, or in static variable.
 
+## Vertical Scaling and Horizontal Scaling in SQL and NoSQL
+- Vertical Scaling means adding more cpu, storage to the database server.
+- Horizontal Scaling means adding more server in order to improve performance, more data storage.
+
+## SQL vs NoSQL
+- There always be a particular structure is there in SQL where as NoSQL doesn't has any particular structure that needs to follow.
+- There are multiple relation is there in SQL and there is no relation in NoSQL.
+- Horizontal Scaling is difficult in SQL but Vertical Scaling can be easy and possible.
+- In NoSQL, Horizontal and Vertical Scaling is possible but needs to follow some pattern
+
+## ORMs and type of it
+- ORM basically stands for Object Relational Mapper 
+- The main problem is while working with RDBMS is every time we need to write the query and for different result we have different queries which can be complex once after multiple tables result needs to includes in single result.
+- That's why ORM is there.
+- ORM just proide a build in function that in background write the complex to easy queries for us but for that we just need to call the in-build functions of that ORM.
+- One of the popular example for this is Prisma or TypeORM
+- There is another concept while working with mongodb which is ODM means Object Document Mapping which is also similar to ORM but it is in mongodb means NoSQL database.
+- Example of this ORMs are Prisma, Sequelize, TypeORM, etc.
+
+## Features of Sequelize
+- Models & Associations
+- Transactions
+- Inbuild Query
+- Migrations
+- Hooks & Events
