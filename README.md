@@ -49,4 +49,16 @@
 - It allows to merge the static files with dynamic content.
 - You can replace the placeholder in that engine file with proper values.
 - Most global used template engine is ejs or electron.js.
-- Other example are Pug, Handlebars
+- Other example are Pug, Handlebars.
+
+## MVC Structure
+- MVC stands for model view controller
+- It is all about sepration concern.
+- Model means basically object that is part of code which is responsible for data in code means database schema, request object, etc.
+- View means whatever user see in the ui part and whatever backend is sending to frontend in order to show it basically data mapping to frontend.
+- Controller means on whatever endpoint frontend is sending request basically the first part of backend which gets interaction with frontend data, headers that is Controller which is responsible for defining backend endpoints on which frontend will send requests.
+- Views are responsible for rendering right html in code.
+- Controllers are act like bridge between Views and Models. It is like in-between person to both.
+- This separation of concerns makes code cleaner, more maintainable, scalable, and easier to collaborate on, widely used in web, desktop, and mobile development for organizing complex UIs and business logic.
+- Model doesn't matter if we are storing data in db, files, or in static variable.
+
