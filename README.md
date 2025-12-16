@@ -23,3 +23,16 @@ Steps to run this project:
 - poolSize: for maximum number of active connection
 - Migrations to be loaded and used for this data source
 - Other general options are there like host, db_name, db_password, db_port
+
+## Entity Options
+- @Entity(): A database table will be created for such models. You work with entities everywhere in TypeORM. You can load/insert/update/remove and perform other operations with them.
+- @Column(): To add database columns, you need to decorate an entity's properties you want to make into a column with a @Column decorator.
+- @PrimaryColumn: To make a column a primary key, you need to use the @PrimaryColumn decorator.
+- @PrimaryGeneratedColumn: To make column value auto-generated use @PrimaryGeneratedColumn decorator.
+
+## Null and Undefined values in where cause conditions
+- By default, TypeORM skips both null and undefined values in where conditions. This means that if you include a property with a null or undefined value in your where clause, it will be ignored.
+- For this set invalidWhereValuesBehavior in data-source file as throw value otherwise that problem will be there and you can't do anything in production.
+
+## Entity
+- Entity is a class that maps to a database table (or collection when using MongoDB). You can create an entity by defining a new class and mark it with @Entity().

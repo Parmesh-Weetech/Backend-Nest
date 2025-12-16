@@ -25,23 +25,34 @@ export class UserController {
     }
 
     async save(request: Request, response: Response, next: NextFunction) {
-        const { firstName, lastName, age } = request.body;
+        const { firstName, lastName, age, phone } = request.body;
 
         const user = Object.assign(new User(), {
             firstName,
             lastName,
-            age
+            age,
+            phone
         })
 
         return this.userRepository.save(user)
     }
 
+    async update(request: Request, response: Response, next: NextFunction) {
+        const { firstName, lastName, age, phone } = request.body;
+
+        const user = this.userRepository.updateAll({
+            firstName, lastName, age, phone
+        })
+
+        return user;
+    }
+
     async remove(request: Request, response: Response, next: NextFunction) {
         const id = parseInt(request.params.id)
 
-        let userToRemove = await this.userRepository.findOneBy({ id })
+        let userToRemove = await this.userRepository.findBy({ id })
 
-        if (!userToRemove) {
+        if (!userToRemove) {    
             return "this user not exist"
         }
 
