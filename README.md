@@ -87,3 +87,27 @@
 - Inbuild Query
 - Migrations
 - Hooks & Events
+
+## Transaction in Sequqlize
+- Transaction is not supported by sequqlize by default.
+- Two ways of transaction
+    - Unmanaged: Commiting and rolling back the transaction should done manually by user.
+    - managed: Commiting and rolling back the transaction done automatically.
+- In Managed transaction, sequqlize automatically start transaction and obtain transaction object t.
+- then sequelize run that callback that we pass as async function to that transaction and pass object t.
+
+## Migrations in sequelize
+- As we manage the version control of our code using git we can also manage the migrations in order to keep track of changes or create happen in our database schema or table.
+- Migration is done using sequelize cli.
+- A Migration in Sequelize is a javascript file which exports two functions, up and down, that dictates how to perform the migration and undo it.
+- You define those functions manually, but you don't call them manually; they will be called automatically by the CLI.
+- For more information about command visit: [seqelize-cli](https://github.com/sequelize/cli).
+
+## Seeders are used with migrations to insert the initial data or default data.
+## It is not used in runtime every request of updation call.
+
+## Joins in sequelize
+- We need to use the association for this joins.
+- By default, associations are loaded using a LEFT OUTER JOIN.
+- If we want to do the right outer join then we need to use the right: true property in methods include object.
+- 

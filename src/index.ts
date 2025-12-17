@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import dbConnect, { sequelize } from './config/db.ts';
 import { User } from './models/User.ts';
 import { Profile } from './models/Profile.ts';
+import { Transaction } from 'sequelize';
 
 dotenv.config();
 const app = express();
@@ -16,11 +17,13 @@ sequelize.sync();
 User.hasOne(Profile, {
   foreignKey: 'userId',
   as: 'profile'
-})
+});
 Profile.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user'
-})
+});
+
+const t = await sequelize.transaction();
 
 app.post("/", async (req, res) => {
   try {
@@ -78,7 +81,7 @@ app.delete("/delete/:email", async (req, res) => {
       where: {
         email: email
       },
-      force: true
+      // force: true
     });
 
     await user?.destroy();
@@ -110,7 +113,7 @@ app.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
-    const user = await User.findByPk(2)
+    const user = await User.findByPk(2, { transaction: t })
 
     res.status(200).json(user)
   } catch (error: any) {
