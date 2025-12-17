@@ -5,4 +5,19 @@ export const ProfileRoute = [{
     route: "/profile",
     controller: ProfileController,
     action: "save"
+}, {
+    method: "put",
+    route: "/profile",
+    controller: ProfileController,
+    action: "update"
+}, {
+    method: "get",
+    route: "/profile",
+    controller: ProfileController,
+    action: "all"
+}, {
+    method: "get",
+    route: "/profile/:id",
+    controller: ProfileController,
+    action: "getOne"
 }]
