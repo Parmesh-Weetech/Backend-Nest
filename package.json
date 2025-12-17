@@ -1,26 +1,28 @@
 {
-   "name": "div",
-   "version": "0.0.1",
-   "description": "Awesome project developed with TypeORM.",
-   "type": "commonjs",
-   "dependencies": {
-      "@types/express": "^5.0.6",
-      "body-parser": "^2.2.1",
-      "express": "^5.2.1",
-      "pg": "^8.16.3",
-      "typeorm": "^0.3.28"
-   },
-   "scripts": {
-      "dev": "nodemon",
-      "build": "rimraf build && concurrently \"tsc\"",
-      "start": "npm run build && nodemon build/index.ts",
-      "typeorm": "typeorm-ts-node-commonjs"
-   },
-   "devDependencies": {
-      "@types/node": "^25.0.2",
-      "concurrently": "^9.2.1",
-      "nodemon": "^3.1.11",
-      "rimraf": "^6.1.2",
-      "typescript": "^5.9.3"
-   }
+  "name": "div",
+  "version": "0.0.1",
+  "description": "Awesome project developed with TypeORM.",
+  "type": "module",
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "body-parser": "^2.2.1",
+    "express": "^5.2.1",
+    "pg": "^8.16.3",
+    "ts-node": "^10.9.2",
+    "typeorm": "^0.3.28",
+    "typeorm-ts-node-esm": "^0.3.20"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "build": "rimraf build && concurrently \"tsc\"",
+    "start": "npm run build && nodemon build/index.js",
+    "typeorm": "typeorm-ts-node-esm"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.2",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3"
+  }
 }

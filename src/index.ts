@@ -1,13 +1,13 @@
-import * as express from "express"
-import * as bodyParser from "body-parser"
-import { ProductRoutes } from "./routes/ProductRoute"
-import { UserRoutes } from './routes/UserRoute'
-import { AppDataSource } from "./data-source"
+import express from "express"
+import bodyParser from "body-parser"
+import AppDataSource from "./data-source.js"
+import { UserRoutes } from './routes/UserRoute.js'
+import { ProfileRoute } from "./routes/ProfileRoute.js"
 
 export const Routes = [
     ...UserRoutes,
-    ...ProductRoutes,
-];
+    ...ProfileRoute
+]
 
 AppDataSource.initialize().then(async () => {
     const app = express()
@@ -26,7 +26,7 @@ AppDataSource.initialize().then(async () => {
 
     app.listen(3000)
     console.log("Express server has started on port 3000")
-    
+
     // const dataSourceOptions: DataSourceOptions = AppDataSource.options
     // log(dataSourceOptions) // prints the datasource option which we given to it in data-source.ts file.
 
@@ -37,4 +37,20 @@ AppDataSource.initialize().then(async () => {
     // log(await AppDataSource.manager.find(User)) // fetches the users information
 
     // await AppDataSource.synchronize() // synchronize the table with current model schema. If there is any changes in mdoel it will update the table.
+
+    // provide a single transaction where multiple database can perform their operations.
+    // await AppDataSource.transaction(async (manager) => {
+    // NOTE: you must perform all database operations using given manager instance
+    // its a special instance of EntityManager working with this transaction
+    // and don't forget to await things here
+    // })
+
+    // await AppDataSource.query("SELECT * FROM user") // perform raw sql queries operations
+
+    // await AppDataSource.createQueryBuilder().select().from(User, 'user') // used create a query builder which mainly used to build queries
+
+    // const queryRunner = AppDataSource.createQueryRunner()
+    // await queryRunner.connect(); // Creates a query runner used to manage and work with a single real database dataSource.
+
+
 }).catch(error => console.log(error))

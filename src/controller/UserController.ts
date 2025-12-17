@@ -1,6 +1,6 @@
-import { AppDataSource } from "../data-source"
+import AppDataSource from "../data-source.js"
 import { NextFunction, Request, Response } from "express"
-import { User } from "../entity/User"
+import { User } from "../entity/User.js"
 
 export class UserController {
 
@@ -15,7 +15,7 @@ export class UserController {
 
 
         const user = await this.userRepository.findOne({
-            where: { id }
+            where: { id: String(id) }
         })
 
         if (!user) {
@@ -37,20 +37,10 @@ export class UserController {
         return this.userRepository.save(user)
     }
 
-    async update(request: Request, response: Response, next: NextFunction) {
-        const { firstName, lastName, age, phone } = request.body;
-
-        const user = this.userRepository.updateAll({
-            firstName, lastName, age, phone
-        })
-
-        return user;
-    }
-
     async remove(request: Request, response: Response, next: NextFunction) {
         const id = parseInt(request.params.id)
 
-        let userToRemove = await this.userRepository.findBy({ id })
+        let userToRemove = await this.userRepository.findBy({ id: String(id) })
 
         if (!userToRemove) {    
             return "this user not exist"
