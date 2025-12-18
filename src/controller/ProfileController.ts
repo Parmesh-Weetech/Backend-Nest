@@ -70,4 +70,23 @@ export class ProfileController {
             throw new Error(error.message)
         }
     }
+
+    async delete(request: Request, response: Response, next: NextFunction) {
+        try {
+            const id = request.params.id;
+
+            const result = await AppDataSource.transaction(async (manager) => {
+                const profile = await manager.findOne(Profile, {
+                    where: {
+                        id: id
+                    }
+                })
+
+                await manager.delete(Profile, profile.id)
+            })
+        } catch (error: any) {
+            console.log(error);
+            throw new Error(error.message)
+        }
+    }
 }

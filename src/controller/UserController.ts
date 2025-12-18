@@ -2,10 +2,12 @@ import AppDataSource from "../data-source.js"
 import { NextFunction, Request, Response } from "express"
 import { User } from "../entity/User.js"
 import { Profile } from "../entity/Profile.js"
+import { UserProfileView } from "../entity/UserProfileView.js"
 
 export class UserController {
 
     private userRepository = AppDataSource.getRepository(User)
+    private userViewRepository = AppDataSource.getRepository(UserProfileView)
 
     async all(request: Request, response: Response, next: NextFunction) {
         try {
@@ -132,6 +134,17 @@ export class UserController {
             });
 
             return response.json({ message: "User and profile deleted" });
+        } catch (error: any) {
+            console.log(error);
+            throw new Error(error.message)
+        }
+    }
+
+    async viewEntry(request: Request, response: Response, next: NextFunction) {
+        try {
+            const repo = await this.userViewRepository.find()
+
+            response.status(200).json(repo)
         } catch (error: any) {
             console.log(error);
             throw new Error(error.message)

@@ -142,7 +142,110 @@ There are several options you can specify for relations:
 
 ## One of the major advantage of transaction is if anything fails then everything is roll backed nothing should be commited in db.
 
-## Common Problem while working with relation that is circular import in which one is depending one another is another is depending on one
+## Common Problem while working with relation that is circular import in which one is depending on another is another is depending on one
 ## In this situation use the type import: for more information visit this doc reference of typeORM: [doc](https://typeorm.io/docs/relations/relations-faq/#avoid-circular-import-errors)
 
 ## In typeORM there are many ways of doing transaction even the nested transaction also we can do but most common and easiest way is to use the dataSource.transaction which takes call-back function as argument and perform actions that we define.
+
+## Seeder
+- There is no inbuild way to seed the data in typeorm but It is recommended to use the migration for that and this is the best way.
+- Another option is to have custom seeder file.
+- Another way is to use the external library like typeorm-extension or typeorm-seeder.
+
+## Database Joins with TypeORM Joins
+- SQL joins means it combines rows from two or more tables based on a related column.
+- Most common is inner join
+- `INNER JOIN` means when some records are common in both table only return that.
+- `LEFT (OUTER) JOIN` means returns all records from the left table, and the matched records from the right table.
+- `RIGHT (OUTER) JOIN` means returns all records from the right table, and the matched records from the left table.
+- `FULL (OUTER) JOIN` means returns all records when there is a match in either left or right table.
+- `SELF JOIN` means table joined to itself.
+- `CROSS JOIN` means every row of first table X every row of second table
+- We can also define multiple joins in single sql query.
+- `LEFT JOIN` is mostly used.
+- this is the functions that is used in typeORM `innerJoinAndSelect(relationPath, alias)`: Returns only records that have matching values in both tables.
+- `leftJoinAndSelect(relationPath, alias)`: Returns all records from the left table (the main entity) and the matched records from the right table (the joined entity). 
+- Another function is `leftJoin` but this will only join the record does not return it. But we can use the `select()` method to return the records.
+- There are multiple functions are there for joins for more information: visit [official_doc](https://typeorm.io/docs/query-builder/select-query-builder/#joining-relations)
+- The difference between inner join and left join is that if data not found then inner join won't return anything but left join will return left side table record if it doesn't found anything from left table which is related to another table.
+- TypeORM does NOT support RIGHT JOIN directly. You must reverse tables
+- TypeORM does not support FULL JOIN must need to use the raw sql queries.
+
+## Pagination using Joins
+- two methods are there mainly: `take` and `skip`.
+- Take is used to take the first n number entry in which n are argument which takes by take.
+- Skip is used to skip the first n number entry in which n are argument which takes by skip.
+- We can use both the function together
+
+## Database Union
+- Union combines rows not columns
+- For this table must have same number of columns
+- Both should have Compatible data types.
+- Both should have Same column order
+- union will remove duplicate where union all will not.
+- For union, TypeORM doesn't support it must use the raw sql queries
+
+## We can use raw sql queries using `dataSource.query` or in transaction `manager.query`.
+
+## JOIN = combine related data horizontally
+## UNION = stack similar data vertically
+
+## Normalization
+- It is a database design concept.
+- Normalization means organizing data to remove duplication and maintain consistency.
+- There are multiple forms are there in normalization.
+- Those are 1NF, 2NF, 3NF, BCNF, 4NF/5NF.
+- Mostly stop at 3NF.
+- TypeORM supports normalization using:
+    - Entities (tables)
+    - Relations (FKs)
+    - Constraints
+    - Indexes
+    - Join queries
+    - Transactions
+- Basically relations are backbone of normalization in typeORM.
+- Normal forms are defined by EF Codd who is the father of RDBMS.
+
+## 1NF
+- No Multiple enries in one column
+- Should create another entry or another table using foreign key primary key concept.
+
+## 2NF
+- should be in 1NF
+- No partial dependency on composite key
+- Suppose there are two table order which has order_id and id another table has product_name, id so order_product should have id, order_id, product_id no product_name should be there in third table
+
+## 3NF
+- should be in 2NF
+- Problem
+- |user_id | city | state |
+- State depends on city, not user_id.
+
+- Fix (3NF)
+- User
+| user_id | city_id |
+- City
+| city_id | city | state |
+
+## BCNF
+- Boyce–Codd Normal Form
+- Every determinant must be a candidate key
+
+## 4NF
+- No multi-valued dependency
+- Problem
+- | student | hobby | language |
+- One student has multiple hobbies & languages → explosion of rows
+
+- Fix
+- Student_Hobby, Student_Language
+
+## 5NF
+- No join dependency
+- mostly used in research systems
+
+## CTE - Common Table Expression
+- It is an essential tool for simplifying complex queries and making them more readable.
+- CTE in SQL allows developers to break down complicated logic into manageable parts.
+- We can start it my WITH keyword
+- WITH <CTE_name> AS (sql_query)
