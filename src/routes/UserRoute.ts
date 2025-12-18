@@ -4,8 +4,8 @@ import { UserController_Join } from "../controller/UserController_Join.js"
 export const UserRoutes = [{
     method: "get",
     route: "/users",
-    controller: UserController,
-    action: "viewEntry"
+    controller: UserController_Join,
+    action: "getView" // getting view entries can be replaced with actual function.
 }, {
     method: "get",
     route: "/users/:id",

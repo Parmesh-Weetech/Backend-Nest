@@ -140,7 +140,8 @@ export class UserController {
         }
     }
 
-    async viewEntry(request: Request, response: Response, next: NextFunction) {
+    // 
+    async getView(request: Request, response: Response, next: NextFunction) {
         try {
             const repo = await this.userViewRepository.find()
 

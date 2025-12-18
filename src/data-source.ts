@@ -1,8 +1,9 @@
 import "reflect-metadata";
-import { DataSource } from "typeorm";
+import { DataSource, DataSourceOptions } from "typeorm";
 import "dotenv/config";
+import { SeederOptions, runSeeders } from 'typeorm-extension';
 
-const AppDataSource = new DataSource({
+const options: DataSourceOptions & SeederOptions = {
     type: "postgres",
     host: "localhost",
     port: 5440,
@@ -15,6 +16,8 @@ const AppDataSource = new DataSource({
     entities: ["build/entity/**/*.js"],
     migrations: ["build/migration/**/*.js"],
     subscribers: ["build/subscriber/**/*.js"],
+    seeds: ["build/seeds/**/*.js"],
+    factories: ["build/factories/**/*.js"],
     migrationsRun: false, // tells whether migrations should be auto-run or not
     // ssl: !!process.env.POSTGRES_SSL, // require to connect to postgres by ssl it is require if it is in cloud or remote connection
     invalidWhereValuesBehavior: {
@@ -26,6 +29,32 @@ const AppDataSource = new DataSource({
     //     alwaysEnabled: false
     // }, // enables caching
 
-});
+}
+
+const AppDataSource = new DataSource(options);
+
+(async () => {
+    const options: DataSourceOptions = {
+        type: 'postgres',
+        database: 'divdata',
+        port: 5440,
+        host: "localhost",
+        password: "divpassword",
+        synchronize: false,
+        username: "div",
+        entities: ["build/entity/**/*.js"],
+        migrations: ["build/migration/**/*.js"],
+        subscribers: ["build/subscriber/**/*.js"],
+    };
+
+    const dataSource = new DataSource(options);
+    await dataSource.initialize();
+
+    runSeeders(dataSource, {
+        seeds: ['build/seeds/**/*.js'],
+        factories: ['build/factories/**/*.js']
+    });
+})();
+
 
 export default AppDataSource;

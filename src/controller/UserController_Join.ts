@@ -19,6 +19,7 @@ export class UserController_Join {
 
             const users = await AppDataSource.getRepository(Profile).createQueryBuilder("profile")
                 .leftJoinAndSelect("profile.user", "user")
+                .skip(1)
                 .getMany(); // RIGHT JOIN
 
             response.status(200).json(users)

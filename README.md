@@ -249,3 +249,5 @@ There are several options you can specify for relations:
 - CTE in SQL allows developers to break down complicated logic into manageable parts.
 - We can start it my WITH keyword
 - WITH <CTE_name> AS (sql_query)
+
+# For more information visit official site [doc](https://typeorm.io/docs/getting-started)
