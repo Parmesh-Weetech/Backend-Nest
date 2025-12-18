@@ -145,3 +145,4 @@ There are several options you can specify for relations:
 ## Common Problem while working with relation that is circular import in which one is depending one another is another is depending on one
 ## In this situation use the type import: for more information visit this doc reference of typeORM: [doc](https://typeorm.io/docs/relations/relations-faq/#avoid-circular-import-errors)
 
+## In typeORM there are many ways of doing transaction even the nested transaction also we can do but most common and easiest way is to use the dataSource.transaction which takes call-back function as argument and perform actions that we define.

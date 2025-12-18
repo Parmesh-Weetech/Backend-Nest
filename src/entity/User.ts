@@ -8,8 +8,8 @@ export class User {
 
     @Column({ default: "parmesh" })
     name: string
-    
-    @OneToOne("Profile", (profile: Profile) => profile.user)
+
+    @OneToOne("Profile", (profile: Profile) => profile.user, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
     @JoinColumn()
     profile: Profile
 }
