@@ -10,7 +10,7 @@ import userRoute from './routes/userRoute.ts';
 import roleRoute from './routes/roleRoute.ts';
 import permissionRoute from './routes/permissionRoute.ts';
 import MongoStore from "connect-mongo";
-import { checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
+import { checkPermission, checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
 import { csrfSynchronisedProtection, generateToken } from "./util/csrf.ts";
 
 const app = express();

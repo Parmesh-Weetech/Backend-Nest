@@ -36,14 +36,21 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ message: "Invalid Credentials" });
             return;
         }
-
-        const token = generateRandomString(8);
+        
         const csrfToken = generateToken(req);
 
         req.session._csrfToken = req.session.csrfToken
 
         req.session.userId = userData._id;
         req.session.role = userData.roleId;
+
+        const role = await Role.findOne({ _id: userData.roleId });
+
+        if(!role) {
+            res.status(403).json({ message: "Unauthorized access!"});
+        }
+
+        req.session.permissions = [role!.permissionsIds];
 
         res.status(200).json({ message: "User Login Successful", sessionId: req.sessionID, csrfToken: csrfToken })
     } catch (error: any) {
