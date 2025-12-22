@@ -16,3 +16,13 @@
 
 ## What are session?
 - Sessions in Express enable the server to maintain user-specific data across multiple requests by storing information server-side and associating it with a unique session identifier. This approach allows for persistent user interactions and state management within web applications.
+
+## Project Idea
+- This project has mainly has one admin which is created by creator.
+- Admin has full system access of this project.
+- Admin can do CRUD on user, as well as Posts.
+- Admin create a set of user which has permissions which combines and make one role which is assigned to one user which is in db.
+- based on this permissions and roles user can perform CRUD on posts.
+- but by default all user can see all posts.
+- This project include RBAC, permissions, login, signup, crud on user, and crud post based on roles and permissions with validation and reset password.
+- Session based authentication with csrf token.

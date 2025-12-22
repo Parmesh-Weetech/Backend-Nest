@@ -2,13 +2,13 @@ import "dotenv/config";
 import express from "express";
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { csrfSync } from "csrf-sync";
 import { v4 as genuuid } from "uuid";
 import { connectMongo } from "./config/mongo.ts";
-import postRoute from './routes/postRoute.ts'
-import authRoute from './routes/authRoute.ts'
+import postRoute from './routes/postRoute.ts';
+import authRoute from './routes/authRoute.ts';
+import userRoute from './routes/userRoute.ts';
 import MongoStore from "connect-mongo";
-import { isAuthenticated } from "./middlewares/authMiddleware.ts";
+import { checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
 import { csrfSynchronisedProtection, generateToken } from "./util/csrf.ts";
 
 const app = express();
@@ -23,13 +23,13 @@ app.use(session({
     saveUninitialized: false,
     resave: false,
     cookie: {
-        maxAge: 60000,
+        maxAge: 300000,
         httpOnly: true
     },
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URI!,
         collectionName: "sessions",
-        ttl: 60000
+        ttl: 300000
     })
 }));
 app.use("/auth", authRoute);
@@ -44,7 +44,8 @@ const startServer = async () => {
     });;
 };
 
-app.use("/post", isAuthenticated, postRoute);
+app.use("/post", isAuthenticated, checkRole, postRoute);
+app.use("/user", isAuthenticated, checkRole, userRoute);
 app.get("/csrf-token", (req, res) => {
     const token = generateToken(req);
     res.json({ csrfToken: token });

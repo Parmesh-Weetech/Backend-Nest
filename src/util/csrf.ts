@@ -7,7 +7,7 @@ export const {
     getTokenFromRequest: (req) => {
         return (
             req.headers["x-csrf-token"] ||
-            req.body?._csrf
+            req.session?._csrfToken
         );
     }
 });

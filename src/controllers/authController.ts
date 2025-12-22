@@ -3,6 +3,19 @@ import { generateRandomString } from "../util/randomStringUtil.ts";
 import User from "../models/userModel.ts";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../util/csrf.ts";
+import crypto from 'crypto';
+import nodemailer from "nodemailer";
+import Reset from "../models/resetModel.ts";
+
+// const transporter = nodemailer.createTransport({
+//     host: "smtp.gmail.com",
+//     port: 587,
+//     secure: true,
+//     auth: {
+//         user: "parmesh@weetechsolution.com",
+//         pass: "" // need to set the password of app password from account
+//     }
+// })
 
 export const login = async (req: Request, res: Response) => {
     try {
@@ -27,7 +40,7 @@ export const login = async (req: Request, res: Response) => {
 
         req.session._csrfToken = req.session.csrfToken
 
-        req.session.userId = userData?._id;
+        req.session.userId = userData._id;
         req.session.authId = token;
 
         res.status(200).json({ message: "User Login Successful", sessionId: req.sessionID, csrfToken: csrfToken })
@@ -53,11 +66,85 @@ export const register = async (req: Request, res: Response) => {
         const user = new User({ name: name, email: email, password: hashPassword });
         await user.save();
 
-        res.status(201).json({ message: "User Registered Successfully", user: user });
+        // transporter.sendMail(transporter, async (error, info) => {
+        //     if(error) {
+        //         console.log(error.message)
+        //         await User.deleteOne({ id: user._id });
+        //         res.status(500).json({ message: "Internal Server Error!"})
+        //     } else {
+        //         res.status(201).json({ message: "User Registered Successfully", user: user });
+        //     }
+        // })
 
+        // res.status(500).json({ message: "Internal Server Error!" })
+        res.status(201).json({ message: "User Registered Successfully", user: user });
     } catch (error: any) {
         console.log(error);
         throw new Error(error);
     }
 }
 
+export const reset = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email: email });
+
+        if(!user) {
+            res.status(400).json({ message: "Unathorized access! User not exists."});
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+
+        const reset = new Reset({
+            resetLink: token,
+            resetTime: Date.now() + 600000,
+            userId: user!._id
+        })
+
+        await reset.save();
+
+        res.status(201).json({ message: "Reset Link Generated", resetLink: token });
+    } catch (error: any) {
+        console.log(error);
+        throw new Error(error);
+    }
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const token = req.params.token;
+        const { email, password } = req.body;
+
+        if (!token) {
+            res.status(400).json({ message: "Token is required" });
+            return;
+        }
+
+        const reset = await Reset.findOne({ resetLink: token, resetTime: {$gt: Date.now() } });
+
+        if(!reset) {
+            res.status(400).json({ message: "Invalid Request" });
+        }
+
+        const genSalt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(password, genSalt);
+
+        let user = await User.findOne({ email: email });
+
+        if(!user) {
+            res.status(400).json({ message: "Unauthorized access! User not exists"})
+        }
+
+        user = await User.findByIdAndUpdate(user!._id, {
+            password: hashPassword
+        })
+
+        await Reset.deleteOne({ id: reset!._id });
+
+        res.status(200).json({ message: "Password Reset Successfully."});
+    } catch (error: any) {
+        console.log(error);
+        throw new Error(error);
+    }
+}

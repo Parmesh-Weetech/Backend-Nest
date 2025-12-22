@@ -1,12 +1,12 @@
 import mongoose, { Schema } from "mongoose";
 
-const postSchema = new mongoose.Schema({
-    name: {
+const resetSchema = new mongoose.Schema({ 
+    resetLink: {
         type: String,
         required: true
     },
-    bio: {
-        type: String,
+    resetTime: {
+        type: Date,
         required: true
     },
     userId: {
@@ -18,5 +18,6 @@ const postSchema = new mongoose.Schema({
     timestamps: true
 })
 
-const Post = mongoose.model("post", postSchema);
-export default Post;
+const Reset = mongoose.model("reset", resetSchema);
+
+export default Reset;

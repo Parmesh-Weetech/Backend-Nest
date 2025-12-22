@@ -23,36 +23,65 @@ export const createPost = async (req: Request, res: Response) => {
     }
 }
 
-export const updatePost = (req: Request, res: Response) => {
+export const updatePost = async (req: Request, res: Response) => {
     try {
+        const userId = req.session.userId;
 
+        const { id, name, bio } = req.body;
+
+        const post = await Post.findOne({ userId: userId, _id: id });
+
+        if(!post) {
+            res.status(400).json({ message: "Unauthorized Request!"});
+        }
+
+        await Post.findByIdAndUpdate(id, {
+            name: name,
+            bio: bio
+        });
+
+        res.status(200).json({ message: "Post Updated Successfully."});
+    } catch (error) { 
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" })
+    }
+}
+
+export const deletePost = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id;
+
+        await Post.findByIdAndDelete(id);
+
+        res.status(200).json({ message: "Post Deleted Successfully"});
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server Error" })
     }
 }
 
-export const deletePost = (req: Request, res: Response) => {
+export const getAllPost = async (req: Request, res: Response) => {
     try {
+        const userId = req.session.userId;
 
+        const posts = await Post.find({ userId: userId });
+
+        console.log(posts)
+
+        res.status(200).send(posts);
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server Error" })
     }
 }
 
-export const getAllPost = (req: Request, res: Response) => {
+export const getPostById = async (req: Request, res: Response) => {
     try {
+        const id = req.params.id;
 
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "Internal Server Error" })
-    }
-}
+        const post = await Post.findById(id);
 
-export const getPostById = (req: Request, res: Response) => {
-    try {
-
+        res.status(200).json({ post: post });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server Error" })
