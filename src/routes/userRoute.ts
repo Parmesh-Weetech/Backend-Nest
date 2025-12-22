@@ -1,10 +1,10 @@
 import express from "express";
-import { updateUser, deleteUser, getAllUser, getUserById } from "../controllers/userController.ts";
+import { createUser, updateUser, deleteUser, getAllUser, getUserById } from "../controllers/userController.ts";
 import { register } from "../controllers/authController.ts";
 
 const router = express.Router();
 
-router.post("/create", register);
+router.post("/create", createUser);
 router.put("/update", updateUser);
 router.delete('/delete/:id', deleteUser);
 router.get("/all", getAllUser);

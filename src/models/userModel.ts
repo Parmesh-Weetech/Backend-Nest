@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    roleId: {
+        type: String,
+        required: false
+    }
 }, {
     timestamps: true
 })

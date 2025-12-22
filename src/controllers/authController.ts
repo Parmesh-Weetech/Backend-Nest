@@ -6,14 +6,16 @@ import { generateToken } from "../util/csrf.ts";
 import crypto from 'crypto';
 import nodemailer from "nodemailer";
 import Reset from "../models/resetModel.ts";
+import { Permission } from "../models/permissionModel.ts";
+import { Role } from "../models/roleModel.ts";
 
 // const transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com",
-//     port: 587,
-//     secure: true,
+//     host: process.env.SMTP_HOST, 
+//     port: process.env.SMTP_PORT,
+//     secure: process.env.SMTP_SECURE,
 //     auth: {
-//         user: "parmesh@weetechsolution.com",
-//         pass: "" // need to set the password of app password from account
+//         user: process.env.SMTP_USER,
+//         pass: process.env.SMTP_PASSWORD // need to set the password of app password from account
 //     }
 // })
 
@@ -41,7 +43,7 @@ export const login = async (req: Request, res: Response) => {
         req.session._csrfToken = req.session.csrfToken
 
         req.session.userId = userData._id;
-        req.session.authId = token;
+        req.session.role = userData.roleId;
 
         res.status(200).json({ message: "User Login Successful", sessionId: req.sessionID, csrfToken: csrfToken })
     } catch (error: any) {
@@ -60,10 +62,23 @@ export const register = async (req: Request, res: Response) => {
             res.status(403).json({ message: "User already exists" });
         }
 
+        const permission = new Permission({
+            name: "ALL"
+        })
+
+        await permission.save();
+
+        const role = new Role({
+            name: "SYSTEM",
+            permissionsIds: [permission._id]
+        })
+
+        await role.save();
+
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(password, salt);
 
-        const user = new User({ name: name, email: email, password: hashPassword });
+        const user = new User({ name: name, email: email, password: hashPassword, roleId: role._id });
         await user.save();
 
         // transporter.sendMail(transporter, async (error, info) => {

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import { v4 as genuuid } from "uuid";
@@ -7,11 +7,22 @@ import { connectMongo } from "./config/mongo.ts";
 import postRoute from './routes/postRoute.ts';
 import authRoute from './routes/authRoute.ts';
 import userRoute from './routes/userRoute.ts';
+import roleRoute from './routes/roleRoute.ts';
+import permissionRoute from './routes/permissionRoute.ts';
 import MongoStore from "connect-mongo";
 import { checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
 import { csrfSynchronisedProtection, generateToken } from "./util/csrf.ts";
 
 const app = express();
+const PORT = process.env.PORT || 3001;
+
+const startServer = async () => {
+    await connectMongo().catch((err) => {
+        console.error("❌ Startup error:", err);
+        process.exit(1);
+    });;
+};
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({
@@ -32,24 +43,14 @@ app.use(session({
         ttl: 300000
     })
 }));
+
 app.use("/auth", authRoute);
 app.use(csrfSynchronisedProtection);
 
-const PORT = process.env.PORT || 3001;
-
-const startServer = async () => {
-    await connectMongo().catch((err) => {
-        console.error("❌ Startup error:", err);
-        process.exit(1);
-    });;
-};
-
-app.use("/post", isAuthenticated, checkRole, postRoute);
-app.use("/user", isAuthenticated, checkRole, userRoute);
-app.get("/csrf-token", (req, res) => {
-    const token = generateToken(req);
-    res.json({ csrfToken: token });
-});
+app.use("/post", isAuthenticated, postRoute);
+app.use("/admin/user", isAuthenticated, checkRole, userRoute);
+app.use("/admin/roles", isAuthenticated, checkRole, roleRoute);
+app.use("/admin/permissions", isAuthenticated, checkRole, permissionRoute);
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
