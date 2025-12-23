@@ -8,9 +8,9 @@ export const createPost = async (req: Request, res: Response) => {
         const { name, bio } = req.body;
 
         const post = new Post({
-            name: name,
-            bio: bio,
-            userId: userId
+            name,
+            bio,
+            userId
         })
 
         await post.save();
@@ -62,11 +62,11 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const getAllPost = async (req: Request, res: Response) => {
     try {
+        const ITEMS_PER_PAGE = 2;
         const userId = req.session.userId;
+        const page: number = Number(req.query.page) || 1;
 
-        const posts = await Post.find({ userId: userId });
-
-        console.log(posts)
+        const posts = await Post.find({ userId: userId }).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE);
 
         res.status(200).send(posts);
     } catch (error) {

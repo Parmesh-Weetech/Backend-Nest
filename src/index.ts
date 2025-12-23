@@ -1,20 +1,28 @@
 import "dotenv/config";
-import express, { type NextFunction, type Request, type Response } from "express";
+import express from "express";
+import path from "path";
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import MongoStore from "connect-mongo";
 import { v4 as genuuid } from "uuid";
+
 import { connectMongo } from "./config/mongo.ts";
+
 import postRoute from './routes/postRoute.ts';
 import authRoute from './routes/authRoute.ts';
 import userRoute from './routes/userRoute.ts';
 import roleRoute from './routes/roleRoute.ts';
+import fileRoute from './routes/fileRoute.ts';
 import permissionRoute from './routes/permissionRoute.ts';
-import MongoStore from "connect-mongo";
+
 import { checkPermission, checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
-import { csrfSynchronisedProtection, generateToken } from "./util/csrf.ts";
+
+import { csrfSynchronisedProtection } from "./util/csrf.ts";
+import { upload } from "./util/file.ts";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const __dirname = path.resolve();
 
 const startServer = async () => {
     await connectMongo().catch((err) => {
@@ -44,10 +52,14 @@ app.use(session({
     })
 }));
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use("/auth", authRoute);
+app.use("/file", upload.single("avatar"), fileRoute);
+app.use("/post", postRoute);
+
 app.use(csrfSynchronisedProtection);
 
-app.use("/post", isAuthenticated, postRoute);
 app.use("/admin/user", isAuthenticated, checkRole, userRoute);
 app.use("/admin/roles", isAuthenticated, checkRole, roleRoute);
 app.use("/admin/permissions", isAuthenticated, checkRole, permissionRoute);

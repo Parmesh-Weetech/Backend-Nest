@@ -3,16 +3,16 @@ import mongoose, { Schema } from "mongoose";
 const postSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: false
     },
     bio: {
         type: String,
-        required: true
+        required: false
     },
     userId: {
         type: Schema.Types.ObjectId,
         ref: "user",
-        required: true
+        required: false
     }
 }, {
     timestamps: true

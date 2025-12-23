@@ -4,7 +4,7 @@ import User from "../models/userModel.ts";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../util/csrf.ts";
 import crypto from 'crypto';
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
 import Reset from "../models/resetModel.ts";
 import { Permission } from "../models/permissionModel.ts";
 import { Role } from "../models/roleModel.ts";
