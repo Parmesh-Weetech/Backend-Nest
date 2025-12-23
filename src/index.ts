@@ -17,8 +17,8 @@ import permissionRoute from './routes/permissionRoute.ts';
 
 import { checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
 
-import { csrfSynchronisedProtection } from "./util/csrf.ts";
-import { upload } from "./util/file.ts";
+import { csrfSynchronisedProtection } from "./utils/csrf.ts";
+import { upload } from "./utils/file.ts";
 
 const app = express();
 const PORT = process.env.PORT || 3001;

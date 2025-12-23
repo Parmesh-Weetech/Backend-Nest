@@ -30,19 +30,19 @@ router.post("/register",
             .notEmpty()
             .withMessage("Name cannot empty"),
         body('email')
+            .notEmpty()
+            .withMessage("Email cannot be empty")
             .normalizeEmail()
             .isEmail()
-            .withMessage("Invalid Email Address")
-            .notEmpty()
-            .withMessage("Email cannot be empty"),
+            .withMessage("Invalid Email Address"),
         body('password')
             .trim()
+            .notEmpty()
+            .withMessage("Password Cannot Empty")
             .isLength({ min: 6, max: 6 })
             .withMessage("Password must have length of 6")
             .isAlphanumeric()
             .withMessage("Password must contain only alphanumeric characters'")
-            .notEmpty()
-            .withMessage("Password Cannot Empty")
     ],
     validate,
     register)

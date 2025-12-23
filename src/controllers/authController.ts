@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { generateRandomString } from "../util/randomStringUtil.ts";
+import { generateRandomString } from "../utils/randomStringUtil.ts";
 import User from "../models/userModel.ts";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../util/csrf.ts";
+import { generateToken } from "../utils/csrf.ts";
 import crypto from 'crypto';
 // import nodemailer from "nodemailer";
 import Reset from "../models/resetModel.ts";
@@ -36,7 +36,7 @@ export const login = async (req: Request, res: Response) => {
             res.status(401).json({ message: "Invalid Credentials" });
             return;
         }
-        
+
         const csrfToken = generateToken(req);
 
         req.session._csrfToken = req.session.csrfToken
@@ -46,8 +46,8 @@ export const login = async (req: Request, res: Response) => {
 
         const role = await Role.findOne({ _id: userData.roleId });
 
-        if(!role) {
-            res.status(403).json({ message: "Unauthorized access!"});
+        if (!role) {
+            res.status(403).json({ message: "Unauthorized access!" });
         }
 
         res.status(200).json({ message: "User Login Successful", sessionId: req.sessionID, roleId: userData.roleId, csrfToken: csrfToken })
@@ -110,8 +110,8 @@ export const reset = async (req: Request, res: Response) => {
 
         const user = await User.findOne({ email: email });
 
-        if(!user) {
-            res.status(400).json({ message: "Unathorized access! User not exists."});
+        if (!user) {
+            res.status(400).json({ message: "Unathorized access! User not exists." });
         }
 
         const token = crypto.randomBytes(32).toString("hex");
@@ -141,9 +141,9 @@ export const resetPassword = async (req: Request, res: Response) => {
             return;
         }
 
-        const reset = await Reset.findOne({ resetLink: token, resetTime: {$gt: Date.now() } });
+        const reset = await Reset.findOne({ resetLink: token, resetTime: { $gt: Date.now() } });
 
-        if(!reset) {
+        if (!reset) {
             res.status(400).json({ message: "Invalid Request" });
         }
 
@@ -152,8 +152,8 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         let user = await User.findOne({ email: email });
 
-        if(!user) {
-            res.status(400).json({ message: "Unauthorized access! User not exists"})
+        if (!user) {
+            res.status(400).json({ message: "Unauthorized access! User not exists" })
         }
 
         user = await User.findByIdAndUpdate(user!._id, {
@@ -162,7 +162,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         await Reset.deleteOne({ id: reset!._id });
 
-        res.status(200).json({ message: "Password Reset Successfully."});
+        res.status(200).json({ message: "Password Reset Successfully." });
     } catch (error: any) {
         console.log(error);
         throw new Error(error);
