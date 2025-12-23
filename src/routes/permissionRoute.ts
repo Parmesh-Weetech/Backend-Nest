@@ -6,7 +6,7 @@ const router = express.Router();
 router.post("/create", createPermission);
 router.put("/update", updatePermission);
 router.delete("/delete/:id", deletePermission);
-router.get("/all", getAllPermission);
-router.get("/:id", getPermissionById);
+router.get("/get/all", getAllPermission);
+router.get("/get/:id", getPermissionById);
 
 export default router;

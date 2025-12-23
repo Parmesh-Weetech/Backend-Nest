@@ -44,3 +44,15 @@
 - The file is read as a stream and processed incrementally. The file isn't fully loaded into memory at any point.
 - streaming file is efficient for larger file.
 - stream approach can be complex sometimes.
+
+## REST API
+- Representational State Transfer full form of REST
+
+## Rest Principles
+- Uniform Interface: Clearly defined api endpoint, request object, response object
+- Stateless Interaction: Every request should be handled seprately, should not store any connection history.
+- Server and client are seprated and should not connect to each other with persistent data storage.
+
+## Rest api fundamental rule is every entity should only used to do the data exchange.
+
+## JSON Data + Signature = JSON Web Token (jwt)

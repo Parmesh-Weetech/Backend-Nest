@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { Role } from "../models/roleModel.ts";
-import { user_role } from "../config/roleConfig.ts";
+import { userRoute, ROUTE_PERMISSIONS, roleRoute, permissionRoute } from "../config/routeConfig.ts";
 import { Permission } from "../models/permissionModel.ts";
 
 export const isAuthenticated = (
@@ -21,47 +21,48 @@ export const checkRole = async (
     res: Response,
     next: NextFunction
 ) => {
-    const role = req.session.role
+    const roleId = req.session.roleId;
+    const userId = req.session.userId;
 
-    const roleData = await Role.findOne({ _id: role });
+    const roleData = await Role.findOne({ _id: roleId });
 
-    if(!roleData) {
-        res.status(400).json({ message: "Invalid Request"});
+    if (!roleData) {
+        return res.status(401).json({ message: "Unauthorized access!" });
     }
 
-    if (user_role.includes(roleData!.name)) {
-        return res.status(401).json({
-            message: "Unauthorized access! Only Admin can access it."
+    const permissions = await Promise.all(
+        roleData.permissionsIds.map(async (permissionId) => {
+            const permission = await Permission.findOne({ _id: permissionId });
+            return permission?.name.toUpperCase();
         })
+    );  
+
+    console.log(req.originalUrl);
+    console.log(roleData!.name);
+    console.log(roleData!.name !== "ADMIN");
+    console.log(userRoute.includes(req.originalUrl));
+    
+    if ((userRoute.includes(req.originalUrl) || (roleRoute.includes(req.originalUrl)) || (permissionRoute.includes(req.originalUrl))) && roleData!.name !== "ADMIN" && roleData!.name !== "SYSTEM") {
+        return res.status(403).json({
+            message: `Unauthorized access! Only Admin and System roles can access it: Role is ${roleData!.name}`
+        });
+    } else if (req.originalUrl.includes("/post/create") && !hasPermission(permissions.filter((p) => p !== undefined) as string[], getRequiredPermissions(req))) {
+        return res.status(403).json({
+            message: "Unauthorized! You don't have permission to create posts."
+        });
     } else {
         next();
     }
 }
 
-export const checkPermission = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const permissionsIds = req.session.permissions;
+function getRequiredPermissions(req: Request): string[] {
+    const key = `${req.method} ${req.baseUrl}${req.route?.path ?? ""}`;
+    return ROUTE_PERMISSIONS[key] || [];
+}
 
-    const permissions = await permissionsIds.map(async (permission: string) => {
-        const p = await Permission.findOne({ permission: permission });
-        return p?.name;
-    })
-
-    let isInclude = false;
-
-    for (const name in permissions) {
-        if (createUser.includes(name)) {
-            isInclude = true;
-            break;
-        }
-    }
-
-    if (req.url === "/admin/user/create" && isInclude) {
-        next();
-    }
-
-    res.status(401).json({ message: "Unauthorized access!" });
+function hasPermission(
+    rolePermissions: string[],
+    requiredPermissions: string[]
+): boolean {
+    return rolePermissions.some(p => requiredPermissions.includes(p));
 }

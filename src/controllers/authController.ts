@@ -42,7 +42,7 @@ export const login = async (req: Request, res: Response) => {
         req.session._csrfToken = req.session.csrfToken
 
         req.session.userId = userData._id;
-        req.session.role = userData.roleId;
+        req.session.roleId = userData.roleId;
 
         const role = await Role.findOne({ _id: userData.roleId });
 
@@ -50,9 +50,7 @@ export const login = async (req: Request, res: Response) => {
             res.status(403).json({ message: "Unauthorized access!"});
         }
 
-        req.session.permissions = [role!.permissionsIds];
-
-        res.status(200).json({ message: "User Login Successful", sessionId: req.sessionID, csrfToken: csrfToken })
+        res.status(200).json({ message: "User Login Successful", sessionId: req.sessionID, roleId: userData.roleId, csrfToken: csrfToken })
     } catch (error: any) {
         console.log(error);
         throw new Error(error);

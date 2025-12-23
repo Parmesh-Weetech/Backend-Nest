@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import Post from "../models/postModel.ts";
+import { Role } from "../models/roleModel.ts";
 
 export const createPost = async (req: Request, res: Response) => {
     try {
@@ -26,10 +27,18 @@ export const createPost = async (req: Request, res: Response) => {
 export const updatePost = async (req: Request, res: Response) => {
     try {
         const userId = req.session.userId;
+        const roleId = req.session.roleId;
 
         const { id, name, bio } = req.body;
+        let post;
 
-        const post = await Post.findOne({ userId: userId, _id: id });
+        const role = await Role.findOne({ _id: roleId });
+
+        if(role?.name === "ADMIN" || role?.name === "SYSTEM") {
+            post = await Post.findOne({ _id: id });
+        } else {
+            post = await Post.findOne({ userId: userId, _id: id });
+        }
 
         if(!post) {
             res.status(400).json({ message: "Unauthorized Request!"});

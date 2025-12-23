@@ -1,1 +1,0 @@
-export const user_role = ["ADMIN", "SYSTEM", "CREATE_USER", "CREATE_EDIT_USER", "CREATE_DELETE_USER"];

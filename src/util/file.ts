@@ -12,5 +12,5 @@ const fileStorage = multer.diskStorage({
 });
 
 export const upload = multer({
-    dest: 'uploads/', storage: bufferStorage
+    dest: 'uploads/', storage: bufferStorage // fileStorage
 })

@@ -15,7 +15,7 @@ import roleRoute from './routes/roleRoute.ts';
 import fileRoute from './routes/fileRoute.ts';
 import permissionRoute from './routes/permissionRoute.ts';
 
-import { checkPermission, checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
+import { checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
 
 import { csrfSynchronisedProtection } from "./util/csrf.ts";
 import { upload } from "./util/file.ts";
@@ -56,10 +56,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/auth", authRoute);
 app.use("/file", upload.single("avatar"), fileRoute);
-app.use("/post", postRoute);
 
 app.use(csrfSynchronisedProtection);
 
+app.use("/post", isAuthenticated, checkRole, postRoute);
 app.use("/admin/user", isAuthenticated, checkRole, userRoute);
 app.use("/admin/roles", isAuthenticated, checkRole, roleRoute);
 app.use("/admin/permissions", isAuthenticated, checkRole, permissionRoute);
