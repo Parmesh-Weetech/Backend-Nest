@@ -10,6 +10,9 @@
 
 ## Nest CLI
 - In order to get start with nestjs, the nest cli is most important.
+- `nest new <project_name>` generate the new project.
+- `nest generate <type_of_class - controller, service, module> where/file_name [options]` to generate new files with pre-defined configurations.
+
 
 ## Nest Packages
 1. @nestjs/common - package is a core component of the NestJS framework that provides essential decorators, classes, and utilities for building scalable server-side applications. It contains the fundamental modules of NestJs which is controller, providers, modules, and more.
@@ -59,3 +62,48 @@ NestFactory.create(AppModule)
 4. Initialize middleware, pipes, guards, interceptors
   ↓
 5. Return a NestApplication instance
+
+## DTOs
+- Stands for Data Transfer Object
+- It is basically a class or object that defines the shape of the data that is sent into or out of your application.
+
+## Validation
+- For this two libraries are used class-validator and class-transformer
+- class validator is for validating incoming requests
+- class-transformer is for takes plain object and convert it into the instance of a class.
+
+## Validation Pipe
+- This pipe is we can say tunnel
+- This pipe has class validator and class-transformer
+- first class-transformer take json object and convert it into the dto class object or instance
+- Then the class-validator checks for it and if there is any error then it throws it otherwise pass the request to the controller
+
+## IoC - Inversion of Code
+- IoC is a design principle in which the control of object creation and dependency management is inverted. Instead of the component or class creating its dependencies, an external entity is responsible for creating and injecting these dependencies.
+- This principle leads to more modular, testable, and maintainable code.
+- DI or we can say Dependency Injection is an example of IoC
+- DI means Object dependencies are provided to it instead of object creating it by its own.
+- There are several types of DI, including constructor injection, property injection, and method injection.
+- In NestJS, services and other injectable classes are marked with the `@Injectable()` decorator.
+- Whenever there is @Injectable decorator nestjs put that class to the IoC Container.
+- Nest.js resolves all the dependencies that are registered in a module in providers array
+
+## Down side of IoC
+- Although it is very useful and solve problem but it also its problems.
+- suppose one service is depends on n number repo then that service has to create instance of that n repo and need to manage it.
+- and that service is used by n controller so n controller has to create instance of it this is not very ideal situation
+- So the solution is `dependency injection`.
+
+## Under the hood, NestJS uses the reflect-metadata library to retain metadata about dependencies. When TypeScript is transpiled to JavaScript, type annotations are removed. However, with reflect-metadata, NestJS can retrieve the necessary type information at runtime.
+
+## IoC means Library, framework or a run-time should take responsibility of handling and managing all the dependencies instead of it being handled/managed by the developer's code.
+
+## DI - Dependency Injection
+- When we create the nestjs application it create DI container for us in which it register all classes that is there.
+- Then that container figure out which class is depending on which class
+- So Controller is on Service and Service is on Repository
+- So it make entry in container
+- Container has two sets: 1. list of classes and dependencies 2. list of instances
+- then container make linked list kind of list in which make entry that controller is depend on service and service is on repository.
+- So when we create a service object it looks that service depends on repo so create instance of repo and store it in list of instance set then create service instance and store it in instance set then create controller instance and store it so there is no duplication
+- each instance is contain copy of original class.

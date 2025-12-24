@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "nest build",
     "start": "nest start",
-    "start:dev": "node -r tsconfig-paths/register --loader ts-node/esm src/main.ts"
+    "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'node -r tsconfig-paths/register --loader ts-node/esm' src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.14",
+    "nodemon": "^3.1.11",
     "typescript": "^5.9.3"
   }
 }
