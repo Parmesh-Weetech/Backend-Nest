@@ -56,3 +56,10 @@
 ## Rest api fundamental rule is every entity should only used to do the data exchange.
 
 ## JSON Data + Signature = JSON Web Token (jwt)
+
+## TLS - Transport Layer Security
+## SSL - Secure Socket Layer
+- TLS is newer version of SSL.
+- SSL Certificate connect public key and server and sends it back to server.
+- We can't create a ssl certificate of our own.
+- Client sends the public key to server and server has private key and using that private key only then this can be decrypted otherwise not.

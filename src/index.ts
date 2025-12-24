@@ -1,12 +1,15 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
+import fs from 'fs';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import MongoStore from "connect-mongo";
 import { v4 as genuuid } from "uuid";
+import helmet from "helmet";
+import morgan from 'morgan';
 
-import { connectMongo } from "./config/mongo.ts";
+import { connectMongo } from './config/mongo.ts';
 
 import postRoute from './routes/postRoute.ts';
 import authRoute from './routes/authRoute.ts';
@@ -19,6 +22,7 @@ import { checkRole, isAuthenticated } from "./middlewares/authMiddleware.ts";
 
 import { csrfSynchronisedProtection } from "./utils/csrf.ts";
 import { upload } from "./utils/file.ts";
+import { fstat } from "fs";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,8 +35,13 @@ const startServer = async () => {
     });;
 };
 
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: "a"});
+
 app.use(express.json());
 app.use(cookieParser());
+app.use(helmet());
+app.use(morgan('tiny', { stream: accessLogStream }));
+
 app.use(session({
     name: "authId",
     genid: function (req) {
@@ -56,6 +65,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/auth", authRoute);
 app.use("/file", upload.single("avatar"), fileRoute);
+app.get("/server", (req, res) => {
+    res.status(200).json({ message: "Server response "})
+})
 
 app.use(csrfSynchronisedProtection);
 
