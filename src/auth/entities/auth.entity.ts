@@ -1,17 +1,13 @@
-import type { UUID } from "crypto";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class User {
+export class Auth {
     @PrimaryGeneratedColumn("uuid")
-    id: UUID
-
-    @Column()
-    name: string
+    id: string
 
     @Column()
     email: string
 
     @Column()
-    password: string
+    hashPassword: string
 }
