@@ -1,4 +1,4 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString, Min, Max, IsStrongPassword, Length, Matches, MaxLength, MinLength, ValidateIf } from "class-validator"
+import { IsEmail, IsInt, IsNotEmpty, IsString, Max, IsStrongPassword, MaxLength, MinLength, ValidateIf } from "class-validator"
 import { Transform } from 'class-transformer';
 import { Match } from "../util/passwordMatch.util";
 
@@ -7,32 +7,22 @@ export class SignupDTO {
     @IsNotEmpty()
     @MinLength(3)
     @MaxLength(20)
-    @Transform(({ value }) => value.trim())
+    @ValidateIf((obj) => obj.name !== undefined)
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
     name: string
 
     @IsEmail()
-    @IsString()
     @IsNotEmpty()
-    @Transform(({ value }) => value.trim())
+    @ValidateIf((obj) => obj.email !== undefined)
+    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
     email: string
 
-    @IsInt()
-    @IsNotEmpty()
-    @Min(18, { message: 'Age must be at least 18' })
-    @Max(100, { message: 'Age must not exceed 100' })
-    age: number
-
-    @IsString()
     @IsStrongPassword()
-    @Length(8, 10, { message: "Passwords must be between 8 and 10 characters" })
+    @MaxLength(10)
     password: string
 
     @IsString()
-    @IsStrongPassword()
-    @MinLength(8)
-    @MaxLength(10)
-    @Match("password", {
-        message: "Passwords do not match"
-    })
-    confirmPassword: string
+    @IsNotEmpty()
+    @ValidateIf((obj) => obj.roleId !== undefined)
+    roleId: string
 }

@@ -12,12 +12,15 @@ export class updateUserDTO {
     name: string
 
     @IsEmail()
-    @IsString()
     @IsOptional()
     email: string
 
     @IsString()
-    @MinLength(8)
+    @IsNotEmpty()
+    @IsOptional()
+    roleId: string
+
+    @IsString()
     @MaxLength(10)
     @IsStrongPassword()
     @IsOptional()

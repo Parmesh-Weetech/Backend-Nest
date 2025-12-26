@@ -1,10 +1,10 @@
 import { Exclude, Expose } from "class-transformer";
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import bcrypt from "bcryptjs";
-import { User } from "src/user/entities/user.entity";
+import { Auth } from "src/auth/entities/auth.entity";
 
-@Entity("auth")
-export class Auth {
+@Entity("user")
+export class User {
     @PrimaryGeneratedColumn("uuid")
     @Expose()
     id: string
@@ -21,12 +21,13 @@ export class Auth {
     @Exclude()
     password: string
 
-    @Column({ default: "4adfc25d-e103-454d-8a84-7ff210d6ecab"})
+    @Column({ default: "6cff2f02-0c0e-4c56-9e61-7d5b88159656"})
     @Exclude()
     roleId: string
-    
-    @OneToMany(() => User, (user) => user.auth)
-    user: User
+
+    @ManyToOne(() => Auth, (auth) => auth.user)
+    @JoinColumn()
+    auth: Auth
 
     @BeforeInsert()
     @BeforeUpdate()
