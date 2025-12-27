@@ -6,9 +6,8 @@ import { User } from 'src/user/entities/user.entity';
 import { CreatePostDTO } from './dtos/create-post.dto';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { PostService } from './post.service';
-import { PermissionsGuard } from './guards/permission.guard';
-import { Permission } from './decorators/permission.decorator';
-import { CurrentUserInterceptor } from 'src/common/interceptors/currentUser.interceptor';
+import { PermissionsGuard } from '../common/guards/permission.guard';
+import { Permission } from '../common/decorators/permission.decorator';
 
 @Controller('post')
 @UseGuards(AuthGuard, PermissionsGuard)

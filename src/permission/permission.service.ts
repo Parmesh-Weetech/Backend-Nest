@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Permission } from './entities/permission.entity';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto';
+import { Role } from 'src/role/entities/role.entity';
 
 @Injectable()
 export class PermissionService {
@@ -15,14 +16,27 @@ export class PermissionService {
         return this.permissionRepository.find({ relations: ['role'] });
     }
 
-    async findOne(id: string): Promise<Permission> {
+    async findOne(id: string): Promise<Permission | null> {
         const perm = await this.permissionRepository.findOne({ where: { id }, relations: ['role'] });
-        if (!perm) throw new NotFoundException('Permission not found');
+        if (!perm) return null;
         return perm;
     }
 
-    async update(id: string, dto: UpdatePermissionDTO): Promise<Permission> {
+    async findByRoleId(id: string): Promise<string[] | null> {
+        const perm = await this.permissionRepository.find({ where: { role: { id: id } }, relations: ['role']});
+    
+        if(!perm) return null;
+
+        return perm.map((permission) => {
+            return permission.name
+        });
+    }
+
+    async update(id: string, dto: UpdatePermissionDTO): Promise<Permission | null> {
         const perm = await this.findOne(id);
+
+        if(!perm) return null
+
         if (dto.name) perm.name = dto.name;
         return this.permissionRepository.save(perm);
     }

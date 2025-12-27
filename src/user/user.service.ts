@@ -27,24 +27,24 @@ export class UserService {
         return user;
     }
 
-    async findOne(id: string): Promise<User> {
-        const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });
-
+    async findOne(id: string): Promise<User | null> {
+        const user = await this.userRepository.findOne({ where: { id }, relations: ['role'] });
+        
         if (!user) {
-            throw new NotFoundException("User not found.");
+            return null
         }
 
         return user;
     }
 
     async findOneByEmail(email: string): Promise<User | null> {
-        const user = await this.userRepository.findOne({ where: { email: email }});
+        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['role']});
 
         return user;
     }
 
     async findUsers(): Promise<User[]> {
-        const users = await this.userRepository.find({ relations: ['roles'] });
+        const users = await this.userRepository.find({ relations: ['role'] });
 
         if (!users) {
             throw new NotFoundException("Users not found.");
@@ -60,13 +60,15 @@ export class UserService {
             password: createUserDTO.password,
             roleId: createUserDTO.roleId,
             auth: user
-        })
+        });
 
         return await this.userRepository.save(newUser);
     }
 
-    async update(updateUserDTO: updateUserDTO): Promise<User> {
+    async update(updateUserDTO: updateUserDTO): Promise<User | null> {
         const user = await this.findOne(updateUserDTO.id);
+
+        if(!user) return null;
 
         if (user.name) user.name = updateUserDTO.name;
         if (user.email) user.email = updateUserDTO.email;
@@ -76,8 +78,10 @@ export class UserService {
         return await this.userRepository.save(user);
     }
 
-    async delete(id: string): Promise<string> {
+    async delete(id: string): Promise<string | null> {
         const user = await this.findOne(id);
+
+        if(!user) return null;
 
         const deleteAction = await this.userRepository.remove(user);
 

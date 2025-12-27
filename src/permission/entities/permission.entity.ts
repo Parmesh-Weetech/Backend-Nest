@@ -13,6 +13,6 @@ export class Permission {
     name: string;
 
     // Foreign key to Role
-    @OneToMany(() => Role, role => role.permissions, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Role, role => role.permissions, { onDelete: 'CASCADE' })
     role: Role;
 }

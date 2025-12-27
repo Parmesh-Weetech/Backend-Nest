@@ -27,14 +27,16 @@ export class RoleService {
         return this.roleRepository.find({ relations: ['permissions'] });
     }
 
-    async findOne(id: string): Promise<Role> {
-        const role = await this.roleRepository.findOne({ where: { id }, relations: ['permissions'] });
-        if (!role) throw new NotFoundException('Role not found');
+    async findOne(id: string): Promise<Role | null> {
+        const role = await this.roleRepository.findOne({ where: { id } });
+        if (!role) return null
         return role;
     }
 
-    async updateRole(id: string, dto: UpdateRoleDTO): Promise<Role> {
+    async updateRole(id: string, dto: UpdateRoleDTO): Promise<Role | null> {
         const role = await this.findOne(id);
+
+        if(!role) return null
 
         if (dto.name) role.name = dto.name;
         if (dto.permissions) {

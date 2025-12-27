@@ -47,9 +47,9 @@ export class PostService {
 
         if (!existingPost) throw new NotFoundException('Post not found');
 
-        if(post.name) post.name = existingPost.name;
-        if(post.bio) post.bio = existingPost.bio;
-
+        if(post.name) existingPost.name = post.name;
+        if(post.bio) existingPost.bio = post.bio;
+        
         return this.postRepository.save(post);
     }
 

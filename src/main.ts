@@ -4,7 +4,6 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor';
 import { UserService } from './user/user.service';
-import { PostService } from './post/post.service';
 import { AuthService } from './auth/auth.service';
 
 async function bootstrap() {
@@ -29,7 +28,8 @@ async function bootstrap() {
     })
   )
   app.useGlobalInterceptors(
-    new ClassSerializerInterceptor(app.get(Reflector))
+    new ClassSerializerInterceptor(app.get(Reflector)),
+    new CurrentUserInterceptor(app.get(Reflector) , app.get(AuthService), app.get(UserService))
   );
   await app.listen(process.env.PORT ?? 3000);
 }

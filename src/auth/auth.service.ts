@@ -47,15 +47,15 @@ export class AuthService {
 
     async findOneByEmail(email: string): Promise<Auth | null> {
         const auth = await this.authRepository.findOne({ where: { email: email } });
-        
+        if(!auth) return null;
         return auth;
     }
 
-    async findOne(id: string): Promise<Auth> {
+    async findOne(id: string): Promise<Auth | null> {
         const user = await this.authRepository.findOneBy({ id });
 
         if (!user) {
-            throw new NotFoundException("User not found.");
+            return null;
         }
 
         return user;

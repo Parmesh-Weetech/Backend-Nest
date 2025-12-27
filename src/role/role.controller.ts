@@ -21,12 +21,12 @@ export class RoleController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string): Promise<Role> {
+    findOne(@Param('id') id: string): Promise<Role | null> {
         return this.roleService.findOne(id);
     }
 
     @Put(':id')
-    update(@Param('id') id: string, @Body() dto: UpdateRoleDTO): Promise<Role> {
+    update(@Param('id') id: string, @Body() dto: UpdateRoleDTO): Promise<Role | null> {
         return this.roleService.updateRole(id, dto);
     }
 
