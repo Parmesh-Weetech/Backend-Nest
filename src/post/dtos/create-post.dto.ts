@@ -12,5 +12,5 @@ export class CreatePostDTO {
     @IsOptional()
     @MaxLength(255)
     @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-    bio?: string;
+    description?: string;
 }

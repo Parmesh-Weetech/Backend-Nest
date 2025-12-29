@@ -35,7 +35,7 @@ export class PostService {
 
         const newPost = await this.postRepository.create({
             name: post.name,
-            bio: post.bio,
+            description: post.description,
             user: user
         })
 
@@ -48,7 +48,7 @@ export class PostService {
         if (!existingPost) throw new NotFoundException('Post not found');
 
         if (post.name) existingPost.name = post.name;
-        if (post.bio) existingPost.bio = post.bio;
+        if (post.description) existingPost.description = post.description;
 
         return this.postRepository.save(post);
     }

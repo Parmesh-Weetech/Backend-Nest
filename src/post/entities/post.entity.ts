@@ -14,7 +14,7 @@ export class PostEntity {
 
     @Column({ nullable: true })
     @Expose()
-    bio: string;
+    description: string;
 
     @ManyToOne(() => User, user => user.id, { onDelete: 'CASCADE' })
     @JoinColumn()
