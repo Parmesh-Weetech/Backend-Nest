@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
-import { Permission } from '../../permission/entities/permission.entity';
-import { Expose } from 'class-transformer';
-import { User } from 'src/user/entities/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm';
+import { Permission } from '../../permission/entities/permission.entity.js';
+import { Exclude, Expose } from 'class-transformer';
+import { User } from '../../user/entities/user.entity.js';
 
 @Entity('roles')
 export class Role {
@@ -11,12 +11,29 @@ export class Role {
 
     @Column({ unique: true })
     @Expose()
-    name: string;
+    key: string;
 
-    @OneToMany(() => User, user => user.role)  // One role can be assigned to many users
+    @Column()
+    @Exclude()
+    label: string
+
+    @Column({ nullable: true })
+    @Exclude()
+    description: string
+
+    @OneToMany(() => User, user => user.role)
     users: User[];
 
     // One role has many permissions
     @OneToMany(() => Permission, permission => permission.role, { cascade: true })
     permissions: Permission[];
+
+    @CreateDateColumn({ type: 'timestamptz' })
+    created_at: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updated_at: Date;
+
+    @DeleteDateColumn({ type: 'timestamptz', nullable: true })
+    deleted_at?: Date
 }

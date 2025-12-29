@@ -1,6 +1,5 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString, Max, IsStrongPassword, MaxLength, MinLength, ValidateIf } from "class-validator"
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MaxLength, MinLength, ValidateIf, IsOptional } from "class-validator"
 import { Transform } from 'class-transformer';
-import { Match } from "../util/passwordMatch.util";
 
 export class SignupDTO {
     @IsString()
@@ -22,7 +21,7 @@ export class SignupDTO {
     password: string
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @ValidateIf((obj) => obj.roleId !== undefined)
     roleId: string
 }

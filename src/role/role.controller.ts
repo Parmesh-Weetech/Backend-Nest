@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Param, Body, Put, Delete, UseGuards } from '@nestjs/common';
-import { RoleService } from './role.service';
-import { CreateRoleDTO } from './dtos/create-role.dto';
-import { UpdateRoleDTO } from './dtos/update-role.dto';
-import { Role } from './entities/role.entity';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RoleService } from './role.service.js';
+import { CreateRoleDTO } from './dtos/create-role.dto.js';
+import { UpdateRoleDTO } from './dtos/update-role.dto.js';
+import { Role } from './entities/role.entity.js';
+import { AuthGuard } from '../common/guards/auth.guard.js';
 
 @Controller('roles')
 @UseGuards(AuthGuard)
@@ -25,9 +25,9 @@ export class RoleController {
         return this.roleService.findOne(id);
     }
 
-    @Put(':id')
-    update(@Param('id') id: string, @Body() dto: UpdateRoleDTO): Promise<Role | null> {
-        return this.roleService.updateRole(id, dto);
+    @Put()
+    update(@Body() dto: UpdateRoleDTO): Promise<Role | null> {
+        return this.roleService.updateRole(dto);
     }
 
     @Delete(':id')

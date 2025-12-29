@@ -1,15 +1,20 @@
-import { IsArray, IsNotEmpty, IsString, MinLength, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { CreatePermissionDTO } from '../../permission/dtos/create-permission.dto';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateRoleDTO {
     @IsString()
     @IsNotEmpty()
-    @MinLength(3)
-    name: string;
+    key: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => CreatePermissionDTO)
-    permissions: CreatePermissionDTO[];
+    @IsString()
+    @IsNotEmpty()
+    label: string
+
+    @IsString()
+    @IsOptional()
+    description: string
+
+    // @IsArray()
+    // @ValidateNested({ each: true })
+    // @Type(() => CreatePermissionDTO)
+    // permissions: CreatePermissionDTO[];
 }

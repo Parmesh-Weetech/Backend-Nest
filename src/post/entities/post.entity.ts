@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../../user/entities/user.entity.js';
 import { Expose } from 'class-transformer';
 
 @Entity('posts')
@@ -17,6 +17,6 @@ export class PostEntity {
     bio: string;
 
     @ManyToOne(() => User, user => user.id, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn()
     user: User;
 }

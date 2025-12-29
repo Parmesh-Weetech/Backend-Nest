@@ -1,13 +1,19 @@
-import { Controller, Get, Param, Put, Delete, Body, UseGuards } from '@nestjs/common';
-import { PermissionService } from './permission.service';
-import { UpdatePermissionDTO } from './dtos/update-permission.dto';
-import { Permission } from './entities/permission.entity';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post } from '@nestjs/common';
+import { PermissionService } from './permission.service.js';
+import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
+import { Permission } from './entities/permission.entity.js';
+import { AuthGuard } from '../common/guards/auth.guard.js';
+import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 
 @Controller('permissions')
 @UseGuards(AuthGuard)
 export class PermissionController {
     constructor(private readonly permissionService: PermissionService) { }
+
+    @Post()
+    create(@Body() dto: CreatePermissionDTO): Promise<Permission> {
+        return this.permissionService.create(dto)
+    }
 
     @Get()
     findAll(): Promise<Permission[]> {
@@ -19,9 +25,9 @@ export class PermissionController {
         return this.permissionService.findOne(id);
     }
 
-    @Put(':id')
-    update(@Param('id') id: string, @Body() dto: UpdatePermissionDTO): Promise<Permission | null> {
-        return this.permissionService.update(id, dto);
+    @Put()
+    update(@Body() dto: UpdatePermissionDTO): Promise<Permission | null> {
+        return this.permissionService.update(dto);
     }
 
     @Delete(':id')

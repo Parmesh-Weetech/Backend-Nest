@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PermissionService } from 'src/permission/permission.service';
-import { RoleService } from 'src/role/role.service';
-import { UserService } from 'src/user/user.service';
+import { PermissionService } from '../../permission/permission.service.js';
+import { RoleService } from '../../role/role.service.js';
+import { UserService } from '../../user/user.service.js';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -11,30 +11,38 @@ export class PermissionsGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         // 1️⃣ Get the required permission from the route metadata
-        const requiredPermission = this.reflector.get<string[]>(
+
+        const requiredPermission = this.reflector.get<{
+            entity: string;
+            action: string;
+        }>(
             'PERMISSIONS_KEY',
-            context.getHandler(), // current function if current route was create function then it contain create function, update route for update
+            context.getHandler()
         );
 
-        if (!requiredPermission || requiredPermission.length === 0) return true; // No permission required, allow access
+        // current function if current route was create function then it contain create function, update route for update
 
-        // 2️⃣ Get the current user from the request
+        if (!requiredPermission || requiredPermission === null || requiredPermission === undefined) return true; // No permission required, allow access
+
         const user = await this.userService.findOne(request.session.userId);
         if (!user) throw new ForbiddenException('You are not authorized perform this action.');
 
-        const role = await this.roleService.findOne(user.roleId)
-        if (!role) throw new ForbiddenException('You are not authorized perform this action.');
-
-        const permissions = await this.permissionService.findByRoleId(role.id);
+        const permissions = await this.permissionService.findByRoleId(user.role.id);
 
         if (!permissions) throw new ForbiddenException('You are not authorized perform this action.');
 
-        // 3️⃣ Check if user's role's permission matches the required permission
-        const authorized = requiredPermission.some(required =>
-            permissions.includes(required)
+        const authorized = permissions.some(permission => {
+            if (permission.entity == "all" && permission.action == "all" && (permission.key == "admin" || permission.key == "system")) {
+
+                return true;
+            }
+
+            return permission.entity === requiredPermission.entity &&
+                permission.action === requiredPermission.action
+        }
         );
 
-        if(!authorized) {
+        if (!authorized) {
             throw new ForbiddenException('You are not authorized perform this action.');
         }
 

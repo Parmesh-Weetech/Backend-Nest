@@ -1,8 +1,7 @@
 import { Exclude, Expose } from "class-transformer";
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import bcrypt from "bcryptjs";
-import { Auth } from "src/auth/entities/auth.entity";
-import { Role } from "src/role/entities/role.entity";
+import { Role } from "../../role/entities/role.entity.js";
 
 @Entity("user")
 export class User {
@@ -22,17 +21,17 @@ export class User {
     @Exclude()
     password: string
 
-    @Column({ default: "6cff2f02-0c0e-4c56-9e61-7d5b88159656" })
-    @Exclude()
-    roleId: string
-
-    @ManyToOne(() => Auth, (auth) => auth.user)
-    @JoinColumn()
-    auth: Auth
-
-    @ManyToOne(() => Role, role => role.users)  // Many users can belong to one role
+    @ManyToOne(() => Role, role => role.users)
     role: Role;
 
+    @CreateDateColumn({ type: 'timestamptz' })
+    created_at: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updated_at: Date;
+
+    @DeleteDateColumn({ type: 'timestamptz', nullable: true })
+    deleted_at?: Date;
 
     @BeforeInsert()
     @BeforeUpdate()

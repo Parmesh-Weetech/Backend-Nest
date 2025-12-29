@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { PostController } from './post.controller';
-import { PostService } from './post.service';
+import { PostController } from './post.controller.js';
+import { PostService } from './post.service.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PostEntity } from './entities/post.entity';
-import { UserModule } from 'src/user/user.module';
-import { PermissionModule } from 'src/permission/permission.module';
-import { RoleModule } from 'src/role/role.module';
-import { AuthModule } from 'src/auth/auth.module';
+import { PostEntity } from './entities/post.entity.js';
+import { UserModule } from '../user/user.module.js';
+import { PermissionModule } from '../permission/permission.module.js';
+import { RoleModule } from '../role/role.module.js';
+import { AuthModule } from '../auth/auth.module.js';
 
 @Module({
   controllers: [PostController],
   providers: [PostService],
   imports: [TypeOrmModule.forFeature([PostEntity]), AuthModule, UserModule, PermissionModule, RoleModule]
 })
-export class PostModule {}
+export class PostModule { }

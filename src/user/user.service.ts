@@ -1,31 +1,20 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from "bcryptjs";
-import { User } from './entities/user.entity';
+import { User } from './entities/user.entity.js';
 import { Repository } from 'typeorm';
-import { CreateUserDTO } from './dtos/create-user.dto';
-import { updateUserDTO } from './dtos/update-user.dto';
-import { LoginDTO } from 'src/auth/dtos/login.dto';
+import { CreateUserDTO } from './dtos/create-user.dto.js';
+import { updateUserDTO } from './dtos/update-user.dto.js';
+import { LoginDTO } from '../auth/dtos/login.dto.js';
+import { RoleService } from '../role/role.service.js';
+import { AuthService } from '../auth/auth.service.js';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) { }
-
-    async login(loginDTO: LoginDTO): Promise<User> {
-        const user = await this.findOneByEmail(loginDTO.email);
-
-        if (!user) {
-            throw new NotFoundException("User with this email not exists")
-        }
-
-        const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
-
-        if (!checkPassword) {
-            throw new UnauthorizedException("Invalid Credentials");
-        }
-
-        return user;
-    }
+    constructor(
+        @InjectRepository(User) private readonly userRepository: Repository<User>,
+        private readonly roleService: RoleService
+    ) { }
 
     async findOne(id: string): Promise<User | null> {
         const user = await this.userRepository.findOne({ where: { id }, relations: ['role'] });
@@ -38,7 +27,7 @@ export class UserService {
     }
 
     async findOneByEmail(email: string): Promise<User | null> {
-        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['role']});
+        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['role'] });
 
         return user;
     }
@@ -54,12 +43,15 @@ export class UserService {
     }
 
     async create(createUserDTO: CreateUserDTO, user: User): Promise<User> {
+        const role = await this.roleService.findOne(createUserDTO.roleId);
+
+        if (!role) throw new NotFoundException("Role not found.");
+
         const newUser = await this.userRepository.create({
             name: createUserDTO.name,
             email: createUserDTO.email,
             password: createUserDTO.password,
-            roleId: createUserDTO.roleId,
-            auth: user
+            role: role
         });
 
         return await this.userRepository.save(newUser);
@@ -67,13 +59,15 @@ export class UserService {
 
     async update(updateUserDTO: updateUserDTO): Promise<User | null> {
         const user = await this.findOne(updateUserDTO.id);
+        if (!user) return null;
 
-        if(!user) return null;
+        const role = await this.roleService.findOne(updateUserDTO.roleId);
+        if (!role) throw new NotFoundException("Role not found.");
 
         if (user.name) user.name = updateUserDTO.name;
         if (user.email) user.email = updateUserDTO.email;
         if (user.password) user.password = updateUserDTO.password;
-        if (user.roleId) user.roleId = updateUserDTO.roleId;
+        // if (user.role) user.role = role;
 
         return await this.userRepository.save(user);
     }
@@ -81,7 +75,7 @@ export class UserService {
     async delete(id: string): Promise<string | null> {
         const user = await this.findOne(id);
 
-        if(!user) return null;
+        if (!user) return null;
 
         const deleteAction = await this.userRepository.remove(user);
 

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreatePermissionDTO {
@@ -6,5 +6,25 @@ export class CreatePermissionDTO {
     @IsNotEmpty()
     @MinLength(3)
     @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-    name: string;
+    key: string;
+
+    @IsString()
+    @IsNotEmpty()
+    label: string
+
+    @IsString()
+    @IsOptional()
+    description: string
+
+    @IsString()
+    @IsNotEmpty()
+    entity: string
+
+    @IsString()
+    @IsNotEmpty()
+    action: string
+
+    @IsString()
+    @IsNotEmpty()
+    roleId: string
 }

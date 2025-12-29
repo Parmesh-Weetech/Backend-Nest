@@ -1,15 +1,13 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
+import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
-import { AuthService } from "src/auth/auth.service";
-import { PostService } from "src/post/post.service";
-import { UserService } from "src/user/user.service";
+import { AuthService } from "../../auth/auth.service.js";
+import { UserService } from "../../user/user.service.js";
 
 @Injectable()
 export class CurrentUserInterceptor implements NestInterceptor {
     constructor(
         private reflector: Reflector,
-        private readonly authService: AuthService,
         private readonly userService: UserService
     ) { }
 
@@ -21,17 +19,18 @@ export class CurrentUserInterceptor implements NestInterceptor {
             context.getHandler()
         );
 
-        if(publicRoute) return next.handle();
+        if (publicRoute) return next.handle();
 
         if (request.session?.userId) {
-            const auth = await this.authService.findOne(request.session.userId);
+            const user = await this.userService.findOne(request.session.userId);
 
-            if (!auth) {
-                const user = await this.userService.findOne(request.session.userId);
-                if (user) request.currentUser = user;
+            if (!user) {
+                throw new BadRequestException("User not exists!")
             }
+
+            request.currentUser = user;
         }
-        
+
         return next.handle();
     }
 }

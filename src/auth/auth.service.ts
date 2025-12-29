@@ -2,35 +2,68 @@ import { ConflictException, Injectable, NotFoundException, UnauthorizedException
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import bcrypt from "bcryptjs";
-import { SignupDTO } from './dtos/signup.dto';
-import { LoginDTO } from './dtos/login.dto';
-import { Auth } from './entities/auth.entity';
+import { SignupDTO } from './dtos/signup.dto.js';
+import { LoginDTO } from './dtos/login.dto.js';
+import { RoleService } from '../role/role.service.js';
+import { User } from '../user/entities/user.entity.js';
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectRepository(Auth) private readonly authRepository: Repository<Auth>
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        private readonly roleService: RoleService
     ) { }
 
-    async signup(signupDTO: SignupDTO): Promise<Auth> {
-        const user = await this.findOneByEmail(signupDTO.email);
+    async signup(signupDTO: SignupDTO): Promise<User> {
+        const user = await this.userRepository.findOne({ where: { email: signupDTO.email } });
+        let role;
 
         if (user) {
             throw new ConflictException("User with this email already exists")
         }
 
-        const newUser = await this.authRepository.create({
+        if (!signupDTO.roleId) {
+            const existingRole = await this.roleService.findRoleByKey("system");
+
+            if(!existingRole) {
+                const newRole = await this.roleService.createRole({
+                    key: "system",
+                    label: "System",
+                    description: "Full Software Access"
+                });
+                role = newRole;
+            } else {
+                role = existingRole
+            }
+        } else {
+            const existingRole = await this.roleService.findOne(signupDTO.roleId);
+
+            if (existingRole) {
+                role = existingRole;
+            } else {
+                const newRole = await this.roleService.createRole({
+                    key: "system",
+                    label: "System",
+                    description: "Full Software Access"
+                });
+
+                role = newRole;
+            }
+        }
+
+        const newUser = await this.userRepository.create({
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
-            roleId: signupDTO.roleId
+            role: role
         })
 
-        return await this.authRepository.save(newUser)
+        return await this.userRepository.save(newUser)
     }
 
     async login(loginDTO: LoginDTO): Promise<string> {
-        const user = await this.findOneByEmail(loginDTO.email);
+        const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
 
         if (!user) {
             throw new NotFoundException("User with this email not exists")
@@ -43,21 +76,5 @@ export class AuthService {
         }
 
         return user.id;
-    }
-
-    async findOneByEmail(email: string): Promise<Auth | null> {
-        const auth = await this.authRepository.findOne({ where: { email: email } });
-        if(!auth) return null;
-        return auth;
-    }
-
-    async findOne(id: string): Promise<Auth | null> {
-        const user = await this.authRepository.findOneBy({ id });
-
-        if (!user) {
-            return null;
-        }
-
-        return user;
     }
 }
