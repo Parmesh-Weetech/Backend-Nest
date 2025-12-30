@@ -4,16 +4,13 @@ import { CreateRoleDTO } from './dtos/create-role.dto.js';
 import { UpdateRoleDTO } from './dtos/update-role.dto.js';
 import { Role } from './entities/role.entity.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
+import { Permission } from '../common/decorators/permission.decorator.js';
+import { PermissionsGuard } from '../common/guards/permission.guard.js';
 
 @Controller('roles')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, PermissionsGuard)
 export class RoleController {
     constructor(private readonly roleService: RoleService) { }
-
-    @Post()
-    create(@Body() dto: CreateRoleDTO): Promise<Role> {
-        return this.roleService.createRole(dto);
-    }
 
     @Get()
     findAll(): Promise<Role[]> {
@@ -25,12 +22,20 @@ export class RoleController {
         return this.roleService.findOne(id);
     }
 
+    @Post()
+    @Permission("role-manager", "role", "create")
+    create(@Body() dto: CreateRoleDTO): Promise<Role> {
+        return this.roleService.createRole(dto);
+    }
+
     @Put()
+    @Permission("role-manager", "role", "update")
     update(@Body() dto: UpdateRoleDTO): Promise<Role | null> {
         return this.roleService.updateRole(dto);
     }
 
     @Delete(':id')
+    @Permission("role-manager", "role", "delete")
     delete(@Param('id') id: string) {
         return this.roleService.deleteRole(id);
     }

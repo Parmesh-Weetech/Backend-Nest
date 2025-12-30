@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, DeleteDateColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, ManyToMany } from 'typeorm';
 import { Role } from '../../role/entities/role.entity.js';
 import { Exclude, Expose } from 'class-transformer';
 
@@ -29,8 +29,8 @@ export class Permission {
     action: string
 
     // Foreign key to Role
-    @ManyToOne(() => Role, role => role.permissions, { onDelete: 'CASCADE' })
-    role: Role;
+    @ManyToMany(() => Role, role => role.permissions)
+    roles: Role[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

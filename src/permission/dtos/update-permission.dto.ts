@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdatePermissionDTO {
     @IsString()
@@ -28,7 +28,7 @@ export class UpdatePermissionDTO {
     @IsOptional()
     action: string
 
-    @IsString()
+    @IsArray()
     @IsOptional()
-    roleId: string
+    roleIds: string[]
 }

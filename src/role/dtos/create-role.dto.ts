@@ -12,9 +12,4 @@ export class CreateRoleDTO {
     @IsString()
     @IsOptional()
     description: string
-
-    // @IsArray()
-    // @ValidateNested({ each: true })
-    // @Type(() => CreatePermissionDTO)
-    // permissions: CreatePermissionDTO[];
 }

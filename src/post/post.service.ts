@@ -58,7 +58,7 @@ export class PostService {
 
         if (!existingPost) throw new NotFoundException('Post not found');
 
-        const deletePost = await this.postRepository.delete(id);
+        const deletePost = await this.postRepository.softDelete(id);
 
         if (deletePost.affected !== undefined && deletePost.affected !== null && deletePost.affected > 0) {
             return "Post Deleted Successfully."

@@ -13,6 +13,7 @@ export class PermissionsGuard implements CanActivate {
         // 1️⃣ Get the required permission from the route metadata
 
         const requiredPermission = this.reflector.get<{
+            role_key: string
             entity: string;
             action: string;
         }>(
@@ -27,17 +28,21 @@ export class PermissionsGuard implements CanActivate {
         const user = await this.userService.findOne(request.session.userId);
         if (!user) throw new ForbiddenException('You are not authorized perform this action.');
 
-        const permissions = await this.permissionService.findByRoleId(user.role.id);
+        const roles = await this.roleService.findOne(user.role.id);
+        
+        if (!roles) throw new ForbiddenException('You are not authorized perform this action.');
+        else if (roles.key == "admin" || roles.key == "system") return true;
 
+        const permissions = await this.permissionService.findByRoleId(user.role.id);
+        
         if (!permissions) throw new ForbiddenException('You are not authorized perform this action.');
 
         const authorized = permissions.some(permission => {
-            if (permission.entity == "all" && permission.action == "all" && (permission.key == "admin" || permission.key == "system")) {
-
+            if (permission.entity == "all" && permission.action == "all" && (roles.key == "admin" || roles.key == "system" || roles.key === requiredPermission.role_key)) {
                 return true;
             }
 
-            return permission.entity === requiredPermission.entity &&
+            return roles.key === requiredPermission.role_key && permission.entity === requiredPermission.entity &&
                 permission.action === requiredPermission.action
         }
         );

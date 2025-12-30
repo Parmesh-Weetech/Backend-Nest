@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, DeleteDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
 import { Permission } from '../../permission/entities/permission.entity.js';
 import { Exclude, Expose } from 'class-transformer';
 import { User } from '../../user/entities/user.entity.js';
@@ -25,7 +25,18 @@ export class Role {
     users: User[];
 
     // One role has many permissions
-    @OneToMany(() => Permission, permission => permission.role, { cascade: true })
+    @ManyToMany(() => Permission, permission => permission.roles, { cascade: true })
+    @JoinTable({
+        name: "roles_permissions",
+        joinColumn: {
+            name: 'roleId',
+            referencedColumnName: 'id',
+        },
+        inverseJoinColumn: {
+            name: 'permissionId',
+            referencedColumnName: 'id',
+        },
+    }) // this is required on one side
     permissions: Permission[];
 
     @CreateDateColumn({ type: 'timestamptz' })

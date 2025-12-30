@@ -1,13 +1,10 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import bcrypt from "bcryptjs";
 import { User } from './entities/user.entity.js';
 import { Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
-import { LoginDTO } from '../auth/dtos/login.dto.js';
 import { RoleService } from '../role/role.service.js';
-import { AuthService } from '../auth/auth.service.js';
 
 @Injectable()
 export class UserService {
@@ -77,7 +74,7 @@ export class UserService {
 
         if (!user) return null;
 
-        const deleteAction = await this.userRepository.remove(user);
+        const deleteAction = await this.userRepository.softDelete(user.id);
 
         if (!deleteAction) {
             throw new InternalServerErrorException("Internal Server Error");

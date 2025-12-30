@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity.js';
 import { CreateRoleDTO } from './dtos/create-role.dto.js';
 import { UpdateRoleDTO } from './dtos/update-role.dto.js';
-import { PermissionService } from 'src/permission/permission.service.js';
 
 @Injectable()
 export class RoleService {
@@ -60,6 +59,6 @@ export class RoleService {
     }
 
     async deleteRole(id: string): Promise<void> {
-        await this.roleRepository.delete(id);
+        await this.roleRepository.softDelete(id);
     }
 }
