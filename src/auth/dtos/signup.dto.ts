@@ -8,20 +8,20 @@ export class SignupDTO {
     @MaxLength(20)
     @ValidateIf((obj) => obj.name !== undefined)
     @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-    name: string
+    name: string;
 
     @IsEmail()
     @IsNotEmpty()
     @ValidateIf((obj) => obj.email !== undefined)
     @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-    email: string
+    email: string;
 
     @IsStrongPassword()
     @MaxLength(10)
-    password: string
+    password: string;
 
     @IsString()
     @IsOptional()
     @ValidateIf((obj) => obj.roleId !== undefined)
-    roleId: string
+    roleId: string;
 }

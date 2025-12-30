@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { PostEntity } from './entities/post.entity.js';
 import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
@@ -14,31 +14,32 @@ import { Permission } from '../common/decorators/permission.decorator.js';
 export class PostController {
 
     constructor(private readonly postService: PostService) { }
-    @Get(":id")
-    async getPostById(@Param("id") id: string): Promise<PostEntity> {
-        return await this.postService.getPostById(id);
-    }
 
     @Get()
-    async getPosts(): Promise<PostEntity[]> {
-        return await this.postService.getPosts();
+    async findAll(): Promise<PostEntity[]> {
+        return await this.postService.findAll();
+    }
+
+    @Get(":id")
+    async findOne(@Param("id") id: string): Promise<PostEntity> {
+        return await this.postService.findOne(id);
     }
 
     @Post()
     @Permission("post-manager", "post", "create")
-    async createPost(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<PostEntity> {
-        return await this.postService.createPost(createPostDTO, user);
+    async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<PostEntity> {
+        return await this.postService.create(createPostDTO, user);
     }
 
     @Put()
     @Permission("post-manager", "post", "update")
-    async updatePost(@Body() updatePostDTO: UpdatePostDTO): Promise<PostEntity> {
-        return await this.postService.updatePost(updatePostDTO);
+    async update(@Body() updatePostDTO: UpdatePostDTO): Promise<PostEntity> {
+        return await this.postService.update(updatePostDTO);
     }
 
     @Delete(":id")
     @Permission("post-manager", "post", "delete")
-    async deletePost(@Param("id") id: string): Promise<string> {
-        return await this.postService.deletePost(id);
+    async delete(@Param("id") id: string): Promise<string> {
+        return await this.postService.delete(id);
     }
 }

@@ -1,18 +1,20 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
 import { UserService } from './user/user.service.js';
-import dotenv from "dotenv";
-dotenv.config();
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
+
   try {
     const app = await NestFactory.create(AppModule);
+    const configService = app.get(ConfigService);
+
     app.use(session({
       name: "sid",
-      secret: "0cdd0ac6",
+      secret: configService.get("SESSION_SECRET")!,
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -33,10 +35,11 @@ async function bootstrap() {
       new ClassSerializerInterceptor(app.get(Reflector)),
       new CurrentUserInterceptor(app.get(Reflector), app.get(UserService))
     );
-    await app.listen(process.env.PORT ?? 3000);
-  } catch(error: any) {
+    await app.listen(configService.get("PORT") ?? 3000);
+  } catch (error: any) {
     console.error('Error starting server:', error);
-    console.log(error);
+    throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error });
   }
 }
+
 bootstrap();

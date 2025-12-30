@@ -3,26 +3,26 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, MaxLength,
 export class updateUserDTO {
     @IsString()
     @IsNotEmpty()
-    id: string
+    id: string;
 
     @MinLength(3)
     @MaxLength(20)
     @IsString()
     @IsOptional()
-    name: string
+    name: string;
 
     @IsEmail()
     @IsOptional()
-    email: string
+    email: string;
 
     @IsString()
     @IsNotEmpty()
     @IsOptional()
-    roleId: string
+    roleId: string;
 
     @IsString()
     @MaxLength(10)
     @IsStrongPassword()
     @IsOptional()
-    password: string
+    password: string;
 }

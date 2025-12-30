@@ -13,43 +13,39 @@ import { Permission } from '../common/decorators/permission.decorator.js';
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
-    @Get(":id")
-    async findOneUser(@Param("id") id: string): Promise<User> {
-        const user = await this.userService.findOne(id);
-
-        if (!user) {
-            throw new NotFoundException("User not found.");
-        }
-
-        return user;
-    }
-
     @Get()
-    async findUsers(): Promise<User[]> {
-        const users = await this.userService.findUsers();
+    async findAll(): Promise<User[]> {
+        const users = await this.userService.findAll();
 
-        if (!users) {
-            throw new NotFoundException("Users not found.");
-        }
+        if (!users) throw new NotFoundException("Users not found.");
 
         return users;
     }
 
+    @Get(":id")
+    async findOne(@Param("id") id: string): Promise<User> {
+        const user = await this.userService.findOne(id);
+
+        if (!user) throw new NotFoundException("User not found.");
+
+        return user;
+    }
+
     @Post()
     @Permission("user-manager", "user", "create")
-    async createUser(@Body() createUserDTO: CreateUserDTO, @CurrentUser() user: User): Promise<User> {
+    async create(@Body() createUserDTO: CreateUserDTO, @CurrentUser() user: User): Promise<User> {
         return this.userService.create(createUserDTO, user);
     }
 
     @Put()
     @Permission("user-manager", "user", "update")
-    async updateUser(@Body() updateUserDTO: updateUserDTO): Promise<User | null> {
+    async update(@Body() updateUserDTO: updateUserDTO): Promise<User | null> {
         return this.userService.update(updateUserDTO);
     }
 
     @Delete(":id")
     @Permission("user-manager", "user", "delete")
-    async deleteUser(@Param("id") id: string): Promise<string | null> {
+    async delete(@Param("id") id: string): Promise<string | null> {
         return this.userService.delete(id);
     }
 }

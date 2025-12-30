@@ -23,8 +23,7 @@ export class Role {
 
     @OneToMany(() => User, user => user.role)
     users: User[];
-
-    // One role has many permissions
+    
     @ManyToMany(() => Permission, permission => permission.roles, { cascade: true })
     @JoinTable({
         name: "roles_permissions",
@@ -36,7 +35,7 @@ export class Role {
             name: 'permissionId',
             referencedColumnName: 'id',
         },
-    }) // this is required on one side
+    })
     permissions: Permission[];
 
     @CreateDateColumn({ type: 'timestamptz' })

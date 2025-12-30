@@ -8,12 +8,10 @@ export default registerAs('database', () => ({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     synchronize: process.env.NODE_ENV !== 'development',
-    // logging: true,
     // logger: "simple-console",
-
+    // logging: true,
     migrationsTableName: 'migrations',
 
     entities: [__dirname + '/../**/entities/*.entity.js'],
-
     migrations: [__dirname + '../../db/migrations/*.js'],
 }));

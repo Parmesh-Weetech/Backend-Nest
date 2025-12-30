@@ -1,5 +1,5 @@
 import { Exclude, Expose } from "class-transformer";
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import bcrypt from "bcryptjs";
 import { Role } from "../../role/entities/role.entity.js";
 
@@ -7,19 +7,19 @@ import { Role } from "../../role/entities/role.entity.js";
 export class User {
     @PrimaryGeneratedColumn("uuid")
     @Expose()
-    id: string
+    id: string;
 
     @Column()
     @Expose()
-    name: string
+    name: string;
 
     @Column({ unique: true })
     @Expose()
-    email: string
+    email: string;
 
     @Column()
     @Exclude()
-    password: string
+    password: string;
 
     @ManyToOne(() => Role, role => role.users)
     role: Role;

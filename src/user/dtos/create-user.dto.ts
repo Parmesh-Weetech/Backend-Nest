@@ -6,18 +6,18 @@ export class CreateUserDTO {
     @IsNotEmpty()
     @MinLength(3)
     @MaxLength(20)
-    name: string
+    name: string;
     
     @IsEmail()
     @IsNotEmpty()
-    email: string
+    email: string;
 
     @IsString()
     @MaxLength(10)
     @IsStrongPassword()
-    password: string
+    password: string;
 
     @IsString()
     @IsNotEmpty()
-    roleId: string
+    roleId: string;
 }

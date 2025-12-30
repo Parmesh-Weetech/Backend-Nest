@@ -13,30 +13,20 @@ export class UserService {
         private readonly roleService: RoleService
     ) { }
 
-    async findOne(id: string): Promise<User | null> {
-        const user = await this.userRepository.findOne({ where: { id }, relations: ['role'] });
-        
-        if (!user) {
-            return null
-        }
-
-        return user;
-    }
-
-    async findOneByEmail(email: string): Promise<User | null> {
-        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['role'] });
-
-        return user;
-    }
-
-    async findUsers(): Promise<User[]> {
+    async findAll(): Promise<User[]> {
         const users = await this.userRepository.find({ relations: ['role'] });
 
-        if (!users) {
-            throw new NotFoundException("Users not found.");
-        }
+        if (!users) throw new NotFoundException("Users not found.");
 
         return users;
+    }
+
+    async findOne(id: string): Promise<User | null> {
+        const user = await this.userRepository.findOne({ where: { id }, relations: ['role'] });
+
+        if (!user) return null
+
+        return user;
     }
 
     async create(createUserDTO: CreateUserDTO, user: User): Promise<User> {
@@ -64,7 +54,6 @@ export class UserService {
         if (user.name) user.name = updateUserDTO.name;
         if (user.email) user.email = updateUserDTO.email;
         if (user.password) user.password = updateUserDTO.password;
-        // if (user.role) user.role = role;
 
         return await this.userRepository.save(user);
     }
@@ -76,10 +65,17 @@ export class UserService {
 
         const deleteAction = await this.userRepository.softDelete(user.id);
 
-        if (!deleteAction) {
-            throw new InternalServerErrorException("Internal Server Error");
-        }
+        if (!deleteAction) throw new InternalServerErrorException("Internal Server Error");
 
         return "User Deleted Successfully."
     }
+
+    async findOneByEmail(email: string): Promise<User | null> {
+        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['role'] });
+
+        if (!user) return null;
+
+        return user;
+    }
+
 }

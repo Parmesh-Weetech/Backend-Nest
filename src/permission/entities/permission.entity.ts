@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, ManyToMany } from 'typeorm';
 import { Role } from '../../role/entities/role.entity.js';
 import { Exclude, Expose } from 'class-transformer';
 
@@ -28,7 +28,6 @@ export class Permission {
     @Exclude()
     action: string
 
-    // Foreign key to Role
     @ManyToMany(() => Role, role => role.permissions)
     roles: Role[];
 

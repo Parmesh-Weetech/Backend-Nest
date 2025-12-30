@@ -8,7 +8,7 @@ import { UserModule } from '../user/user.module.js';
 
 @Module({
   providers: [AuthService],
-  imports: [TypeOrmModule.forFeature([User]), RoleModule, forwardRef(() => UserModule),],
+  imports: [TypeOrmModule.forFeature([User]), RoleModule, forwardRef(() => UserModule)],
   controllers: [AuthController],
   exports: [AuthService]
 })

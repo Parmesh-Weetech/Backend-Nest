@@ -16,14 +16,8 @@ const datasource = new DataSource({
     // logging: true,
     // logger: 'simple-console',
 
-    entities: [
-        path.join(__dirname, 'dist/src/**/entities/*.entity.js'),
-    ],
-
-    migrations: [
-        path.join(__dirname, '/dist/db/migrations/*.js'),
-    ],
-
+    entities: [path.join(__dirname, 'dist/src/**/entities/*.entity.js')],
+    migrations: [path.join(__dirname, '/dist/db/migrations/*.js')]
 });
 
 export default datasource;

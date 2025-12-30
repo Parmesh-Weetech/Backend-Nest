@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity.js';
@@ -12,12 +12,22 @@ export class RoleService {
         private roleRepository: Repository<Role>
     ) { }
 
-    async createRole(dto: CreateRoleDTO): Promise<Role> {
-        const existingRole = await this.roleRepository.findOne({ where: { key: dto.key }});
+    async findAll(): Promise<Role[]> {
+        return this.roleRepository.find({ relations: ['permissions'] });
+    }
 
-        if(existingRole) {
-            throw new ConflictException("Role Already Exists!");
-        }
+    async findOne(id: string): Promise<Role | null> {
+        const role = await this.roleRepository.findOne({ where: { id } });
+        
+        if (!role) return null
+        
+        return role;
+    }
+
+    async create(dto: CreateRoleDTO): Promise<Role> {
+        const existingRole = await this.roleRepository.findOne({ where: { key: dto.key } });
+
+        if (existingRole) throw new ConflictException("Role Already Exists!");
 
         const role = await this.roleRepository.create({
             key: dto.key,
@@ -28,25 +38,7 @@ export class RoleService {
         return await this.roleRepository.save(role);
     }
 
-    async findAll(): Promise<Role[]> {
-        return this.roleRepository.find({ relations: ['permissions'] });
-    }
-
-    async findOne(id: string): Promise<Role | null> {
-        const role = await this.roleRepository.findOne({ where: { id } });
-        if (!role) return null
-        return role;
-    }
-
-    async findRoleByKey(key: string): Promise<Role | null> {
-        const role = await this.roleRepository.findOne({ where: { key: key }});
-
-        if(!role) return null;
-
-        return role;
-    }
-
-    async updateRole(dto: UpdateRoleDTO): Promise<Role | null> {
+    async update(dto: UpdateRoleDTO): Promise<Role | null> {
         const role = await this.findOne(dto.id);
 
         if (!role) return null
@@ -58,7 +50,15 @@ export class RoleService {
         return this.roleRepository.save(role);
     }
 
-    async deleteRole(id: string): Promise<void> {
+    async delete(id: string): Promise<void> {
         await this.roleRepository.softDelete(id);
+    }
+
+    async findRoleByKey(key: string): Promise<Role | null> {
+        const role = await this.roleRepository.findOne({ where: { key: key } });
+
+        if (!role) return null;
+
+        return role;
     }
 }

@@ -1,9 +1,9 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString, MinLength, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateRoleDTO {
     @IsString()
     @IsNotEmpty()
-    id: string
+    id: string;
 
     @IsString()
     @IsOptional()
@@ -12,15 +12,9 @@ export class UpdateRoleDTO {
 
     @IsString()
     @IsOptional()
-    label?: string
+    label?: string;
 
     @IsString()
     @IsOptional()
-    description?: string
-
-    // @IsArray()
-    // @IsOptional()
-    // @ValidateNested({ each: true })
-    // @Type(() => CreatePermissionDTO)
-    // permissions?: CreatePermissionDTO[];
+    description?: string;
 }

@@ -7,9 +7,9 @@ export class CreateRoleDTO {
 
     @IsString()
     @IsNotEmpty()
-    label: string
+    label: string;
 
     @IsString()
     @IsOptional()
-    description: string
+    description: string;
 }

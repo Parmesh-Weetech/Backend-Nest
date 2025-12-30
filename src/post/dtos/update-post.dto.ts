@@ -4,7 +4,7 @@ import { Transform } from 'class-transformer';
 export class UpdatePostDTO {
     @IsString()
     @IsNotEmpty()
-    id: string
+    id: string;
 
     @IsString()
     @MaxLength(50)

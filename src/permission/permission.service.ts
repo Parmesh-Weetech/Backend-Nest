@@ -25,14 +25,6 @@ export class PermissionService {
         return perm;
     }
 
-    async findByRoleId(roleId: string): Promise<Permission[]> {
-        return this.permissionRepository
-            .createQueryBuilder('permission')
-            .innerJoin('permission.roles', 'role')
-            .where('role.id = :roleId', { roleId })
-            .getMany();
-    }
-
     async create(dto: CreatePermissionDTO): Promise<Permission> {
         const perm = await this.permissionRepository.findOne({
             where: { key: dto.key },
@@ -90,5 +82,13 @@ export class PermissionService {
 
     async delete(id: string): Promise<void> {
         await this.permissionRepository.softDelete(id);
+    }
+
+    async findByRoleId(roleId: string): Promise<Permission[]> {
+        return this.permissionRepository
+            .createQueryBuilder('permission')
+            .innerJoin('permission.roles', 'role')
+            .where('role.id = :roleId', { roleId })
+            .getMany();
     }
 }

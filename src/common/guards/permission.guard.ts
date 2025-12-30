@@ -10,7 +10,6 @@ export class PermissionsGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-        // 1️⃣ Get the required permission from the route metadata
 
         const requiredPermission = this.reflector.get<{
             role_key: string
@@ -21,35 +20,27 @@ export class PermissionsGuard implements CanActivate {
             context.getHandler()
         );
 
-        // current function if current route was create function then it contain create function, update route for update
-
-        if (!requiredPermission || requiredPermission === null || requiredPermission === undefined) return true; // No permission required, allow access
+        if (!requiredPermission || requiredPermission === null || requiredPermission === undefined) return true;
 
         const user = await this.userService.findOne(request.session.userId);
         if (!user) throw new ForbiddenException('You are not authorized perform this action.');
 
         const roles = await this.roleService.findOne(user.role.id);
-        
+
         if (!roles) throw new ForbiddenException('You are not authorized perform this action.');
         else if (roles.key == "admin" || roles.key == "system") return true;
 
         const permissions = await this.permissionService.findByRoleId(user.role.id);
-        
         if (!permissions) throw new ForbiddenException('You are not authorized perform this action.');
 
         const authorized = permissions.some(permission => {
-            if (permission.entity == "all" && permission.action == "all" && (roles.key == "admin" || roles.key == "system" || roles.key === requiredPermission.role_key)) {
-                return true;
-            }
+            if (permission.entity == "all" && permission.action == "all" && (roles.key == "admin" || roles.key == "system" || roles.key === requiredPermission.role_key)) return true;
 
             return roles.key === requiredPermission.role_key && permission.entity === requiredPermission.entity &&
                 permission.action === requiredPermission.action
-        }
-        );
+        });
 
-        if (!authorized) {
-            throw new ForbiddenException('You are not authorized perform this action!');
-        }
+        if (!authorized) throw new ForbiddenException('You are not authorized perform this action!');
 
         return true;
     }
