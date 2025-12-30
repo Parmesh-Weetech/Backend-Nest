@@ -1,14 +1,12 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Session, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { User } from './entities/user.entity.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
-import { currentUser } from '../common/decorators/currentUser.decorator.js';
+import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
-import { LoginDTO } from '../auth/dtos/login.dto.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { Permission } from '../common/decorators/permission.decorator.js';
-import { Public } from '../common/decorators/public.decorator.js';
 
 @Controller('user')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -39,7 +37,7 @@ export class UserController {
 
     @Post()
     @Permission("user-manager", "user", "create")
-    async createUser(@Body() createUserDTO: CreateUserDTO, @currentUser() user: User): Promise<User> {
+    async createUser(@Body() createUserDTO: CreateUserDTO, @CurrentUser() user: User): Promise<User> {
         return this.userService.create(createUserDTO, user);
     }
 

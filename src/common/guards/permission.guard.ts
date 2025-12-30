@@ -48,7 +48,7 @@ export class PermissionsGuard implements CanActivate {
         );
 
         if (!authorized) {
-            throw new ForbiddenException('You are not authorized perform this action.');
+            throw new ForbiddenException('You are not authorized perform this action!');
         }
 
         return true;

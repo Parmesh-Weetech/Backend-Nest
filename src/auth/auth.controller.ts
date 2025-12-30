@@ -1,14 +1,17 @@
-import { Body, Controller, Get, Post, Session } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, Req, Session } from '@nestjs/common';
 import { SignupDTO } from './dtos/signup.dto.js';
 import { LoginDTO } from './dtos/login.dto.js';
 import { Serialize } from './interceptors/serialize.interceptor.js';
 import { AuthService } from './auth.service.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { User } from '../user/entities/user.entity.js';
+import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService
+    ) { }
 
     @Serialize(User)
     @Public()
@@ -27,4 +30,14 @@ export class AuthController {
         return "Login Successful."
     }
 
+    @Post("/logout")
+    @Public()
+    async logout(@Session() session: any, @Req() req: Request): Promise<string> {
+        if (session.userId) {
+
+            session.userId = null;
+            return "Logout Successful."
+        }
+        throw new ForbiddenException("You must be loggedin to perform this action!")
+    }
 }

@@ -1,7 +1,6 @@
 import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
-import { AuthService } from "../../auth/auth.service.js";
 import { UserService } from "../../user/user.service.js";
 
 @Injectable()

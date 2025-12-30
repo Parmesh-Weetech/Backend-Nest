@@ -14,6 +14,7 @@ const datasource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: process.env.NODE_ENV !== 'development',
     // logging: true,
+    // logger: 'simple-console',
 
     entities: [
         path.join(__dirname, 'dist/src/**/entities/*.entity.js'),

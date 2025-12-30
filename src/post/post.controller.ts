@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { PostEntity } from './entities/post.entity.js';
-import { currentUser } from '../common/decorators/currentUser.decorator.js';
+import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { User } from '../user/entities/user.entity.js';
 import { CreatePostDTO } from './dtos/create-post.dto.js';
 import { UpdatePostDTO } from './dtos/update-post.dto.js';
@@ -26,7 +26,7 @@ export class PostController {
 
     @Post()
     @Permission("post-manager", "post", "create")
-    async createPost(@Body() createPostDTO: CreatePostDTO, @currentUser() user: User): Promise<PostEntity> {
+    async createPost(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<PostEntity> {
         return await this.postService.createPost(createPostDTO, user);
     }
 

@@ -4,6 +4,8 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
 import { UserService } from './user/user.service.js';
+import dotenv from "dotenv";
+dotenv.config();
 
 async function bootstrap() {
   try {

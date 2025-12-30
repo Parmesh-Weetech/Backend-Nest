@@ -1,7 +1,4 @@
 import { registerAs } from '@nestjs/config';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export default registerAs('database', () => ({
     type: 'postgres',
@@ -12,6 +9,7 @@ export default registerAs('database', () => ({
     database: process.env.DB_NAME,
     synchronize: process.env.NODE_ENV !== 'development',
     // logging: true,
+    // logger: "simple-console",
 
     migrationsTableName: 'migrations',
 
