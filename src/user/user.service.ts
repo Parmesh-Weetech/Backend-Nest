@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
+import { Role } from '../role/entities/role.entity.js';
 
 @Injectable()
 export class UserService {
@@ -14,54 +15,69 @@ export class UserService {
     ) { }
 
     async findAll(): Promise<User[]> {
-        const users = await this.userRepository.find({ relations: ['role'] });
+        const users = await this.userRepository.find({ relations: ['roles'] });
 
         if (!users) throw new NotFoundException("Users not found.");
 
         return users;
     }
 
-    async findOne(id: string): Promise<User | null> {
-        const user = await this.userRepository.findOne({ where: { id }, relations: ['role'] });
+    async findOne(id: string): Promise<User> {
+        const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });
 
-        if (!user) return null
+        if (!user) throw new NotFoundException("User not found.")
 
         return user;
     }
 
-    async create(createUserDTO: CreateUserDTO, user: User): Promise<User> {
-        const role = await this.roleService.findOne(createUserDTO.roleId);
+    async create(createUserDTO: CreateUserDTO): Promise<User> {
+        const roles = await Promise.all(
+            createUserDTO.roleIds.map(roleId =>
+                this.roleService.findOne(roleId),
+            ),
+        );
 
-        if (!role) throw new NotFoundException("Role not found.");
+        if (!roles || roles.length === 0) throw new NotFoundException("Role not found.");
 
         const newUser = await this.userRepository.create({
             name: createUserDTO.name,
             email: createUserDTO.email,
             password: createUserDTO.password,
-            role: role
+            roles: roles
         });
 
         return await this.userRepository.save(newUser);
     }
 
-    async update(updateUserDTO: updateUserDTO): Promise<User | null> {
+    async update(updateUserDTO: updateUserDTO): Promise<User> {
         const user = await this.findOne(updateUserDTO.id);
-        if (!user) return null;
 
-        const role = await this.roleService.findOne(updateUserDTO.roleId);
-        if (!role) throw new NotFoundException("Role not found.");
+        if (!user) throw new NotFoundException("User not found");
 
-        if (user.name) user.name = updateUserDTO.name;
-        if (user.email) user.email = updateUserDTO.email;
-        if (user.password) user.password = updateUserDTO.password;
+        if (updateUserDTO.roleIds) {
+            const roles = await Promise.all(
+                updateUserDTO.roleIds.map(roleId =>
+                    this.roleService.findOne(roleId),
+                ),
+            );
+
+            if (!roles) throw new NotFoundException("Role not found.");
+
+            user.roles = roles;
+        }
+
+        if (updateUserDTO.name) user.name = updateUserDTO.name;
+        if (updateUserDTO.email) user.email = updateUserDTO.email;
+        if (updateUserDTO.password) user.password = updateUserDTO.password;
+        
 
         return await this.userRepository.save(user);
     }
 
-    async delete(id: string): Promise<string | null> {
+    async delete(id: string): Promise<string> {
         const user = await this.findOne(id);
 
-        if (!user) return null;
+        if (!user) throw new NotFoundException("User not found");
 
         const deleteAction = await this.userRepository.softDelete(user.id);
 
@@ -70,10 +86,10 @@ export class UserService {
         return "User Deleted Successfully."
     }
 
-    async findOneByEmail(email: string): Promise<User | null> {
-        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['role'] });
+    async findOneByEmail(email: string): Promise<User> {
+        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['roles'] });
 
-        if (!user) return null;
+        if (!user) throw new NotFoundException("User not found.");
 
         return user;
     }

@@ -33,19 +33,19 @@ export class UserController {
 
     @Post()
     @Permission("user-manager", "user", "create")
-    async create(@Body() createUserDTO: CreateUserDTO, @CurrentUser() user: User): Promise<User> {
-        return this.userService.create(createUserDTO, user);
+    async create(@Body() createUserDTO: CreateUserDTO): Promise<User> {
+        return this.userService.create(createUserDTO);
     }
 
     @Put()
     @Permission("user-manager", "user", "update")
-    async update(@Body() updateUserDTO: updateUserDTO): Promise<User | null> {
+    async update(@Body() updateUserDTO: updateUserDTO): Promise<User> {
         return this.userService.update(updateUserDTO);
     }
 
     @Delete(":id")
     @Permission("user-manager", "user", "delete")
-    async delete(@Param("id") id: string): Promise<string | null> {
+    async delete(@Param("id") id: string): Promise<string> {
         return this.userService.delete(id);
     }
 }

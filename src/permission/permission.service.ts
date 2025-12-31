@@ -19,9 +19,11 @@ export class PermissionService {
         return this.permissionRepository.find({ relations: ['roles'] });
     }
 
-    async findOne(id: string): Promise<Permission | null> {
+    async findOne(id: string): Promise<Permission> {
         const perm = await this.permissionRepository.findOne({ where: { id }, relations: ['roles'] });
-        if (!perm) return null;
+
+        if (!perm) throw new NotFoundException("Permission not found.");
+        
         return perm;
     }
 
@@ -38,7 +40,7 @@ export class PermissionService {
             dto.roleIds.map(roleId => this.roleService.findOne(roleId))
         );
 
-        if (!existingRoles || existingRoles.length === 0 || existingRoles.includes(null)) {
+        if (!existingRoles || existingRoles.length === 0) {
             throw new NotFoundException("One or more roles do not exist!");
         }
 
@@ -54,10 +56,10 @@ export class PermissionService {
         return await this.permissionRepository.save(permission);
     }
 
-    async update(dto: UpdatePermissionDTO): Promise<Permission | null> {
+    async update(dto: UpdatePermissionDTO): Promise<Permission> {
         const perm = await this.findOne(dto.id);
 
-        if (!perm) return null;
+        if (!perm) throw new NotFoundException("Permission not found.");
 
         if (dto.key) perm.key = dto.key;
         if (dto.label) perm.label = dto.label;
@@ -70,7 +72,7 @@ export class PermissionService {
                 dto.roleIds.map(roleId => this.roleService.findOne(roleId))
             );
 
-            if (!existingRoles || existingRoles.includes(null)) {
+            if (!existingRoles) {
                 throw new NotFoundException("One or more roles do not exist!");
             }
 
@@ -85,7 +87,7 @@ export class PermissionService {
     }
 
     async findByRoleId(roleId: string): Promise<Permission[]> {
-        return this.permissionRepository
+        return await this.permissionRepository
             .createQueryBuilder('permission')
             .innerJoin('permission.roles', 'role')
             .where('role.id = :roleId', { roleId })

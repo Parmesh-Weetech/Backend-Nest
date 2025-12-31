@@ -23,36 +23,6 @@ export class AuthService {
             throw new ConflictException("User with this email already exists");
         }
 
-        // if (!signupDTO.roleId) {
-        //     const existingRole = await this.roleService.findRoleByKey("system");
-
-        //     if(!existingRole) {
-        //         const newRole = await this.roleService.createRole({
-        //             key: "system",
-        //             label: "System",
-        //             description: "Full Software Access"
-        //         });
-
-        //         role = newRole;
-        //     } else {
-        //         role = existingRole
-        //     }
-        // } else {
-        //     const existingRole = await this.roleService.findOne(signupDTO.roleId);
-
-        //     if (existingRole) {
-        //         role = existingRole;
-        //     } else {
-        //         const newRole = await this.roleService.createRole({
-        //             key: "system",
-        //             label: "System",
-        //             description: "Full Software Access"
-        //         });
-
-        //         role = newRole;
-        //     }
-        // }
-
         if (signupDTO.roleId) {
             role = await this.roleService.findOne(signupDTO.roleId);
         }
@@ -73,7 +43,7 @@ export class AuthService {
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
-            role: role
+            roles: [role]
         });
 
         return await this.userRepository.save(newUser);

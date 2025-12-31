@@ -18,7 +18,7 @@ export class RoleController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string): Promise<Role | null> {
+    findOne(@Param('id') id: string): Promise<Role> {
         return this.roleService.findOne(id);
     }
 
@@ -30,7 +30,7 @@ export class RoleController {
 
     @Put()
     @Permission("role-manager", "role", "update")
-    update(@Body() dto: UpdateRoleDTO): Promise<Role | null> {
+    update(@Body() dto: UpdateRoleDTO): Promise<Role> {
         return this.roleService.update(dto);
     }
 

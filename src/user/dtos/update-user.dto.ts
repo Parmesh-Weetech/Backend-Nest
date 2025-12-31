@@ -1,28 +1,29 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, MaxLength, MinLength } from "class-validator"
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, IsUUID, MaxLength, MinLength } from "class-validator"
 
 export class updateUserDTO {
     @IsString()
     @IsNotEmpty()
+    @IsUUID('all')
     id: string;
 
     @MinLength(3)
     @MaxLength(20)
     @IsString()
     @IsOptional()
-    name: string;
+    name?: string;
 
     @IsEmail()
     @IsOptional()
-    email: string;
+    email?: string;
 
-    @IsString()
-    @IsNotEmpty()
+    @IsArray()
     @IsOptional()
-    roleId: string;
+    @IsUUID('all', { each: true })
+    roleIds?: string[];
 
     @IsString()
     @MaxLength(10)
     @IsStrongPassword()
     @IsOptional()
-    password: string;
+    password?: string;
 }

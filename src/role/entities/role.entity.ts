@@ -21,7 +21,18 @@ export class Role {
     @Exclude()
     description: string
 
-    @OneToMany(() => User, user => user.role)
+    @ManyToMany(() => User, user => user.roles, { cascade: true })
+    @JoinTable({
+        name: "user_roles",
+        joinColumn: {
+            name: 'roleId',
+            referencedColumnName: 'id',
+        },
+        inverseJoinColumn: {
+            name: 'userId',
+            referencedColumnName: 'id',
+        },
+    })
     users: User[];
     
     @ManyToMany(() => Permission, permission => permission.roles, { cascade: true })

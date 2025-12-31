@@ -18,7 +18,7 @@ export class PermissionController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string): Promise<Permission | null> {
+    findOne(@Param('id') id: string): Promise<Permission> {
         return this.permissionService.findOne(id);
     }
 
@@ -30,7 +30,7 @@ export class PermissionController {
 
     @Put()
     @PermissionDecorator("permission-manager", "permission", "update")
-    update(@Body() dto: UpdatePermissionDTO): Promise<Permission | null> {
+    update(@Body() dto: UpdatePermissionDTO): Promise<Permission> {
         return this.permissionService.update(dto);
     }
 

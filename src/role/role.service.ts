@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity.js';
@@ -16,10 +16,10 @@ export class RoleService {
         return this.roleRepository.find({ relations: ['permissions'] });
     }
 
-    async findOne(id: string): Promise<Role | null> {
-        const role = await this.roleRepository.findOne({ where: { id } });
+    async findOne(id: string): Promise<Role> {
+        const role = await this.roleRepository.findOne({ where: { id }, relations: ['users'] });
         
-        if (!role) return null
+        if (!role) throw new NotFoundException("Role not found.")
         
         return role;
     }
@@ -38,10 +38,10 @@ export class RoleService {
         return await this.roleRepository.save(role);
     }
 
-    async update(dto: UpdateRoleDTO): Promise<Role | null> {
+    async update(dto: UpdateRoleDTO): Promise<Role> {
         const role = await this.findOne(dto.id);
 
-        if (!role) return null
+        if (!role) throw new NotFoundException("Role not found")
 
         if (dto.key) role.key = dto.key;
         if(dto.label) role.label = dto.label;
@@ -54,10 +54,10 @@ export class RoleService {
         await this.roleRepository.softDelete(id);
     }
 
-    async findRoleByKey(key: string): Promise<Role | null> {
+    async findRoleByKey(key: string): Promise<Role> {
         const role = await this.roleRepository.findOne({ where: { key: key } });
 
-        if (!role) return null;
+        if (!role) throw new NotFoundException("Role not found.");
 
         return role;
     }

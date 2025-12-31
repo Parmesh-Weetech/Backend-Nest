@@ -1,5 +1,5 @@
 import { Exclude, Expose } from "class-transformer";
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import bcrypt from "bcryptjs";
 import { Role } from "../../role/entities/role.entity.js";
 
@@ -21,8 +21,8 @@ export class User {
     @Exclude()
     password: string;
 
-    @ManyToOne(() => Role, role => role.users)
-    role: Role;
+    @ManyToMany(() => Role, role => role.users)
+    roles: Role[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;
