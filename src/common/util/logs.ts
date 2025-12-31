@@ -9,7 +9,7 @@ export const apiLogger = WinstonModule.createLogger({
             filename: 'logs/%DATE%.log',
             datePattern: 'DD-MM-YYYY-HH-mm',
             zippedArchive: true,
-            maxFiles: '3M',
+            maxFiles: '90d',
             format: winston.format.combine(
                 winston.format.timestamp(),
                 winston.format.json()
