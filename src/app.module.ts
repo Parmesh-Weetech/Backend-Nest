@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -10,6 +10,7 @@ import { PostModule } from './post/post.module.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import AppConfig from './config/app.config.js';
 import DatabaseConfig from './config/database.config.js';
+import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 
 @Module({
   imports: [
@@ -28,4 +29,8 @@ import DatabaseConfig from './config/database.config.js';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestTimeMiddleware).forRoutes('*');
+  }
+}

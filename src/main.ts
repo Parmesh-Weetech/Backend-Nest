@@ -1,15 +1,19 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, ConsoleLogger, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
 import { UserService } from './user/user.service.js';
 import { ConfigService } from '@nestjs/config';
+import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js';
+import { HttpErrorFilter } from './common/exceptions/global.exception.js';
 
 async function bootstrap() {
-
   try {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+      logger: false
+    });
+
     const configService = app.get(ConfigService);
 
     app.use(session({
@@ -33,8 +37,10 @@ async function bootstrap() {
     )
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
-      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService))
+      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService)),
+      new LoggingInterceptor(),
     );
+    app.useGlobalFilters(new HttpErrorFilter());
     await app.listen(configService.get("PORT") ?? 3000);
   } catch (error: any) {
     console.error('Error starting server:', error);
