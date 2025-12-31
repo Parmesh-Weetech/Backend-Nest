@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import AppConfig from './config/app.config.js';
 import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { RequestTimeMiddleware } from './common/middlewares/requestTime.middlewa
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule],
   controllers: [AppController],
   providers: [AppService],
 })

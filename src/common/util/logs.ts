@@ -7,7 +7,7 @@ export const apiLogger = WinstonModule.createLogger({
         // Rotating file transport
         new winston.transports.DailyRotateFile({
             filename: 'logs/%DATE%.log',
-            datePattern: 'DD-MM-YYYY-HH-mm',
+            datePattern: 'DD-MM-YYYY-HH',
             zippedArchive: true,
             maxFiles: '90d',
             format: winston.format.combine(

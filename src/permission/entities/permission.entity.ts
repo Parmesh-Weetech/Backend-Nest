@@ -40,3 +40,4 @@ export class Permission {
     @DeleteDateColumn({ type: 'timestamptz', nullable: true })
     deleted_at?: Date;
 }
+

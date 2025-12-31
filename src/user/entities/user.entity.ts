@@ -1,7 +1,8 @@
 import { Exclude, Expose } from "class-transformer";
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import bcrypt from "bcryptjs";
 import { Role } from "../../role/entities/role.entity.js";
+import { Organization } from "../../organization/entities/organization.entity.js";
 
 @Entity("user")
 export class User {
@@ -13,7 +14,7 @@ export class User {
     @Expose()
     name: string;
 
-    @Column({ unique: true })
+    @Column()
     @Expose()
     email: string;
 
@@ -21,8 +22,14 @@ export class User {
     @Exclude()
     password: string;
 
+    @ManyToOne(() => Organization, org => org.users, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+    @JoinColumn()
+    organization: Organization;
+
     @ManyToMany(() => Role, role => role.users)
     roles: Role[];
+
+    @Index(["email", "organizationId"], { unique: true })
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;
