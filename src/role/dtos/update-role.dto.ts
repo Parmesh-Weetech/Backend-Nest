@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class UpdateRoleDTO {
     @IsString()
@@ -13,6 +13,11 @@ export class UpdateRoleDTO {
     @IsString()
     @IsOptional()
     label?: string;
+
+    @IsArray()
+    @IsUUID('all', { each: true })
+    @IsOptional()
+    organizationIds: string[];
 
     @IsString()
     @IsOptional()

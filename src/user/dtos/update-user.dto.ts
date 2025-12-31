@@ -17,6 +17,11 @@ export class updateUserDTO {
     email?: string;
 
     @IsArray()
+    @IsUUID('all', { each: true })
+    @IsOptional()
+    organizationIds?: string[];
+
+    @IsArray()
     @IsOptional()
     @IsUUID('all', { each: true })
     roleIds?: string[];

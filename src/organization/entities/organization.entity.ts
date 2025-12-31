@@ -14,6 +14,9 @@ export class Organization {
     @Expose()
     name: string;
 
+    @Column({ type: 'jsonb', nullable: true })
+    config: Record<string, any>;
+
     @OneToMany(() => User, user => user.organization)
     users: User[]; 
 
@@ -21,7 +24,7 @@ export class Organization {
     roles: Role[]; 
 
     @OneToMany(() => User, permision => permision.organization)
-    permissions: Permission[]; 
+    permissions: Permission[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

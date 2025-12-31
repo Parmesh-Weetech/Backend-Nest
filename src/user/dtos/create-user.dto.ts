@@ -15,7 +15,12 @@ export class CreateUserDTO {
     @IsString()
     @MaxLength(10)
     @IsStrongPassword()
-    password?: string;
+    password: string;
+
+    @IsArray()
+    @IsUUID('all', { each: true })
+    @IsNotEmpty()
+    organizationIds: string[];
 
     @IsArray()
     @IsUUID('all', { each: true })

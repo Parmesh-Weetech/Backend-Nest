@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreatePermissionDTO {
@@ -23,6 +23,11 @@ export class CreatePermissionDTO {
     @IsString()
     @IsNotEmpty()
     action: string
+
+    @IsArray()
+    @IsUUID('all', { each: true })
+    @IsNotEmpty()
+    organizationIds: string[];
 
     @IsArray()
     @IsNotEmpty()

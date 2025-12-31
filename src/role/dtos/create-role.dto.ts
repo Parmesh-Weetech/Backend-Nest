@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateRoleDTO {
     @IsString()
@@ -12,4 +12,9 @@ export class CreateRoleDTO {
     @IsString()
     @IsOptional()
     description: string;
+
+    @IsArray()
+    @IsUUID('all', { each: true })
+    @IsNotEmpty()
+    organizationIds: string[];
 }
