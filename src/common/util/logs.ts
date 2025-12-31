@@ -1,21 +1,29 @@
-import { WinstonModule } from "nest-winston";
-import { format, transports } from "winston";
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
+import 'winston-daily-rotate-file';
 
 export const apiLogger = WinstonModule.createLogger({
     transports: [
-        new transports.File({
-            filename: `logs/app.log`,
-            format: format.combine(format.timestamp(), format.json()),
+        // Rotating file transport
+        new winston.transports.DailyRotateFile({
+            filename: 'logs/%DATE%.log',
+            datePattern: 'DD-MM-YYYY-HH-mm',
+            zippedArchive: true,
+            maxFiles: '3M',
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json()
+            ),
         }),
-        new transports.Console({
-            format: format.combine(
-                format.cli(),
-                format.splat(),
-                format.timestamp(),
-                format.printf((info) => {
-                    return `${info.timestamp} ${info.level}: ${info.message}`;
-                }),
+
+        // Console logging
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.cli(),
+                winston.format.splat(),
+                winston.format.timestamp(),
+                winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
             )
-        })
-    ]
-})
+        }),
+    ],
+});

@@ -11,9 +11,10 @@ export class LoggingInterceptor implements NestInterceptor {
         const method = req.method;
         const url = req.url;
         const startTime = Date.now();
-
+        
         res.on('finish', () => {
             const statusCode = res.statusCode;
+            const level = this.getLogLevel(statusCode);
 
             // Only log successful responses
             if (statusCode >= 400) return;
@@ -22,7 +23,7 @@ export class LoggingInterceptor implements NestInterceptor {
             const message = (res as any).locals?.logMessage || 'Request successful';
 
             apiLogger.log({
-                level: 'info',
+                level: level,
                 message,
                 context: `${method} ${url} ${statusCode}`,
                 duration: `${duration}ms`,
@@ -34,5 +35,12 @@ export class LoggingInterceptor implements NestInterceptor {
                 (res as any).locals = { logMessage: responseBody?.message || 'Request successful' };
             }),
         );
+    }
+
+    private getLogLevel(statusCode: number): 'debug' | 'log' | 'warn' | 'info' {
+        if (statusCode >= 100 && statusCode < 200) return 'debug';   
+        if (statusCode >= 200 && statusCode < 300) return 'log';     
+        if (statusCode >= 300 && statusCode < 400) return 'warn'; 
+        return 'info';
     }
 }
