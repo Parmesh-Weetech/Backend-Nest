@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, ManyToMany, JoinColumn, ManyToOne } from 'typeorm';
 import { Role } from '../../role/entities/role.entity.js';
 import { Exclude, Expose } from 'class-transformer';
+import { Organization } from  '../../organization/entities/organization.entity.js';
 
 @Entity('permissions')
 export class Permission {
@@ -30,6 +31,10 @@ export class Permission {
 
     @ManyToMany(() => Role, role => role.permissions)
     roles: Role[];
+
+    @ManyToOne(() => Organization, org => org.permissions, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+    @JoinColumn()
+    organization: Organization;
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;
