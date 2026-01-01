@@ -21,7 +21,9 @@ export class OrganizationService {
   }
 
   async create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
-    const organization = await this.organizationRepository.create(createOrganizationDto)
+    const organization = await this.organizationRepository.create(createOrganizationDto);
+
+    if(!organization) throw new InternalServerErrorException("Internal server error while creating organization");
 
     return await this.organizationRepository.save(organization);
   }

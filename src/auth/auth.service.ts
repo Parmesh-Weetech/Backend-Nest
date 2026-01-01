@@ -6,13 +6,15 @@ import { SignupDTO } from './dtos/signup.dto.js';
 import { LoginDTO } from './dtos/login.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { RoleService } from '../role/role.service.js';
+import { OrganizationService } from 'src/organization/organization.service.js';
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        private readonly roleService: RoleService
+        private readonly roleService: RoleService,
+        private readonly organizationService: OrganizationService
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<User> {
@@ -35,6 +37,7 @@ export class AuthService {
                     key: 'system',
                     label: 'System',
                     description: 'Full Software Access',
+                    organizationIds: []
                 });
             }
         }
@@ -50,7 +53,11 @@ export class AuthService {
     }
 
     async login(loginDTO: LoginDTO): Promise<string> {
-        const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
+        const organization = await this.organizationService.findOne(loginDTO.organizationId);
+
+        if(!organization) throw new NotFoundException("Organization not found.");
+
+        const user = await this.userRepository.findOne({ where: { email: loginDTO.email, organization: organization } });
 
         if (!user) {
             throw new NotFoundException("User with this email not exists")

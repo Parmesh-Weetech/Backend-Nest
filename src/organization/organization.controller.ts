@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { Organization } from './entities/organization.entity';
+import { AuthGuard } from '../common/guards/auth.guard';
 
 @Controller('organization')
+@UseGuards(AuthGuard)
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
@@ -23,7 +25,7 @@ export class OrganizationController {
     return this.organizationService.create(createOrganizationDto);
   }
 
-  @Patch(':id')
+  @Put()
   update(@Body() updateOrganizationDto: UpdateOrganizationDto): Promise<Organization> {
     return this.organizationService.update(updateOrganizationDto);
   }
