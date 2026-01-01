@@ -1,11 +1,9 @@
 import { DataSource } from 'typeorm';
-import path from 'path';
 import dotenv from 'dotenv';
 
-const __dirname = path.resolve();
 dotenv.config();
 
-const datasource = new DataSource({
+export const datasource = new DataSource({
     type: 'postgres',
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
@@ -14,10 +12,7 @@ const datasource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: process.env.NODE_ENV !== 'development',
     // logging: true,
-    // logger: 'simple-console',
-
-    entities: [path.join(__dirname, 'dist/src/**/entities/*.entity.js')],
-    migrations: [path.join(__dirname, '/dist/db/migrations/*.js')]
+    // logger: 'simple-console'
+    entities: ['dist/src/**/entities/*.entity.js'],
+    migrations: ['dist/db/migrations/*.js']
 });
-
-export default datasource;

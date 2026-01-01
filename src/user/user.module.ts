@@ -6,10 +6,11 @@ import { User } from './entities/user.entity.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { RoleModule } from '../role/role.module.js';
 import { PermissionModule } from '../permission/permission.module.js';
+import { OrganizationModule } from 'src/organization/organization.module.js';
 
 @Module({
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, PermissionModule],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, PermissionModule, OrganizationModule],
   controllers: [UserController],
   exports: [UserService]
 })

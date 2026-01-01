@@ -17,10 +17,10 @@ export class CreateUserDTO {
     @IsStrongPassword()
     password: string;
 
-    @IsArray()
+    @IsString()
     @IsUUID('all', { each: true })
     @IsNotEmpty()
-    organizationIds: string[];
+    organizationId: string;
 
     @IsArray()
     @IsUUID('all', { each: true })

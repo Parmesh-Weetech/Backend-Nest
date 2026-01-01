@@ -5,12 +5,14 @@ import { Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
+import { OrganizationService } from 'src/organization/organization.service.js';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
-        private readonly roleService: RoleService
+        private readonly roleService: RoleService,
+        private readonly organizationService: OrganizationService
     ) { }
 
     async findAll(): Promise<User[]> {
@@ -38,11 +40,16 @@ export class UserService {
 
         if (!roles || roles.length === 0) throw new NotFoundException("Role not found.");
 
+        const organization = await this.organizationService.findOne(createUserDTO.organizationId);
+
+        if(!organization) throw new NotFoundException("Organization not found.");
+
         const newUser = await this.userRepository.create({
             name: createUserDTO.name,
             email: createUserDTO.email,
             password: createUserDTO.password,
-            roles: roles
+            roles: roles,
+            organization: organization
         });
 
         return await this.userRepository.save(newUser);

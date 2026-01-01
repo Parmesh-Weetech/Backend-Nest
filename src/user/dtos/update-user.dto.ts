@@ -16,10 +16,10 @@ export class updateUserDTO {
     @IsOptional()
     email?: string;
 
-    @IsArray()
+    @IsString()
     @IsUUID('all', { each: true })
     @IsOptional()
-    organizationIds?: string[];
+    organizationId?: string;
 
     @IsArray()
     @IsOptional()

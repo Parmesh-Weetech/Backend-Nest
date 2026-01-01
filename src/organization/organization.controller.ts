@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
-import { OrganizationService } from './organization.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { Organization } from './entities/organization.entity';
-import { AuthGuard } from '../common/guards/auth.guard';
+import { OrganizationService } from './organization.service.js';
+import { CreateOrganizationDto } from './dto/create-organization.dto.js';
+import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
+import { Organization } from './entities/organization.entity.js';
+import { AuthGuard } from '../common/guards/auth.guard.js';
 
 @Controller('organization')
 @UseGuards(AuthGuard)

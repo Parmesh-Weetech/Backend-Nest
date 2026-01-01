@@ -21,9 +21,11 @@
     "migration:generate": "typeorm migration:generate -d ./db/typeorm.config.ts ./db/migrations/rename-roles_permissions-column",
     "migration:run": "npx typeorm migration:run -d ./db/typeorm.config.ts",
     "migration:show": "npx typeorm migration:show -d ./db/typeorm.config.ts",
-    "migration:revert": "npx typeorm migration:revert -d ./db/typeorm.config.ts"
+    "migration:revert": "npx typeorm migration:revert -d ./db/typeorm.config.ts",
+    "seed:run": "node --loader ts-node/esm ./dist/db/seed.js"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -41,6 +43,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.28",
+    "typeorm-extension": "^3.7.3",
     "typeorm-ts-node-esm": "^0.3.20",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"

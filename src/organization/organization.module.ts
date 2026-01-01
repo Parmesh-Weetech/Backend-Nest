@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { OrganizationService } from './organization.service';
-import { OrganizationController } from './organization.controller';
+import { OrganizationService } from './organization.service.js';
+import { OrganizationController } from './organization.controller.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Organization } from './entities/organization.entity';
+import { Organization } from './entities/organization.entity.js';
 
 @Module({
   controllers: [OrganizationController],
