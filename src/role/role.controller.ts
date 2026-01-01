@@ -23,19 +23,19 @@ export class RoleController {
     }
 
     @Post()
-    @Permission("role-manager", "role", "create")
+    @Permission("role", "create")
     create(@Body() dto: CreateRoleDTO): Promise<Role> {
         return this.roleService.create(dto);
     }
 
     @Put()
-    @Permission("role-manager", "role", "update")
+    @Permission("role", "update")
     update(@Body() dto: UpdateRoleDTO): Promise<Role> {
         return this.roleService.update(dto);
     }
 
     @Delete(':id')
-    @Permission("role-manager", "role", "delete")
+    @Permission("role", "delete")
     delete(@Param('id') id: string) {
         return this.roleService.delete(id);
     }

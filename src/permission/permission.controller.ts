@@ -23,19 +23,19 @@ export class PermissionController {
     }
 
     @Post()
-    @PermissionDecorator("permission-manager", "permission", "create")
+    @PermissionDecorator("permission", "create")
     create(@Body() dto: CreatePermissionDTO): Promise<Permission> {
         return this.permissionService.create(dto)
     }
 
     @Put()
-    @PermissionDecorator("permission-manager", "permission", "update")
+    @PermissionDecorator("permission", "update")
     update(@Body() dto: UpdatePermissionDTO): Promise<Permission> {
         return this.permissionService.update(dto);
     }
 
     @Delete(':id')
-    @PermissionDecorator("permission-manager", "permission", "delete")
+    @PermissionDecorator("permission", "delete")
     delete(@Param('id') id: string) {
         return this.permissionService.delete(id);
     }

@@ -41,6 +41,7 @@ export class UserService {
         if (!roles || roles.length === 0) throw new NotFoundException("Role not found.");
 
         const organization = await this.organizationService.findOne(createUserDTO.organizationId);
+        console.log(organization)
 
         if(!organization) throw new NotFoundException("Organization not found.");
 
@@ -51,6 +52,8 @@ export class UserService {
             roles: roles,
             organization: organization
         });
+
+        console.log(newUser)
 
         return await this.userRepository.save(newUser);
     }

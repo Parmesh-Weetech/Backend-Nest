@@ -26,19 +26,19 @@ export class PostController {
     }
 
     @Post()
-    @Permission("post-manager", "post", "create")
+    @Permission("post", "create")
     async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<PostEntity> {
         return await this.postService.create(createPostDTO, user);
     }
 
     @Put()
-    @Permission("post-manager", "post", "update")
+    @Permission("post", "update")
     async update(@Body() updatePostDTO: UpdatePostDTO): Promise<PostEntity> {
         return await this.postService.update(updatePostDTO);
     }
 
     @Delete(":id")
-    @Permission("post-manager", "post", "delete")
+    @Permission("post", "delete")
     async delete(@Param("id") id: string): Promise<string> {
         return await this.postService.delete(id);
     }

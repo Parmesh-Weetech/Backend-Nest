@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PermissionService } from '../../permission/permission.service.js';
 import { UserService } from '../../user/user.service.js';
+import { OrganizationService } from '../../organization/organization.service.js';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -14,13 +15,13 @@ export class PermissionsGuard implements CanActivate {
         private readonly reflector: Reflector,
         private readonly userService: UserService,
         private readonly permissionService: PermissionService,
+        private readonly organizationService: OrganizationService
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
 
         const requiredPermission = this.reflector.get<{
-            role_key: string;
             entity: string;
             action: string;
         }>('PERMISSIONS_KEY', context.getHandler());
@@ -37,53 +38,62 @@ export class PermissionsGuard implements CanActivate {
             );
         }
 
-        const roleIds: string[] = [];
-        const roleKeys: string[] = [];
+        const role = user.roles.map((role) => {
+            console.log(role.organization.id, " ", user.organization.id)
+            const match = role.organization.id === user.organization.id;
 
-        for (const role of user.roles) {
-            roleIds.push(role.id);
-            roleKeys.push(role.key);
-        }
+            if(match) return role
+        })
 
-        if (roleKeys.includes('admin') || roleKeys.includes('system')) {
-            return true;
-        }
+        console.log(role);
 
-        const permissionsByRole = await Promise.all(
-            roleIds.map((roleId) =>
-                this.permissionService.findByRoleId(roleId),
-            ),
-        );
+        // const roleIds: string[] = [];
+        // const roleKeys: string[] = [];
 
-        const permissions = permissionsByRole.flat();
+        // for (const role of user.roles) {
+        //     roleIds.push(role.id);
+        //     roleKeys.push(role.key);
+        // }
 
-        if (!permissions.length) {
-            throw new ForbiddenException(
-                'You are not authorized to perform this action.',
-            );
-        }
+        // if (roleKeys.includes('admin') || roleKeys.includes('system')) {
+        //     return true;
+        // }
 
-        const authorized = permissions.some((permission) => {
-            if (
-                permission.entity === 'all' &&
-                permission.action === 'all' &&
-                roleKeys.includes(requiredPermission.role_key)
-            ) {
-                return true;
-            }
+        // const permissionsByRole = await Promise.all(
+        //     roleIds.map((roleId) =>
+        //         this.permissionService.findByRoleId(roleId),
+        //     ),
+        // );
 
-            return (
-                roleKeys.includes(requiredPermission.role_key) &&
-                permission.entity === requiredPermission.entity &&
-                permission.action === requiredPermission.action
-            );
-        });
+        // const permissions = permissionsByRole.flat();
 
-        if (!authorized) {
-            throw new ForbiddenException(
-                'You are not authorized to perform this action!',
-            );
-        }
+        // if (!permissions.length) {
+        //     throw new ForbiddenException(
+        //         'You are not authorized to perform this action.',
+        //     );
+        // }
+
+        // const authorized = permissions.some((permission) => {
+        //     if (
+        //         permission.entity === 'all' &&
+        //         permission.action === 'all' &&
+        //         roleKeys.includes(requiredPermission.role_key)
+        //     ) {
+        //         return true;
+        //     }
+
+        //     return (
+        //         roleKeys.includes(requiredPermission.role_key) &&
+        //         permission.entity === requiredPermission.entity &&
+        //         permission.action === requiredPermission.action
+        //     );
+        // });
+
+        // if (!authorized) {
+        //     throw new ForbiddenException(
+        //         'You are not authorized to perform this action!',
+        //     );
+        // }
 
         return true;
     }
