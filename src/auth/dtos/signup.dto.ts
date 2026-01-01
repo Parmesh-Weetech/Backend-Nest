@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MaxLength, MinLength, ValidateIf, IsOptional } from "class-validator"
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MaxLength, MinLength, ValidateIf, IsOptional, IsUUID } from "class-validator"
 import { Transform } from 'class-transformer';
 
 export class SignupDTO {
@@ -19,9 +19,4 @@ export class SignupDTO {
     @IsStrongPassword()
     @MaxLength(10)
     password: string;
-
-    @IsString()
-    @IsOptional()
-    @ValidateIf((obj) => obj.roleId !== undefined)
-    roleId: string;
 }

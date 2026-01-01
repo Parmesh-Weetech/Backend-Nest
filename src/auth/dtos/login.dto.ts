@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, Length } from "class-validator"
+import { IsEmail, IsNotEmpty, IsString, IsUUID, Length } from "class-validator"
 
 export class LoginDTO {
     @IsEmail()
@@ -10,5 +10,6 @@ export class LoginDTO {
 
     @IsString()
     @IsNotEmpty()
+    @IsUUID("all", { each: true })
     organizationId: string
 }

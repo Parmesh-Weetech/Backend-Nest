@@ -1,12 +1,14 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { ClassSerializerInterceptor, ConsoleLogger, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
 import { UserService } from './user/user.service.js';
 import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js';
 import { HttpErrorFilter } from './common/exceptions/global.exception.js';
+import { DataSource } from 'typeorm';
+import { MainSeeder } from '../db/seeders/main.seed.js';
 
 async function bootstrap() {
   try {
@@ -15,6 +17,20 @@ async function bootstrap() {
     });
 
     const configService = app.get(ConfigService);
+
+    const auto_seed = configService.get("AUTO_SEED");
+
+    if (auto_seed) {
+      const dataSource = app.get(DataSource);
+
+      if (!dataSource.isInitialized) {
+        await dataSource.initialize();
+      }
+
+      console.log('🌱 Running database seeders...');
+      await new MainSeeder().run(dataSource);
+      console.log('✅ Database seeding completed');
+    }
 
     app.use(session({
       name: "sid",

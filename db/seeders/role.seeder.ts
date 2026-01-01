@@ -1,29 +1,23 @@
-import { Seeder, SeederFactoryManager } from 'typeorm-extension';
+import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import { Role } from '../../src/role/entities/role.entity.js';
-
+import { ROLES } from '../Default_Values.js';
 
 export class RoleSeeder implements Seeder {
-    public async run(
-        dataSource: DataSource,
-        factoryManager: SeederFactoryManager,
-    ): Promise<any> {
-
+    async run(dataSource: DataSource): Promise<void> {
         const roleRepo = dataSource.getRepository(Role);
-        const roleFactory = factoryManager.get(Role);
 
-        const existingRole = await roleRepo.findOne({
-            where: { key: 'abcd' },
-        });
-
-        if (!existingRole) {
-            const newRole = await roleRepo.create({
-                key: 'abcd',
-                label: 'abcd',
-                description: 'abcd role',
+        for (const roleData of ROLES) {
+            const exists = await roleRepo.findOne({
+                where: { key: roleData.key },
             });
 
-            await roleFactory.save(newRole);
+            if (!exists) {
+                await roleRepo.save(roleRepo.create(roleData));
+                console.log(`✅ Role created: ${roleData.key}`);
+            } else {
+                console.log("Roles already exists! No action needed.")
+            }
         }
     }
 }

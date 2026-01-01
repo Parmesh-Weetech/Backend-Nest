@@ -1,26 +1,29 @@
 import 'reflect-metadata';
-import { runSeeders, SeederOptions } from 'typeorm-extension';
+import { DataSource } from 'typeorm';
+import { runSeeders } from 'typeorm-extension';
 
 import dbConfig from './seeder.config.js';
 import { RoleFactory } from './factories/role.factory.js';
-import { RoleSeeder } from './seeders/role.seeder.js';
-import { DataSourceOptions } from 'typeorm';
-import { DataSource } from 'typeorm';
+import { MainSeeder } from './seeders/main.seed.js';
 
-const options: DataSourceOptions & SeederOptions = {
+const datasource = new DataSource({
     ...dbConfig(),
     factories: [RoleFactory],
-    seeds: [RoleSeeder],
-};
+    seeds: [MainSeeder],
+} as any); // 👈 REQUIRED
 
-const datasource = new DataSource(options);
+async function seed() {
+    await datasource.initialize();
+    console.log('📦 DataSource initialized');
 
-const seed = async () => {
-    await datasource.initialize()
-    await runSeeders(datasource, {
-        seeds: ['dist/db/seeders/*.seeder.js'],
-        factories: ['dist/db/factories/*.factory.js'],
-    });
+    await runSeeders(datasource);
+
+    console.log('🌱 Seeding completed');
+    await datasource.destroy();
+    process.exit(0);
 }
 
-seed()
+seed().catch((err) => {
+    console.error('❌ Seeding failed', err);
+    process.exit(1);
+});

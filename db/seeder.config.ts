@@ -9,7 +9,7 @@ export default registerAs('database', (): PostgresConnectionOptions => ({
     password: 'divpassword',
     database: 'divdata',
     synchronize: false,
-    logger: "simple-console",
+    // logger: "simple-console",
     // logging: true,
     migrationsTableName: 'migrations',
 

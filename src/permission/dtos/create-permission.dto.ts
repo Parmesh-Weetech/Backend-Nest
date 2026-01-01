@@ -24,10 +24,10 @@ export class CreatePermissionDTO {
     @IsNotEmpty()
     action: string
 
-    // @IsArray()
-    // @IsUUID('all', { each: true })
-    // @IsNotEmpty()
-    // organizationIds: string[];
+    @IsArray()
+    @IsUUID('all', { each: true })
+    @IsNotEmpty()
+    organizationIds: string[];
 
     @IsArray()
     @IsNotEmpty()

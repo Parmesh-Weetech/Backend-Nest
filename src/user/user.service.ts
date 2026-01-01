@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
-import { OrganizationService } from 'src/organization/organization.service.js';
+import { OrganizationService } from '../organization/organization.service.js';
 
 @Injectable()
 export class UserService {
