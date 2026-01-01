@@ -5,11 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Permission } from './entities/permission.entity.js';
 import { RoleModule } from '../role/role.module.js';
 import { UserModule } from '../user/user.module.js';
+import { OrganizationModule } from '../organization/organization.module.js';
 
 @Module({
   controllers: [PermissionController],
   providers: [PermissionService],
-  imports: [TypeOrmModule.forFeature([Permission]), forwardRef(() => RoleModule), forwardRef(() => UserModule)],
+  imports: [TypeOrmModule.forFeature([Permission]), forwardRef(() => RoleModule), forwardRef(() => UserModule), OrganizationModule],
   exports: [PermissionService]
 })
 export class PermissionModule { }

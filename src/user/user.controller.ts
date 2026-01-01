@@ -3,7 +3,6 @@ import { UserService } from './user.service.js';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { User } from './entities/user.entity.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
-import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { Permission } from '../common/decorators/permission.decorator.js';

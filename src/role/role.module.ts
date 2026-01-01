@@ -6,11 +6,12 @@ import { Role } from './entities/role.entity.js';
 import { Permission } from '../permission/entities/permission.entity.js';
 import { PermissionModule } from '../permission/permission.module.js';
 import { UserModule } from '..//user/user.module.js';
+import { OrganizationModule } from '../organization/organization.module.js';
 
 @Module({
   controllers: [RoleController],
   providers: [RoleService],
-  imports: [TypeOrmModule.forFeature([Role, Permission]), forwardRef(() => UserModule), forwardRef(() => PermissionModule)],
+  imports: [TypeOrmModule.forFeature([Role, Permission]), forwardRef(() => UserModule), forwardRef(() => PermissionModule), OrganizationModule],
   exports: [RoleService]
 })
 export class RoleModule { }

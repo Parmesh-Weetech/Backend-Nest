@@ -13,8 +13,8 @@ export class CreateRoleDTO {
     @IsOptional()
     description: string;
 
-    @IsArray()
+    @IsString()
     @IsUUID('all', { each: true })
     @IsNotEmpty()
-    organizationIds: string[];
+    organizationId: string;
 }

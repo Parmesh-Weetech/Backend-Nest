@@ -1,4 +1,4 @@
-import { ArrayNotEmpty, IsArray, IsEmail, IsNotEmpty, IsString, IsStrongPassword, IsUUID, MaxLength, MinLength } from "class-validator"
+import { ArrayNotEmpty, IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, IsUUID, MaxLength, MinLength } from "class-validator"
 
 export class CreateUserDTO {
 
@@ -24,6 +24,6 @@ export class CreateUserDTO {
 
     @IsArray()
     @IsUUID('all', { each: true })
-    @IsNotEmpty()
+    @IsOptional()
     roleIds: string[];
 }

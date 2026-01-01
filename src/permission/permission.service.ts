@@ -6,13 +6,15 @@ import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
 import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { Role } from '../role/entities/role.entity.js';
+import { OrganizationService } from '../organization/organization.service.js';
 
 @Injectable()
 export class PermissionService {
     constructor(
         @InjectRepository(Permission)
         private readonly permissionRepository: Repository<Permission>,
-        private readonly roleService: RoleService
+        private readonly roleService: RoleService,
+        private readonly organizationService: OrganizationService
     ) { }
 
     async findAll(): Promise<Permission[]> {
@@ -28,8 +30,12 @@ export class PermissionService {
     }
 
     async create(dto: CreatePermissionDTO): Promise<Permission> {
+        const organization = await this.organizationService.findOne(dto.organizationId);
+
+        if(!organization)  throw new NotFoundException("Organization not found.")
+
         const perm = await this.permissionRepository.findOne({
-            where: { key: dto.key },
+            where: { key: dto.key, organization: { id: dto.organizationId } },
             relations: ['roles']
         });
 
@@ -51,6 +57,7 @@ export class PermissionService {
             entity: dto.entity,
             action: dto.action,
             roles: existingRoles as Role[],
+            organization: organization
         });
 
         return await this.permissionRepository.save(permission);
