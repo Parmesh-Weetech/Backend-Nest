@@ -1,21 +1,14 @@
-import {
-    CanActivate,
-    ExecutionContext,
-    ForbiddenException,
-    Injectable,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { PermissionService } from '../../permission/permission.service.js';
-import { UserService } from '../../user/user.service.js';
-import { OrganizationService } from '../../organization/organization.service.js';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { UserService } from "../../user/user.service.js";
+import { PermissionService } from "../../permission/permission.service.js";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly userService: UserService,
-        private readonly permissionService: PermissionService,
-        private readonly organizationService: OrganizationService
+        private readonly permissionService: PermissionService
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -26,74 +19,60 @@ export class PermissionsGuard implements CanActivate {
             action: string;
         }>('PERMISSIONS_KEY', context.getHandler());
 
-        if (!requiredPermission) return true;
+        if (!requiredPermission) {
+            return true;
+        }
 
-        const user = await this.userService.findOne(
+        const { entity, action } = requiredPermission;
+
+        const user = await this.userService.findOneWithRolesAndPermissions(
             request.session.userId,
         );
 
-        if (!user || !user.roles || user.roles.length === 0) {
-            throw new ForbiddenException(
-                'You are not authorized to perform this action.',
-            );
+
+        if (!user) {
+            throw new ForbiddenException('User not found');
         }
 
-        const role = user.roles.map((role) => {
-            console.log(role.organization.id, " ", user.organization.id)
-            const match = role.organization.id === user.organization.id;
+        const orgId = user.organization.id;
 
-            if(match) return role
-        })
+        const hasPermission = user.roles.some((role) => {
+            if (role.organization.id !== orgId) {
+                return false;
+            }
 
-        console.log(role);
+            const match = role.permissions.some(async (permission) => {
+                permission = await this.permissionService.findOne(permission.id)
+                if (permission.organization.id !== orgId) {
+                    return false;
+                }
 
-        // const roleIds: string[] = [];
-        // const roleKeys: string[] = [];
+                if (
+                    permission.entity === entity &&
+                    permission.action === action
+                ) {
+                    return true;
+                }
 
-        // for (const role of user.roles) {
-        //     roleIds.push(role.id);
-        //     roleKeys.push(role.key);
-        // }
+                if (
+                    role.key === 'admin' &&
+                    permission.entity === entity &&
+                    permission.action === 'all'
+                ) {
+                    return true;
+                }
 
-        // if (roleKeys.includes('admin') || roleKeys.includes('system')) {
-        //     return true;
-        // }
+                return false;
+            });
 
-        // const permissionsByRole = await Promise.all(
-        //     roleIds.map((roleId) =>
-        //         this.permissionService.findByRoleId(roleId),
-        //     ),
-        // );
+            return match;
+        });
 
-        // const permissions = permissionsByRole.flat();
-
-        // if (!permissions.length) {
-        //     throw new ForbiddenException(
-        //         'You are not authorized to perform this action.',
-        //     );
-        // }
-
-        // const authorized = permissions.some((permission) => {
-        //     if (
-        //         permission.entity === 'all' &&
-        //         permission.action === 'all' &&
-        //         roleKeys.includes(requiredPermission.role_key)
-        //     ) {
-        //         return true;
-        //     }
-
-        //     return (
-        //         roleKeys.includes(requiredPermission.role_key) &&
-        //         permission.entity === requiredPermission.entity &&
-        //         permission.action === requiredPermission.action
-        //     );
-        // });
-
-        // if (!authorized) {
-        //     throw new ForbiddenException(
-        //         'You are not authorized to perform this action!',
-        //     );
-        // }
+        if (!hasPermission) {
+            throw new ForbiddenException(
+                `You are not authorized to ${action} ${entity}`,
+            );
+        }
 
         return true;
     }

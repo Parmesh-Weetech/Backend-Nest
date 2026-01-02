@@ -12,9 +12,4 @@ export class CreateRoleDTO {
     @IsString()
     @IsOptional()
     description: string;
-
-    @IsString()
-    @IsUUID('all', { each: true })
-    @IsNotEmpty()
-    organizationId: string;
 }

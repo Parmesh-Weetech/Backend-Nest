@@ -26,6 +26,7 @@ export class AuthController {
         const id = await this.authService.login(loginDTO);
 
         session.userId = id;
+        session.orgId = loginDTO.organizationId;
 
         return "Login Successful."
     }

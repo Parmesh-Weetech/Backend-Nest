@@ -24,7 +24,7 @@ export class UserService {
     }
 
     async findOne(id: string): Promise<User> {
-        const user = await this.userRepository.findOne({ where: { id }, relations: ['roles'] });
+        const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'organization'] });
 
         if (!user) throw new NotFoundException("User not found.")
 
@@ -41,7 +41,6 @@ export class UserService {
         if (!roles || roles.length === 0) throw new NotFoundException("Role not found.");
 
         const organization = await this.organizationService.findOne(createUserDTO.organizationId);
-        console.log(organization)
 
         if(!organization) throw new NotFoundException("Organization not found.");
 
@@ -52,9 +51,7 @@ export class UserService {
             roles: roles,
             organization: organization
         });
-
-        console.log(newUser)
-
+        
         return await this.userRepository.save(newUser);
     }
 
@@ -101,6 +98,21 @@ export class UserService {
         if (!user) throw new NotFoundException("User not found.");
 
         return user;
+    }
+
+    async findOneWithRolesAndPermissions(userId: string) {
+        return this.userRepository.findOne({
+            where: { id: userId },
+            relations: {
+                organization: true,
+                roles: {
+                    organization: true,
+                    permissions: {
+                        organization: true,
+                    },
+                },
+            },
+        });
     }
 
 }

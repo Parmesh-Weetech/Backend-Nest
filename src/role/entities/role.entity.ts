@@ -54,8 +54,6 @@ export class Role {
     })
     permissions: Permission[];
 
-    @Index(["key", "organizationId"], { unique: true })
-
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;
 

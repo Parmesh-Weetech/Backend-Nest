@@ -24,11 +24,6 @@ export class CreatePermissionDTO {
     @IsNotEmpty()
     action: string
 
-    @IsString()
-    @IsUUID('all', { each: true })
-    @IsNotEmpty()
-    organizationId: string;
-
     @IsArray()
     @IsNotEmpty()
     roleIds: string[]

@@ -20,12 +20,13 @@ export class CurrentUserInterceptor implements NestInterceptor {
 
         if (publicRoute) return next.handle();
 
-        if (request.session?.userId) {
+        if (request.session?.userId && request.session?.orgId) {
             const user = await this.userService.findOne(request.session.userId);
 
             if (!user) throw new BadRequestException("User not exists!")
 
             request.currentUser = user;
+            request.orgId = request.session?.orgId;
         }
 
         return next.handle();

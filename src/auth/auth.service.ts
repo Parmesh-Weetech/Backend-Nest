@@ -8,6 +8,7 @@ import { User } from '../user/entities/user.entity.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
+import { Permission } from '../permission/entities/permission.entity.js';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,7 @@ export class AuthService {
     async signup(signupDTO: SignupDTO): Promise<User> {
         const newOrganization = await this.organizationService.create({ name: "Default" });
 
-        if(!newOrganization) throw new InternalServerErrorException("Internal server error while creating organization.");
+        if (!newOrganization) throw new InternalServerErrorException("Internal server error while creating organization.");
 
         const existingRolePermission = await this.roleService.findRoleByOrganization('admin');
 
@@ -34,36 +35,38 @@ export class AuthService {
             key: existingRolePermission.key,
             label: existingRolePermission.label,
             description: existingRolePermission.description,
-            organizationId: newOrganization.id,
+            organizationIds: [newOrganization.id],
         });
 
-        const newPermissions = existingRolePermission.permissions.map(async (permission) => {
-            const newCopiedPermission = await this.permissionService.create({
-                key: permission.key,
-                label: permission.label,
-                description: permission.description,
-                entity: permission.entity,  
-                action: permission.action,
-                organizationId: newOrganization.id,
-                roleIds: [newCopiedRole.id]
-            });
+        const existingPermissions = await Promise.all(
+            existingRolePermission.permissions.flatMap(permission =>
+                newCopiedRole.map(copiedRole =>
+                    this.permissionService.create({
+                        key: permission.key,
+                        label: permission.label,
+                        description: permission.description,
+                        entity: permission.entity,
+                        action: permission.action,
+                        organizationId: newOrganization.id,
+                        roleIds: [copiedRole.id],
+                    })
+                )
+            )
+        );
 
-            if(!newCopiedPermission) {
-                throw new InternalServerErrorException("Internal server error while creating permission.");
-            }
-
-            return newCopiedPermission;
-        });
+        if (!existingPermissions || existingPermissions.length === 0) {
+            throw new InternalServerErrorException("Internal server exception while creating new permissions");
+        }
 
         const newUser = await this.userRepository.create({
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
             organization: newOrganization,
-            roles: [newCopiedRole]
+            roles: newCopiedRole
         });
 
-        if(!newCopiedRole || !newPermissions || newPermissions.length === 0) {
+        if (!newCopiedRole || !existingPermissions || existingPermissions.length === 0) {
             throw new InternalServerErrorException("Internal server error while creating user.");
         }
 

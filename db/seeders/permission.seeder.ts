@@ -11,7 +11,7 @@ export class PermissionSeeder implements Seeder {
 
         for (const perm of PERMISSIONS) {
             let permission = await permissionRepo.findOne({
-                where: { key: perm.key },
+                where: { key: perm.key, entity: perm.entity },
                 relations: ['roles'],
             });
 
@@ -21,6 +21,7 @@ export class PermissionSeeder implements Seeder {
                     label: perm.label,
                     entity: perm.entity,
                     action: perm.action,
+                    description: perm.description
                 });
             }
 

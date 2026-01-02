@@ -29,17 +29,10 @@ export class PermissionService {
         return perm;
     }
 
-    async create(dto: CreatePermissionDTO): Promise<Permission> {
-        const organization = await this.organizationService.findOne(dto.organizationId);
+    async create(dto: CreatePermissionDTO, orgId: string): Promise<Permission> {
+        const organization = await this.organizationService.findOne(orgId);
 
         if(!organization)  throw new NotFoundException("Organization not found.")
-
-        const perm = await this.permissionRepository.findOne({
-            where: { key: dto.key, organization: { id: dto.organizationId } },
-            relations: ['roles']
-        });
-
-        if (perm) throw new ConflictException("Permission Already Exists");
 
         // Fetch roles in parallel
         const existingRoles = await Promise.all(
@@ -56,7 +49,7 @@ export class PermissionService {
             description: dto.description,
             entity: dto.entity,
             action: dto.action,
-            roles: existingRoles as Role[],
+            roles: existingRoles,
             organization: organization
         });
 

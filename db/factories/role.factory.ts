@@ -4,8 +4,8 @@ import { setSeederFactory } from "typeorm-extension";
 export const RoleFactory = setSeederFactory(Role, () => {
     const role = new Role();
 
-    role.key = 'abcd';
-    role.label = 'abcd';
+    role.key = 'admin';
+    role.label = 'Admin';
     role.description = 'Full system access'
 
     return role;
