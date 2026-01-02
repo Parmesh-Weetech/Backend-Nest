@@ -35,6 +35,12 @@ export class PermissionService {
 
         if (!organization) throw new NotFoundException("Organization not found.");
 
+        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: { id: orgId }}});
+
+        console.log(existingPermissions)
+
+        if(existingPermissions) throw new ForbiddenException("Permission already exists!");
+
         const permission = this.permissionRepository.create({
             key: dto.key,
             label: dto.label,

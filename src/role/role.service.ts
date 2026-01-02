@@ -31,55 +31,55 @@ export class RoleService {
 
     async create(dto: CreateRoleDTO, orgId: string): Promise<Role> {
         const organization = await this.organizationService.findOne(orgId);
-
-        if (!orgId || !organization) {
+        if (!organization) {
             throw new NotFoundException("Organization not found.");
         }
 
-        // 1️⃣ Fetch all permissions from DTO
-        const permissions = await Promise.all(
-            dto.permissionIds.map(permissionId => this.permissionService.findOne(permissionId))
+        // 1️⃣ Load requested permissions
+        const requestedPermissions = await Promise.all(
+            dto.permissionIds.map(id => this.permissionService.findOne(id))
         );
 
-        // 2️⃣ Check if a role with same key AND same permissions exists in this org
+        // Normalize requested permissions (entity:action)
+        const requestedSignature = requestedPermissions
+            .map(p => `${p.entity}:${p.action}`)
+            .sort()
+            .join('|');
+
+        // 2️⃣ Load existing roles with same key in org
         const existingRoles = await this.roleRepository.find({
-            where: { key: dto.key, organization: { id: orgId } },
+            where: {
+                key: dto.key,
+                organization: { id: orgId }
+            },
             relations: ['permissions']
         });
 
-        for (const existingRole of existingRoles) {
-            const existingPermissionIds = existingRole.permissions.map(p => p.id).sort();
-            const newPermissionIds = permissions.map(p => p.id).sort();
+        // 3️⃣ Compare semantic permission sets
+        for (const role of existingRoles) {
+            const existingSignature = role.permissions
+                .map(p => `${p.entity}:${p.action}`)
+                .sort()
+                .join('|');
 
-            const isSamePermissions =
-                existingPermissionIds.length === newPermissionIds.length &&
-                existingPermissionIds.every((id, index) => id === newPermissionIds[index]);
-
-            if (isSamePermissions) {
+            if (existingSignature === requestedSignature) {
                 throw new ConflictException(
-                    `Role with key "${dto.key}" and same permissions already exists in this organization.`
+                    `Role "${dto.key}" with same effective permissions already exists.`
                 );
             }
         }
 
-        // 3️⃣ Create new role if no duplicate
+        // 4️⃣ Create role (safe)
         const role = this.roleRepository.create({
             key: dto.key,
             label: dto.label,
             description: dto.description,
-            organization: organization,
-            permissions: permissions
+            organization,
+            permissions: requestedPermissions
         });
 
-        const newRole = await this.roleRepository.save(role);
-
-        if (!newRole) {
-            throw new InternalServerErrorException("Internal server error while creating role");
-        }
-
-        return newRole;
+        return await this.roleRepository.save(role);
     }
-
 
     async update(dto: UpdateRoleDTO): Promise<Role> {
         const role = await this.findOne(dto.id);
