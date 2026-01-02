@@ -1,14 +1,12 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserService } from "../../user/user.service.js";
-import { PermissionService } from "../../permission/permission.service.js";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly userService: UserService,
-        private readonly permissionService: PermissionService
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -29,24 +27,21 @@ export class PermissionsGuard implements CanActivate {
             request.session.userId,
         );
 
-
         if (!user) {
             throw new ForbiddenException('User not found');
         }
 
         const orgId = user.organization.id;
 
-        const hasPermission = user.roles.some((role) => {
-            if (role.organization.id !== orgId) {
-                return false;
-            }
+        for (const role of user.roles) {
+            // role must belong to same org
+            if (role.organization.id !== orgId) continue;
 
-            const match = role.permissions.some(async (permission) => {
-                permission = await this.permissionService.findOne(permission.id)
-                if (permission.organization.id !== orgId) {
-                    return false;
-                }
+            for (const permission of role.permissions) {
+                // permission must belong to same org
+                if (permission.organization.id !== orgId) continue;
 
+                // exact match
                 if (
                     permission.entity === entity &&
                     permission.action === action
@@ -54,6 +49,7 @@ export class PermissionsGuard implements CanActivate {
                     return true;
                 }
 
+                // admin wildcard
                 if (
                     role.key === 'admin' &&
                     permission.entity === entity &&
@@ -61,19 +57,11 @@ export class PermissionsGuard implements CanActivate {
                 ) {
                     return true;
                 }
-
-                return false;
-            });
-
-            return match;
-        });
-
-        if (!hasPermission) {
-            throw new ForbiddenException(
-                `You are not authorized to ${action} ${entity}`,
-            );
+            }
         }
 
-        return true;
+        throw new ForbiddenException(
+            `You are not authorized to ${action} ${entity}`,
+        );
     }
 }

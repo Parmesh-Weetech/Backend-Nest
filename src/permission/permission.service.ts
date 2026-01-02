@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Permission } from './entities/permission.entity.js';
@@ -13,6 +13,7 @@ export class PermissionService {
     constructor(
         @InjectRepository(Permission)
         private readonly permissionRepository: Repository<Permission>,
+        @Inject(forwardRef(() => RoleService))
         private readonly roleService: RoleService,
         private readonly organizationService: OrganizationService
     ) { }
@@ -25,23 +26,14 @@ export class PermissionService {
         const perm = await this.permissionRepository.findOne({ where: { id }, relations: ['roles'] });
 
         if (!perm) throw new NotFoundException("Permission not found.");
-        
+
         return perm;
     }
 
     async create(dto: CreatePermissionDTO, orgId: string): Promise<Permission> {
         const organization = await this.organizationService.findOne(orgId);
 
-        if(!organization)  throw new NotFoundException("Organization not found.")
-
-        // Fetch roles in parallel
-        const existingRoles = await Promise.all(
-            dto.roleIds.map(roleId => this.roleService.findOne(roleId))
-        );
-
-        if (!existingRoles || existingRoles.length === 0) {
-            throw new NotFoundException("One or more roles do not exist!");
-        }
+        if (!organization) throw new NotFoundException("Organization not found.");
 
         const permission = this.permissionRepository.create({
             key: dto.key,
@@ -49,7 +41,6 @@ export class PermissionService {
             description: dto.description,
             entity: dto.entity,
             action: dto.action,
-            roles: existingRoles,
             organization: organization
         });
 

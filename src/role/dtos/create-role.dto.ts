@@ -12,4 +12,8 @@ export class CreateRoleDTO {
     @IsString()
     @IsOptional()
     description: string;
+
+    @IsArray()
+    @IsNotEmpty()
+    permissionIds: string[]
 }

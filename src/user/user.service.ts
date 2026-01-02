@@ -31,7 +31,7 @@ export class UserService {
         return user;
     }
 
-    async create(createUserDTO: CreateUserDTO): Promise<User> {
+    async create(createUserDTO: CreateUserDTO, orgId: string): Promise<User> {
         const roles = await Promise.all(
             createUserDTO.roleIds.map(roleId =>
                 this.roleService.findOne(roleId),
@@ -40,7 +40,7 @@ export class UserService {
 
         if (!roles || roles.length === 0) throw new NotFoundException("Role not found.");
 
-        const organization = await this.organizationService.findOne(createUserDTO.organizationId);
+        const organization = await this.organizationService.findOne(orgId);
 
         if(!organization) throw new NotFoundException("Organization not found.");
 
@@ -51,7 +51,7 @@ export class UserService {
             roles: roles,
             organization: organization
         });
-        
+
         return await this.userRepository.save(newUser);
     }
 

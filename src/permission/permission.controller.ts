@@ -6,7 +6,7 @@ import { AuthGuard } from '../common/guards/auth.guard.js';
 import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { Permission as PermissionDecorator } from '../common/decorators/permission.decorator.js';
-import { CurrentOrganizationId } from 'src/common/decorators/currentOrganizationId.decorator.js';
+import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
 
 @Controller('permissions')
 @UseGuards(AuthGuard, PermissionsGuard)

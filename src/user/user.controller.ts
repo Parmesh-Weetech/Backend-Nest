@@ -6,6 +6,7 @@ import { updateUserDTO } from './dtos/update-user.dto.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { Permission } from '../common/decorators/permission.decorator.js';
+import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
 
 @Controller('user')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -32,8 +33,8 @@ export class UserController {
 
     @Post()
     @Permission("user", "create")
-    async create(@Body() createUserDTO: CreateUserDTO): Promise<User> {
-        return this.userService.create(createUserDTO);
+    async create(@Body() createUserDTO: CreateUserDTO, @CurrentOrganizationId() Id: string): Promise<User> {
+        return this.userService.create(createUserDTO, Id);
     }
 
     @Put()
