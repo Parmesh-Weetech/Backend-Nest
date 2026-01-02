@@ -24,13 +24,6 @@ export class AuthService {
 
         if(!newOrganization) throw new InternalServerErrorException("Internal server error while creating organization.");
 
-        const newUser = await this.userRepository.create({
-            name: signupDTO.name,
-            email: signupDTO.email,
-            password: signupDTO.password,
-            organization: newOrganization
-        });
-
         const existingRolePermission = await this.roleService.findRoleByOrganization('admin');
 
         if (!existingRolePermission) {
@@ -41,29 +34,37 @@ export class AuthService {
             key: existingRolePermission.key,
             label: existingRolePermission.label,
             description: existingRolePermission.description,
-            organizationId: newOrganization.id
-        })
+            organizationId: newOrganization.id,
+        });
 
         const newPermissions = existingRolePermission.permissions.map(async (permission) => {
             const newCopiedPermission = await this.permissionService.create({
                 key: permission.key,
                 label: permission.label,
                 description: permission.description,
-                entity: permission.entity,
+                entity: permission.entity,  
                 action: permission.action,
                 organizationId: newOrganization.id,
                 roleIds: [newCopiedRole.id]
-            })
+            });
 
             if(!newCopiedPermission) {
                 throw new InternalServerErrorException("Internal server error while creating permission.");
             }
 
             return newCopiedPermission;
-        })
+        });
 
-        if(!newCopiedRole) {
-            throw new InternalServerErrorException("Internal server error while creating role.");
+        const newUser = await this.userRepository.create({
+            name: signupDTO.name,
+            email: signupDTO.email,
+            password: signupDTO.password,
+            organization: newOrganization,
+            roles: [newCopiedRole]
+        });
+
+        if(!newCopiedRole || !newPermissions || newPermissions.length === 0) {
+            throw new InternalServerErrorException("Internal server error while creating user.");
         }
 
         return await this.userRepository.save(newUser);
