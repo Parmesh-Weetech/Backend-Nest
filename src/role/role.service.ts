@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Role } from './entities/role.entity.js';
@@ -35,18 +35,15 @@ export class RoleService {
             throw new NotFoundException("Organization not found.");
         }
 
-        // 1️⃣ Load requested permissions
         const requestedPermissions = await Promise.all(
             dto.permissionIds.map(id => this.permissionService.findOne(id))
         );
 
-        // Normalize requested permissions (entity:action)
         const requestedSignature = requestedPermissions
             .map(p => `${p.entity}:${p.action}`)
             .sort()
             .join('|');
 
-        // 2️⃣ Load existing roles with same key in org
         const existingRoles = await this.roleRepository.find({
             where: {
                 key: dto.key,
@@ -55,7 +52,6 @@ export class RoleService {
             relations: ['permissions']
         });
 
-        // 3️⃣ Compare semantic permission sets
         for (const role of existingRoles) {
             const existingSignature = role.permissions
                 .map(p => `${p.entity}:${p.action}`)
