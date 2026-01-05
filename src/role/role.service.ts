@@ -6,6 +6,7 @@ import { CreateRoleDTO } from './dtos/create-role.dto.js';
 import { UpdateRoleDTO } from './dtos/update-role.dto.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
+import { RoleCreationFailedError, RoleDeletionFailedError, RoleUpdationFailedError } from './errors/errors.js';
 
 @Injectable()
 export class RoleService {
@@ -66,15 +67,19 @@ export class RoleService {
             }
         }
 
-        const role = this.roleRepository.create({
-            key: dto.key,
-            label: dto.label,
-            description: dto.description,
-            organization,
-            permissions: requestedPermissions
-        });
+        try {
+            const role = this.roleRepository.create({
+                key: dto.key,
+                label: dto.label,
+                description: dto.description,
+                organization,
+                permissions: requestedPermissions
+            });
 
-        return await this.roleRepository.save(role);
+            return await this.roleRepository.save(role);
+        } catch (error) {
+            throw new RoleCreationFailedError();
+        }
     }
 
     async update(dto: UpdateRoleDTO): Promise<Role> {
@@ -102,13 +107,22 @@ export class RoleService {
             });
         }
 
-        return this.roleRepository.save(role);
+        try {
+
+            return this.roleRepository.save(role);
+        } catch (error) {
+            throw new RoleUpdationFailedError();
+        }
     }
 
     async delete(id: string): Promise<void> {
         const role = await this.findOne(id);
 
-        await this.roleRepository.softDelete(id);
+        try {
+            await this.roleRepository.softDelete(id);
+        } catch (error) {
+            throw new RoleDeletionFailedError();
+        }
     }
 
     async findRoleByOrganization(key: string): Promise<Role> {

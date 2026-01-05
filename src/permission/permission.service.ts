@@ -7,6 +7,7 @@ import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { Role } from '../role/entities/role.entity.js';
 import { OrganizationService } from '../organization/organization.service.js';
+import { PermissionCreationFailedError, PermissionDeletionFailedError, PermissionUpdationFailedError } from './errors/errors.js';
 
 @Injectable()
 export class PermissionService {
@@ -21,8 +22,8 @@ export class PermissionService {
     async findAll(): Promise<Permission[]> {
         const permissions = this.permissionRepository.find({ relations: ['roles'] });
 
-        if(!permissions) throw new NotFoundException("Permissions not found.");
-        
+        if (!permissions) throw new NotFoundException("Permissions not found.");
+
         return permissions;
     }
 
@@ -37,20 +38,24 @@ export class PermissionService {
     async create(dto: CreatePermissionDTO, orgId: string): Promise<Permission> {
         const organization = await this.organizationService.findOne(orgId);
 
-        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: { id: orgId }}});
+        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: { id: orgId } } });
 
-        if(existingPermissions) throw new ForbiddenException("Permission already exists!");
+        if (existingPermissions) throw new ForbiddenException("Permission already exists!");
 
-        const permission = this.permissionRepository.create({
-            key: dto.key,
-            label: dto.label,
-            description: dto.description,
-            entity: dto.entity,
-            action: dto.action,
-            organization: organization
-        });
+        try {
+            const permission = this.permissionRepository.create({
+                key: dto.key,
+                label: dto.label,
+                description: dto.description,
+                entity: dto.entity,
+                action: dto.action,
+                organization: organization
+            });
 
-        return await this.permissionRepository.save(permission);
+            return await this.permissionRepository.save(permission);
+        } catch (error) {
+            throw new PermissionCreationFailedError();
+        }
     }
 
     async update(dto: UpdatePermissionDTO): Promise<Permission> {
@@ -72,13 +77,21 @@ export class PermissionService {
             });
         }
 
-        return this.permissionRepository.save(perm);
+        try {
+            return this.permissionRepository.save(perm);
+        } catch (error) {
+            throw new PermissionUpdationFailedError();
+        }
     }
 
     async delete(id: string): Promise<void> {
         const perm = await this.findOne(id);
 
-        await this.permissionRepository.softDelete(id);
+        try {
+            await this.permissionRepository.softDelete(id);
+        } catch (error) {
+            throw new PermissionDeletionFailedError();
+        }
     }
 
     async findByRoleId(roleId: string): Promise<Permission[]> {

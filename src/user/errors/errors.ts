@@ -1,4 +1,4 @@
-import { DomainError } from './domain.errors.js';
+import { DomainError } from '../../common/errors/domain.errors.js';
 
 export class UserCreationFailedError extends DomainError {
     readonly statusCode = 500;
@@ -12,7 +12,7 @@ export class UserUpdationFailedError extends DomainError {
     readonly statusCode = 500;
 
     constructor() {
-        super('Failed to create user');
+        super('Failed to update user');
     }
 }
 
@@ -20,6 +20,6 @@ export class UserDeletionFailedError extends DomainError {
     readonly statusCode = 500;
 
     constructor() {
-        super('Failed to create user');
+        super('Failed to delete user');
     }
 }
