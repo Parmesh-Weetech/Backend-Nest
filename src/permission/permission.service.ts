@@ -19,7 +19,11 @@ export class PermissionService {
     ) { }
 
     async findAll(): Promise<Permission[]> {
-        return this.permissionRepository.find({ relations: ['roles'] });
+        const permissions = this.permissionRepository.find({ relations: ['roles'] });
+
+        if(!permissions) throw new NotFoundException("Permissions not found.");
+        
+        return permissions;
     }
 
     async findOne(id: string): Promise<Permission> {
@@ -33,11 +37,7 @@ export class PermissionService {
     async create(dto: CreatePermissionDTO, orgId: string): Promise<Permission> {
         const organization = await this.organizationService.findOne(orgId);
 
-        if (!organization) throw new NotFoundException("Organization not found.");
-
         const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: { id: orgId }}});
-
-        console.log(existingPermissions)
 
         if(existingPermissions) throw new ForbiddenException("Permission already exists!");
 
@@ -56,30 +56,28 @@ export class PermissionService {
     async update(dto: UpdatePermissionDTO): Promise<Permission> {
         const perm = await this.findOne(dto.id);
 
-        if (!perm) throw new NotFoundException("Permission not found.");
-
         if (dto.key) perm.key = dto.key;
         if (dto.label) perm.label = dto.label;
         if (dto.description) perm.description = dto.description;
         if (dto.entity) perm.entity = dto.entity;
         if (dto.action) perm.action = dto.action;
 
-        if (dto.roleIds && dto.roleIds.length > 0) {
-            const existingRoles = await Promise.all(
-                dto.roleIds.map(roleId => this.roleService.findOne(roleId))
+        if (dto.organizationIds && dto.organizationIds.length > 0) {
+            const existingOrganization = await Promise.all(
+                dto.organizationIds.map(orgId => this.organizationService.findOne(orgId))
             );
 
-            if (!existingRoles) {
-                throw new NotFoundException("One or more roles do not exist!");
-            }
-
-            perm.roles = existingRoles as Role[];
+            existingOrganization.map(org => {
+                perm.organization = org;
+            });
         }
 
         return this.permissionRepository.save(perm);
     }
 
     async delete(id: string): Promise<void> {
+        const perm = await this.findOne(id);
+
         await this.permissionRepository.softDelete(id);
     }
 

@@ -21,7 +21,7 @@ export class RoleService {
         const roles = await this.roleRepository.find({ relations: ['permissions'] });
 
         if (!roles) throw new NotFoundException("Roles not found.");
-        
+
         return roles;
     }
 
@@ -80,25 +80,35 @@ export class RoleService {
     async update(dto: UpdateRoleDTO): Promise<Role> {
         const role = await this.findOne(dto.id);
 
-        if (!role) throw new NotFoundException("Role not found")
-
         if (dto.key) role.key = dto.key;
         if (dto.label) role.label = dto.label;
         if (dto.description) role.description = dto.description;
+
+        if (dto.permissionIds && dto.permissionIds.length > 0) {
+            const existingPermissions = await Promise.all(
+                dto.permissionIds.map(permissionId => this.permissionService.findOne(permissionId))
+            );
+
+            role.permissions = existingPermissions;
+        }
+
+        if (dto.organizationIds && dto.organizationIds.length > 0) {
+            const existingOrganization = await Promise.all(
+                dto.organizationIds.map(orgId => this.organizationService.findOne(orgId))
+            );
+
+            existingOrganization.map(org => {
+                role.organization = org;
+            });
+        }
 
         return this.roleRepository.save(role);
     }
 
     async delete(id: string): Promise<void> {
+        const role = await this.findOne(id);
+
         await this.roleRepository.softDelete(id);
-    }
-
-    async findRoleByKey(key: string): Promise<Role> {
-        const role = await this.roleRepository.findOne({ where: { key: key } });
-
-        if (!role) throw new NotFoundException("Role not found.");
-
-        return role;
     }
 
     async findRoleByOrganization(key: string): Promise<Role> {
