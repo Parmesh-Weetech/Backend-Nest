@@ -18,7 +18,11 @@ export class RoleService {
     ) { }
 
     async findAll(): Promise<Role[]> {
-        return this.roleRepository.find({ relations: ['permissions'] });
+        const roles = await this.roleRepository.find({ relations: ['permissions'] });
+
+        if (!roles) throw new NotFoundException("Roles not found.");
+        
+        return roles;
     }
 
     async findOne(id: string): Promise<Role> {
@@ -31,9 +35,6 @@ export class RoleService {
 
     async create(dto: CreateRoleDTO, orgId: string): Promise<Role> {
         const organization = await this.organizationService.findOne(orgId);
-        if (!organization) {
-            throw new NotFoundException("Organization not found.");
-        }
 
         const requestedPermissions = await Promise.all(
             dto.permissionIds.map(id => this.permissionService.findOne(id))
@@ -65,7 +66,6 @@ export class RoleService {
             }
         }
 
-        // 4️⃣ Create role (safe)
         const role = this.roleRepository.create({
             key: dto.key,
             label: dto.label,
