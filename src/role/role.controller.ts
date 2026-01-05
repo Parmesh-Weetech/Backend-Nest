@@ -6,8 +6,9 @@ import { Role } from './entities/role.entity.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { Permission } from '../common/decorators/permission.decorator.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
-import { User } from '../user/entities/user.entity.js';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
+import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
+import { AccessActionEnum } from '../common/enums/access-action.enum.js';
 
 @Controller('roles')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -25,19 +26,19 @@ export class RoleController {
     }
 
     @Post()
-    @Permission("role", "create")
+    @Permission(AccessEntityEnum.ROLE, AccessActionEnum.CREATE)
     create(@Body() dto: CreateRoleDTO, @CurrentOrganizationId() Id: string): Promise<Role> {
         return this.roleService.create(dto, Id);
     }
 
     @Put()
-    @Permission("role", "update")
+    @Permission(AccessEntityEnum.ROLE, AccessActionEnum.UPDATE)
     update(@Body() dto: UpdateRoleDTO): Promise<Role> {
         return this.roleService.update(dto);
     }
 
     @Delete(':id')
-    @Permission("role", "delete")
+    @Permission(AccessEntityEnum.ROLE, AccessActionEnum.DELETE)
     delete(@Param('id') id: string) {
         return this.roleService.delete(id);
     }

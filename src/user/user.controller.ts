@@ -7,6 +7,8 @@ import { AuthGuard } from '../common/guards/auth.guard.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { Permission } from '../common/decorators/permission.decorator.js';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
+import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
+import { AccessActionEnum } from '../common/enums/access-action.enum.js';
 
 @Controller('user')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -32,19 +34,19 @@ export class UserController {
     }
 
     @Post()
-    @Permission("user", "create")
+    @Permission(AccessEntityEnum.USER, AccessActionEnum.CREATE)
     async create(@Body() createUserDTO: CreateUserDTO, @CurrentOrganizationId() Id: string): Promise<User> {
         return this.userService.create(createUserDTO, Id);
     }
 
     @Put()
-    @Permission("user", "update")
+    @Permission(AccessEntityEnum.USER, AccessActionEnum.UPDATE)
     async update(@Body() updateUserDTO: updateUserDTO): Promise<User> {
         return this.userService.update(updateUserDTO);
     }
 
     @Delete(":id")
-    @Permission("user", "delete")
+    @Permission(AccessEntityEnum.USER, AccessActionEnum.DELETE)
     async delete(@Param("id") id: string): Promise<string> {
         return this.userService.delete(id);
     }
