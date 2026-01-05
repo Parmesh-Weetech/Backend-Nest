@@ -6,6 +6,8 @@ import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
+import { UserCreationFailedError, UserDeletionFailedError } from './errors/errors.js';
+import { UserUpdationFailedError } from './errors/errors.js';
 
 @Injectable()
 export class UserService {
@@ -25,7 +27,7 @@ export class UserService {
 
     async findOne(id: string): Promise<User> {
         const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'organization'] });
-
+        
         if (!user) throw new NotFoundException("User not found.")
 
         return user;
@@ -38,27 +40,25 @@ export class UserService {
             ),
         );
 
-        if (!roles || roles.length === 0) throw new NotFoundException("Role not found.");
-
         const organization = await this.organizationService.findOne(orgId);
+        
+        try {
+            const newUser = await this.userRepository.create({
+                name: createUserDTO.name,
+                email: createUserDTO.email,
+                password: createUserDTO.password,
+                roles: roles,
+                organization: organization
+            });
 
-        if(!organization) throw new NotFoundException("Organization not found.");
-
-        const newUser = await this.userRepository.create({
-            name: createUserDTO.name,
-            email: createUserDTO.email,
-            password: createUserDTO.password,
-            roles: roles,
-            organization: organization
-        });
-
-        return await this.userRepository.save(newUser);
+            return await this.userRepository.save(newUser);
+        } catch (error) {
+            throw new UserCreationFailedError();
+        }
     }
 
     async update(updateUserDTO: updateUserDTO): Promise<User> {
         const user = await this.findOne(updateUserDTO.id);
-
-        if (!user) throw new NotFoundException("User not found");
 
         if (updateUserDTO.roleIds) {
             const roles = await Promise.all(
@@ -67,29 +67,31 @@ export class UserService {
                 ),
             );
 
-            if (!roles) throw new NotFoundException("Role not found.");
-
             user.roles = roles;
         }
 
-        if (updateUserDTO.name) user.name = updateUserDTO.name;
-        if (updateUserDTO.email) user.email = updateUserDTO.email;
-        if (updateUserDTO.password) user.password = updateUserDTO.password;
-        
+        try {
+            if (updateUserDTO.name) user.name = updateUserDTO.name;
+            if (updateUserDTO.email) user.email = updateUserDTO.email;
+            if (updateUserDTO.password) user.password = updateUserDTO.password;
 
-        return await this.userRepository.save(user);
+
+            return await this.userRepository.save(user);
+        } catch (error) {
+            throw new UserUpdationFailedError();
+        }
     }
 
     async delete(id: string): Promise<string> {
         const user = await this.findOne(id);
 
-        if (!user) throw new NotFoundException("User not found");
+        try {
+            await this.userRepository.softDelete(user.id);
 
-        const deleteAction = await this.userRepository.softDelete(user.id);
-
-        if (!deleteAction) throw new InternalServerErrorException("Internal Server Error");
-
-        return "User Deleted Successfully."
+            return "User Deleted Successfully."
+        } catch (error) {
+            throw new UserDeletionFailedError();
+        }
     }
 
     async findOneByEmail(email: string): Promise<User> {
@@ -100,8 +102,8 @@ export class UserService {
         return user;
     }
 
-    async findOneWithRolesAndPermissions(userId: string) {
-        return this.userRepository.findOne({
+    async findOneWithRolesAndPermissions(userId: string): Promise<User> {
+        const user = await this.userRepository.findOne({
             where: { id: userId },
             relations: {
                 organization: true,
@@ -113,6 +115,10 @@ export class UserService {
                 },
             },
         });
+
+        if (!user) throw new NotFoundException("User not found.");
+
+        return user;
     }
 
 }
