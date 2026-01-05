@@ -12,6 +12,7 @@ import AppConfig from './config/app.config.js';
 import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 import { OrganizationModule } from './organization/organization.module.js';
+import { WebSocketModule } from './web-socket/web-socket.module';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { OrganizationModule } from './organization/organization.module.js';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, WebSocketModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -20,6 +20,8 @@ export class CurrentUserInterceptor implements NestInterceptor {
 
         if (publicRoute) return next.handle();
 
+        console.log(request.session.userId)
+
         if (request.session?.userId && request.session?.orgId) {
             const user = await this.userService.findOne(request.session.userId);
 

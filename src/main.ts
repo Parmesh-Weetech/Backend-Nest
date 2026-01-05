@@ -57,6 +57,11 @@ async function bootstrap() {
       new LoggingInterceptor(),
     );
     app.useGlobalFilters(new HttpErrorFilter());
+    app.enableCors({
+      origin: 'http://localhost:3000',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      credentials: true
+    });
     await app.listen(configService.get("PORT") ?? 3000);
   } catch (error: any) {
     console.error('Error starting server:', error);
