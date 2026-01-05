@@ -4,12 +4,17 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity.js';
 import { Repository } from 'typeorm';
+import { OrganizationCreationFailedError, OrganizationDeletionFailedError, OrganizationUpdationFailedError } from './errors/error.js';
 
 @Injectable()
 export class OrganizationService {
   constructor(@InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>) { }
   async findAll(): Promise<Organization[]> {
-    return await this.organizationRepository.find();
+    const organizations = await this.organizationRepository.find();
+
+    if (!organizations) throw new NotFoundException("Organizations not found.");
+
+    return organizations;
   }
 
   async findOne(id: string): Promise<Organization> {
@@ -21,34 +26,36 @@ export class OrganizationService {
   }
 
   async create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
-    const organization = await this.organizationRepository.create(createOrganizationDto);
+    try {
+      const organization = await this.organizationRepository.create(createOrganizationDto);
 
-    if (!organization) throw new InternalServerErrorException("Internal server error while creating organization");
-
-    return await this.organizationRepository.save(organization);
+      return await this.organizationRepository.save(organization);
+    } catch (error) {
+      throw new OrganizationCreationFailedError();
+    }
   }
 
   async update(updateOrganizationDto: UpdateOrganizationDto): Promise<Organization> {
-    const organization = await this.organizationRepository.findOne({ where: { id: updateOrganizationDto.id } });
-
-    if (!organization) throw new NotFoundException("Organization not found.");
+    const organization = await this.findOne(updateOrganizationDto.id);
 
     if (organization.name) organization.name = updateOrganizationDto.name;
 
-    return await this.organizationRepository.save(organization);
+    try {
+      return await this.organizationRepository.save(organization);
+    } catch (error) {
+      throw new OrganizationUpdationFailedError();
+    }
   }
 
   async remove(id: string): Promise<string> {
-    const organization = await this.organizationRepository.findOne({ where: { id: id } });
+    try {
+      const organization = await this.findOne(id);
 
-    if (!organization) throw new NotFoundException("Organization not found.");
+      await this.organizationRepository.softDelete(id);
 
-    const acknowledge = await this.organizationRepository.softDelete(id);
-
-    if (acknowledge.affected !== null || acknowledge.affected !== undefined || acknowledge.affected > 0) {
       return "Organization deleted successfully.";
+    } catch (error) {
+      throw new OrganizationDeletionFailedError();
     }
-
-    throw new InternalServerErrorException("Internal server error while deleting organization.");
   }
 }
