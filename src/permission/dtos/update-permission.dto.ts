@@ -29,11 +29,7 @@ export class UpdatePermissionDTO {
     action: string
 
     @IsArray()
+    @IsOptional()
     @IsUUID('all', { each: true })
-    @IsOptional()
-    organizationIds: string[];
-
-    @IsArray()
-    @IsOptional()
-    roleIds: string[]
+    organizationIds?: string[];
 }

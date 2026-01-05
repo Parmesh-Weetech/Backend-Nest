@@ -14,12 +14,17 @@ export class UpdateRoleDTO {
     @IsOptional()
     label?: string;
 
-    @IsArray()
-    @IsUUID('all', { each: true })
-    @IsOptional()
-    organizationIds: string[];
-
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsArray()
+    @IsOptional()
+    @IsUUID('all', { each: true })
+    permissionIds?: string[]
+
+    @IsArray()
+    @IsOptional()
+    @IsUUID('all', { each: true })
+    organizationIds?: string[];
 }
