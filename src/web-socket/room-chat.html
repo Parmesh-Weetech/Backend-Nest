@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Room Chat (Socket.IO)</title>
+
+    <!-- Socket.IO Client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            padding-top: 40px;
+        }
+
+        .chat-box {
+            width: 420px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            padding: 16px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        button {
+            cursor: pointer;
+            background: #2196f3;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        li {
+            padding: 6px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            background: #e0e0e0;
+        }
+
+        .me {
+            background: #bbdefb;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-box">
+        <h2>Room Chat</h2>
+
+        <input id="roomName" placeholder="Room Name" />
+        <input id="username" placeholder="Your Name" />
+        <button onclick="joinRoom()">Join Room</button>
+
+        <hr />
+
+        <input id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+
+        <ul id="messages"></ul>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:3000');
+
+        let roomId = null;
+        let currentUser = null;
+
+        socket.on('connect', () => {
+            console.log('Connected:', socket.id);
+        });
+
+        // Join room
+        function joinRoom() {
+            const roomName = document.getElementById('roomName').value;
+            currentUser = document.getElementById('username').value;
+
+            if (!roomName || !currentUser) {
+                alert('Enter room name and username');
+                return;
+            }
+
+            socket.emit('join_room', {
+                name: roomName,
+                createdBy: currentUser
+            });
+        }
+
+        // Room created / joined
+        socket.on('room_created', (data) => {
+            console.log('Room joined:', data);
+            roomId = data.id;
+            addSystemMessage(`Joined room: ${data.name}`);
+        });
+
+        // Send message
+        function sendMessage() {
+            const text = document.getElementById('messageInput').value;
+
+            if (!text || !roomId) {
+                alert('Join a room first');
+                return;
+            }
+
+            socket.emit('sendMessage', {
+                roomId,
+                sender: currentUser,
+                content: text,
+                type: 'text'
+            });
+
+            addMessage(`Me: ${text}`, true);
+            document.getElementById('messageInput').value = '';
+        }
+
+        // Receive new message
+        socket.on('newMessage', (msg) => {
+            addMessage(`${msg.sender}: ${msg.content}`, false);
+        });
+
+        function addMessage(text, isMe) {
+            const li = document.createElement('li');
+            li.textContent = text;
+            if (isMe) li.classList.add('me');
+            document.getElementById('messages').appendChild(li);
+        }
+
+        function addSystemMessage(text) {
+            const li = document.createElement('li');
+            li.textContent = text;
+            li.style.fontStyle = 'italic';
+            document.getElementById('messages').appendChild(li);
+        }
+    </script>
+
+</body>
+
+</html>

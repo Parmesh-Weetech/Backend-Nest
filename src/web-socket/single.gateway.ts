@@ -4,15 +4,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SendMessageDto } from './dtos/sendMessage.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Message } from './entities/message.entity';
-import { Repository } from 'typeorm';
 import { WebSocketService } from './web-socket.service';
 
 @Injectable()
 @WebSocketGateway({
     cors: {
-        origin: ['http://localhost:3001', 'http://localhost:5500', 'http://127.0.0.1:5500'],
+        origin: ['http://127.0.0.1:5500'],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
     }
@@ -33,7 +30,7 @@ export class MyGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGa
         console.log(`Client disconnected: ${client.id}`);
     }
 
-    afterInit(server: any) {
+    afterInit() {
         console.log('WebSocket Gateway Initialized');
     }
 
