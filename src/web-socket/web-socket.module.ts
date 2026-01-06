@@ -8,10 +8,11 @@ import { Message } from './entities/message.entity.js';
 import { RoomGateWay } from './room.gateway.js';
 import { ChatMessage } from './entities/chatMessage.entity.js';
 import { ChatRoom } from './entities/chatRoom.entity.js';
+import { User } from '../user/entities/user.entity.js';
 
 @Module({
   providers: [WebSocketService, MyGateway, RoomGateWay],
   controllers: [WebSocketController],
-  imports: [TypeOrmModule.forFeature([Conversation, Message, ChatMessage, ChatRoom])]
+  imports: [TypeOrmModule.forFeature([Conversation, Message, ChatMessage, ChatRoom, User])]
 })
 export class WebSocketModule { }

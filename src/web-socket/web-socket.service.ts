@@ -7,6 +7,8 @@ import { Message } from './entities/message.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatRoom } from './entities/chatRoom.entity';
 import { ChatMessage } from './entities/chatMessage.entity';
+import { User } from '../user/entities/user.entity';
+import { ChatRoomDto } from './dtos/chatRoom.dto';
 
 @Injectable()
 export class WebSocketService {
@@ -19,6 +21,8 @@ export class WebSocketService {
         private readonly chatRoomRepository: Repository<ChatRoom>,
         @InjectRepository(ChatMessage)
         private readonly chatMessageRepository: Repository<ChatMessage>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
     ) {}
     async findOrCreateConversation(userId: string, otherUserId: string) {
         const conversation = await this.conversationRepository.findOne({ where: { user1: { id: userId }, user2: { id: otherUserId } } });
@@ -56,22 +60,23 @@ export class WebSocketService {
         return this.messageRepository.save(newMessage);
     }
 
-    async createChatRoom(dto: ChatRoom): Promise<ChatRoom> {
+    async createChatRoom(dto: ChatRoomDto): Promise<ChatRoom> {
         const existingChatRoom = await this.chatRoomRepository.findOne({ where: { name: dto.name } });
 
+        
         if (existingChatRoom) {
             return existingChatRoom;
         }
 
-        const newChatRoom = this.chatRoomRepository.create({
+        const newChatRoom = await this.chatRoomRepository.create({
             name: dto.name,
-            members: dto.members,
+            members: dto.memberId ? [{ id: dto.memberId }] : [],
         });
 
-        return this.chatRoomRepository.save(newChatRoom);
+        return await this.chatRoomRepository.save(newChatRoom);
     }
 
-    async saveChatMessage(dto: SendChatMessageDto): Promise<Message> {
+    async saveChatMessage(dto: SendChatMessageDto): Promise<ChatMessage> {
         const newChatMessage = await this.chatMessageRepository.create({
             content: dto.content,
             type: dto.type,
@@ -79,6 +84,23 @@ export class WebSocketService {
             sender: { id: dto.senderId },
         })
 
-        return await this.messageRepository.save(newChatMessage);
+
+        return await this.chatMessageRepository.save(newChatMessage);
+    }
+
+    async getChatMessages(roomId: string): Promise<ChatMessage[]> {
+        const messages = await this.chatMessageRepository.find({
+            where: { room: { id: roomId } },
+            order: { createdAt: 'ASC' },
+        });
+
+        return messages;
+    }
+
+    async checkUserExists(id: string): Promise<boolean> {
+        const user = await this.userRepository.findOne({ where: {
+            id: id
+        }});
+        return !!user;
     }
 }

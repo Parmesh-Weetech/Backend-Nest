@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <title>Room Chat (Socket.IO)</title>
 
-    <!-- Socket.IO Client -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <style>
@@ -68,12 +67,10 @@
 </head>
 
 <body>
-
     <div class="chat-box">
         <h2>Room Chat</h2>
 
         <input id="roomName" placeholder="Room Name" />
-        <input id="username" placeholder="Your Name" />
         <button onclick="joinRoom()">Join Room</button>
 
         <hr />
@@ -88,7 +85,43 @@
         const socket = io('http://localhost:3000');
 
         let roomId = null;
-        let currentUser = null;
+        let currentUserId = null;
+        let isLoggedIn = false;
+
+        // 🔐 Ask userId BEFORE anything
+        // async function askAndLoginUser() {
+        //     let userId = prompt('Enter your User ID');
+
+        //     if (!userId) {
+        //         alert('User ID is required');
+        //         return askAndLoginUser();
+        //     }
+
+        //     try {
+        //         const res = await fetch('http://localhost:3000/web-socket/login', {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json',
+        //             },
+        //             body: JSON.stringify({ userId }),
+        //         });
+
+        //         if (!res.ok) {
+        //             throw new Error('Login failed');
+        //         }
+
+        //         currentUserId = userId;
+        //         isLoggedIn = true;
+
+        //         addSystemMessage(`Logged in as ${currentUserId}`);
+        //     } catch (err) {
+        //         alert('Login failed. Try again.');
+        //         return askAndLoginUser();
+        //     }
+        // }
+
+        // // Call immediately
+        // askAndLoginUser();
 
         socket.on('connect', () => {
             console.log('Connected:', socket.id);
@@ -96,25 +129,36 @@
 
         // Join room
         function joinRoom() {
-            const roomName = document.getElementById('roomName').value;
-            currentUser = document.getElementById('username').value;
+            if (!isLoggedIn) {
+                alert('Login first');
+                return;
+            }
 
-            if (!roomName || !currentUser) {
-                alert('Enter room name and username');
+            const roomName = document.getElementById('roomName').value;
+
+            if (!roomName) {
+                alert('Enter room name');
                 return;
             }
 
             socket.emit('join_room', {
                 name: roomName,
-                createdBy: currentUser
+                members: [currentUserId],
             });
         }
 
-        // Room created / joined
+        // Room joined
         socket.on('room_created', (data) => {
-            console.log('Room joined:', data);
             roomId = data.id;
+
             addSystemMessage(`Joined room: ${data.name}`);
+
+            // Load previous messages
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    addMessage(`${msg.sender.id}: ${msg.content}`, false);
+                });
+            }
         });
 
         // Send message
@@ -128,18 +172,23 @@
 
             socket.emit('sendMessage', {
                 roomId,
-                sender: currentUser,
+                senderId: currentUserId,
                 content: text,
-                type: 'text'
+                type: 'text',
             });
 
             addMessage(`Me: ${text}`, true);
             document.getElementById('messageInput').value = '';
         }
 
-        // Receive new message
-        socket.on('newMessage', (msg) => {
-            addMessage(`${msg.sender}: ${msg.content}`, false);
+        // Receive message
+        socket.on('newMessage', (data) => {
+            addMessage(`${data.sender.id}: ${data.content}`, false);
+        });
+
+        // User joined notification
+        socket.on('newUserJoined', (data) => {
+            addSystemMessage(`User ${data.userId} joined the room`);
         });
 
         function addMessage(text, isMe) {
@@ -156,7 +205,6 @@
             document.getElementById('messages').appendChild(li);
         }
     </script>
-
 </body>
 
 </html>

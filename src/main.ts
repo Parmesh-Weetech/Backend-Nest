@@ -9,6 +9,8 @@ import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js'
 import { HttpErrorFilter } from './common/exceptions/global.exception.js';
 import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
+import { createSessionMiddleware } from './common/middlewares/session.middleware.js';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   try {
@@ -17,6 +19,8 @@ async function bootstrap() {
     });
 
     const configService = app.get(ConfigService);
+    
+    const sessionMiddleware = createSessionMiddleware(configService)
 
     const auto_seed = configService.get("AUTO_SEED");
 
@@ -32,18 +36,6 @@ async function bootstrap() {
       console.log('✅ Database seeding completed');
     }
 
-    app.use(session({
-      name: "sid",
-      secret: configService.get("SESSION_SECRET")!,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        maxAge: 3600000,
-        secure: false,
-        sameSite: "lax"
-      }
-    }))
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -62,6 +54,9 @@ async function bootstrap() {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       credentials: true
     });
+
+    app.use(sessionMiddleware);
+    app.use(cookieParser())
     await app.listen(configService.get("PORT") ?? 3000);
   } catch (error: any) {
     console.error('Error starting server:', error);

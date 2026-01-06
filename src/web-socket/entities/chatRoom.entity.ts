@@ -1,3 +1,4 @@
+import { IsOptional } from "class-validator";
 import { User } from "../../user/entities/user.entity";
 import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
