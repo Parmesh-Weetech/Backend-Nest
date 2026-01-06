@@ -1,60 +1,79 @@
 import { Injectable } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
-import { WebSocketService } from './web-socket.service.js';
-import { SendMessageDto } from './dtos/sendMessage.dto.js';
-import { Message } from './entities/message.entity.js';
+import {
+    ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { SendMessageDto } from './dtos/sendMessage.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Message } from './entities/message.entity';
+import { Repository } from 'typeorm';
+import { WebSocketService } from './web-socket.service';
 
 @Injectable()
 @WebSocketGateway({
     cors: {
-        origin: 'http://localhost:3000',
-        methods: ['GET', 'POST'],
-        credentials: true
+        origin: ['http://localhost:3001', 'http://localhost:5500', 'http://127.0.0.1:5500'],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
     }
 })
-export class MyGateway {
-    constructor(private readonly webSocketService: WebSocketService) { }
-    private message: Message;
-    
-    @SubscribeMessage('joinRoom')
-    async handleJoinRoom(@MessageBody() data: { userId: string, otherUserId: string }, @ConnectedSocket() client: Socket) {
-        const conversation = await this.webSocketService.findOrCreateConversation(data.userId, data.otherUserId);
+export class MyGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+
+    @WebSocketServer() server: Server;
+
+    constructor(
+        private readonly webSocketService: WebSocketService,
+    ) {}
+
+    handleConnection(client: Socket, ...args: any[]) {
+        console.log(`Client connected: ${client.id}`);
+    }
+
+    handleDisconnect(client: Socket) {
+        console.log(`Client disconnected: ${client.id}`);
+    }
+
+    afterInit(server: any) {
+        console.log('WebSocket Gateway Initialized');
+    }
+
+    @SubscribeMessage('join_conversation')
+    async handleJoinConversation(
+        @MessageBody() data: { userId: string; anotherUserId: string },
+        @ConnectedSocket() client: Socket
+    ) {
+        const conversation = await this.webSocketService.findOrCreateConversation(data.userId, data.anotherUserId);
 
         client.join(conversation.id);
-        client.emit('joinRoom', { roomId: conversation.id, Message: `User ${data.userId} joined room.` });
+        console.log(`Socket ${client.id} joined room ${conversation.id}`);
 
-        return `User ${data.userId} joined room ${conversation.id}`;
+        // Optional: send back confirmation
+        client.emit('joined', { userId: data.userId, anotherUserId: data.anotherUserId, conversationId: conversation.id });
     }
 
-    @SubscribeMessage('leaveRoom')
-    handleLeaveRoom(@MessageBody() data: { userId: string, conversationId: string }, @ConnectedSocket() client: Socket) {
-        client.leave(data.conversationId);
-        client.emit('leaveRoom', { roomId: data.conversationId, Message: `User ${data.userId} left room.` });
-
-        return `User ${data.userId} left room ${data.conversationId}`;
-    }
-
-    @SubscribeMessage('sendMessage')
+    @SubscribeMessage("send_message")
     async handleMessage(@MessageBody() data: SendMessageDto, @ConnectedSocket() client: Socket) {
-        this.message = await this.webSocketService.sendMessage(data);
-        console.log(this.message)
+        const newMessage = await this.webSocketService.sendMessage(data);
 
-        client.nsp.to(data.conversationId).emit('getMessage', {
-            message: this.message,
+        client.broadcast.to(data.conversationId).emit('receive_message', {
+            content: newMessage.content,
+            type: newMessage.type,
+            conversationId: data.conversationId,
             senderId: data.senderId,
-            conversationId: data.conversationId
+            receiverId: data.receiverId,
+            createdAt: newMessage.createdAt,
         });
-
-        return `Message sent to room ${data.conversationId}`;
     }
 
-    @SubscribeMessage('getMessage')
-    async handleGetMessages(@MessageBody() data: { conversationId: string }, @ConnectedSocket() client: Socket) {
-        const messages = await this.webSocketService.getMessage(data.conversationId, this.message.id);
+    @SubscribeMessage("get_history")
+    async handleGetHistory(@MessageBody() data: { conversationId: string}, @ConnectedSocket() client: Socket) {
+        console.log(`History request received from ${client.id} for conversation ${data.conversationId}`);
 
-        client.emit('getMessage', { conversationId: data.conversationId, messages: messages });
+        const messages = await this.webSocketService.getMessages(data.conversationId);
 
-        return `Messages sent for room ${data.conversationId}`;
+        client.emit('history', messages);
+
+        return { status: 'History fetched', messages: messages };
     }
+
 }

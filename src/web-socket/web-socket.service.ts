@@ -21,34 +21,11 @@ export class WebSocketService {
         }
 
         const newConversation = this.conversationRepository.create({
-            user1: { id: userId } as any,
-            user2: { id: otherUserId } as any,
+            user1: { id: userId },
+            user2: { id: otherUserId },
         });
 
         return this.conversationRepository.save(newConversation);
-    }
-
-    async sendMessage(dto: SendMessageDto) {
-        const newMessage = await this.messageRepository.create({
-            conversation: { id: dto.conversationId },
-            sender: { id: dto.senderId },
-            content: dto.content,
-            type: dto.type
-        });
-
-        await this.messageRepository.save(newMessage);
-
-        return newMessage;
-    }
-
-    async getMessage(conversationId: string, id: string): Promise<Message | null> {
-        const message = this.messageRepository.findOne({
-            where: { conversation: { id: conversationId }, id: id }
-        });
-
-        if(!message) throw new Error("Message not found.");
-
-        return message;
     }
 
     async getMessages(conversationId: string): Promise<Message[]> {
@@ -58,5 +35,17 @@ export class WebSocketService {
         });
 
         return messages;
+    }
+
+    async sendMessage(sendMessageDto: SendMessageDto): Promise<Message> {
+        const newMessage = this.messageRepository.create({
+            content: sendMessageDto.content,
+            type: sendMessageDto.type,
+            conversation: { id: sendMessageDto.conversationId },
+            sender: { id: sendMessageDto.senderId },
+            receiver: { id: sendMessageDto.receiverId },
+        });
+
+        return this.messageRepository.save(newMessage);
     }
 }

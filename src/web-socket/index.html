@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>1-to-1 Chat Test (Socket.IO)</title>
+
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            padding-top: 40px;
+        }
+
+        .chat-box {
+            width: 420px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            padding: 16px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+        }
+
+        button {
+            cursor: pointer;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        li {
+            padding: 6px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            background: #e0e0e0;
+        }
+
+        .me {
+            background: #c8e6c9;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-box">
+        <h2>1-to-1 Chat</h2>
+
+        <input id="userId" placeholder="Your User ID" />
+        <input id="otherUserId" placeholder="Other User ID" />
+        <button onclick="joinConversation();">Join Conversation</button>
+
+        <hr />
+
+        <input id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send Message</button>
+
+        <ul id="messages"></ul>
+
+        <button onclick="getHistory()">Get Chat History</button>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:3000', {
+            withCredentials: true
+        });
+
+        let conversationId = null;
+        let currentUserId = null;
+        let anotherUserId = null;
+
+        socket.on('connect', () => {
+            console.log('Connected:', socket.id);
+        });
+
+        // Join conversation
+        function joinConversation() {
+            console.log("Joining conversation...");
+            currentUserId = document.getElementById('userId').value;
+            const otherUserId = document.getElementById('otherUserId').value;
+
+            socket.emit('join_conversation', {
+                userId: currentUserId,
+                anotherUserId: otherUserId
+            });
+        }
+
+        socket.on('joined', (data) => {
+            console.log('Joined conversation:', data);
+            conversationId = data.conversationId;
+            userId: data.userId;
+            anotherUserId: data.anotherUserId;
+        });
+
+        // Send message
+        function sendMessage() {
+            const text = document.getElementById('messageInput').value;
+            console.log(conversationId, text);
+
+            if (!text || !conversationId) {
+                alert('Join conversation first!');
+                return;
+            }
+
+            socket.emit('send_message', {
+                conversationId,
+                senderId: currentUserId,
+                receiverId: anotherUserId,
+                content: text,
+                type: 'text'
+            });
+
+            addMessage(`Me: ${text}`, true);
+            document.getElementById('messageInput').value = '';
+        }
+
+        // Receive message
+        socket.on('receive_message', (msg) => {
+            console.log('Received:', msg);
+
+            conversationId = msg.conversationId;
+            addMessage(`User ${msg.senderId}: ${msg.content}`, false);
+        });
+
+        function addMessage(text, isMe) {
+            const li = document.createElement('li');
+            li.textContent = text;
+            if (isMe) li.classList.add('me');
+            document.getElementById('messages').appendChild(li);
+        }
+
+        function getHistory() {
+            socket.emit('get_history', { conversationId });
+
+            socket.on('history', (messages) => {
+                messages.forEach(msg => {
+                    const isMe = msg.senderId === currentUserId;
+                    addMessage(`User ${msg.senderId}: ${msg.content}`, isMe);
+                });
+            });
+        }
+    </script>
+
+</body>
+
+</html>

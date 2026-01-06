@@ -20,11 +20,14 @@ export class Message {
     @Column({ type: 'enum', enum: MessageType })
     type: MessageType;
 
+    @ManyToOne(() => Conversation)
+    conversation: Conversation;
+
     @ManyToOne(() => User)
     sender: User;
 
-    @ManyToOne(() => Conversation)
-    conversation: Conversation;
+    @ManyToOne(() => User)
+    receiver: User;
 
     @CreateDateColumn()
     createdAt: Date;
