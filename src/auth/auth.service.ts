@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import bcrypt from "bcryptjs";
@@ -55,7 +55,6 @@ export class AuthService {
 
         return await this.userRepository.save(newUser);
     }
-
     async login(loginDTO: LoginDTO): Promise<string> {
         const organization = await this.organizationService.findOne(loginDTO.organizationId);
 

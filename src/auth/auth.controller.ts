@@ -1,10 +1,11 @@
-import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Session } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Session, UseGuards } from '@nestjs/common';
 import { Serialize } from './interceptors/serialize.interceptor.js';
 import { AuthService } from './auth.service.js';
 import { LoginDTO } from './dtos/login.dto.js';
 import { SignupDTO } from './dtos/signup.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
+import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +22,7 @@ export class AuthController {
 
     @Post('/login')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(HcaptchaGuard)
     @Public()
     async login(@Body() loginDTO: LoginDTO, @Session() session: any): Promise<string> {
         const id = await this.authService.login(loginDTO);
