@@ -7,10 +7,11 @@ import { RoleModule } from '../role/role.module.js';
 import { UserModule } from '../user/user.module.js';
 import { OrganizationModule } from '../organization/organization.module.js';
 import { PermissionModule } from '../permission/permission.module.js';
+import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
 
 @Module({
   providers: [AuthService],
-  imports: [TypeOrmModule.forFeature([User]), RoleModule, forwardRef(() => UserModule), OrganizationModule, PermissionModule],
+  imports: [TypeOrmModule.forFeature([User]), RoleModule, forwardRef(() => UserModule), OrganizationModule, PermissionModule, HCaptchaModule],
   controllers: [AuthController],
   exports: [AuthService]
 })

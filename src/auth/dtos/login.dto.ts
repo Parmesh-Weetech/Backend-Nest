@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, IsUUID, Length } from "class-validator"
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, Length } from "class-validator"
 
 export class LoginDTO {
     @IsEmail()
@@ -12,4 +12,8 @@ export class LoginDTO {
     @IsNotEmpty()
     @IsUUID("all", { each: true })
     organizationId: string
+
+    @IsString()
+    @IsOptional()
+    hcaptchaToken: string
 }

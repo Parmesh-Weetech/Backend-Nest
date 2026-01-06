@@ -13,7 +13,7 @@ import { MainSeeder } from '../db/seeders/main.seed.js';
 async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule, {
-      logger: ['error']
+      logger: ['error'],
     });
 
     const configService = app.get(ConfigService);
