@@ -10,6 +10,7 @@ import { PermissionModule } from '../permission/permission.module.js';
 import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { JWTSecret } from './constants/jwt.constant.js';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   providers: [AuthService],
@@ -20,11 +21,14 @@ import { JWTSecret } from './constants/jwt.constant.js';
     OrganizationModule,
     PermissionModule,
     HCaptchaModule,
-    JwtModule.register({
-      global: true,
-      secret: JWTSecret.prototype.jwtSecret(),
-      signOptions: { expiresIn: "1h"}
-    })
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1h' },
+      }),
+    }),
   ],
   controllers: [AuthController],
   exports: [AuthService]
