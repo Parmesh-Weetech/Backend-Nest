@@ -15,7 +15,10 @@ export class AuthGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
 
-        if (request.session?.userId) return true;
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if(access_token) return true;
 
         throw new UnauthorizedException('You must be logged in.');
     }
