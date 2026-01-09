@@ -38,10 +38,6 @@ export class PermissionService {
     async create(dto: CreatePermissionDTO, orgId: string): Promise<Permission> {
         const organization = await this.organizationService.findOne(orgId);
 
-        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: { id: orgId } } });
-
-        if (existingPermissions) throw new ForbiddenException("Permission already exists!");
-
         try {
             const permission = this.permissionRepository.create({
                 key: dto.key,

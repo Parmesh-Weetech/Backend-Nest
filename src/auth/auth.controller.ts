@@ -20,7 +20,6 @@ export class AuthController {
     @Serialize(User)
     @Post("/signup")
     signup(@Body() signupDTO: SignupDTO, req: Request): Promise<signupResponse> {
-        console.log(req.originalUrl);
         return this.authService.signup(signupDTO);
     }
 
@@ -33,7 +32,7 @@ export class AuthController {
     }
 
     @Post("/logout")
-    @HttpCode(HttpStatus.OK)
+    @HttpCode(HttpStatus.OK)        
     @Public()
     async logout(@Session() session: any): Promise<string> {
         if (session.userId) {

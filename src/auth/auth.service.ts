@@ -8,7 +8,6 @@ import { User } from '../user/entities/user.entity.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
-import { SignupFailedError } from './errors/errors.js';
 import { signupResponse } from './dtos/signup-response.dto,.js';
 import { loginResponse } from './dtos/login-response.dto.js';
 import { Response } from 'express';
@@ -24,49 +23,53 @@ export class AuthService {
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<signupResponse> {
-        try {
-            const newOrganization = await this.organizationService.create({ name: "Default" });
-            if (!newOrganization) throw new InternalServerErrorException("Failed to create organization");
+        const newOrganization = await this.organizationService.create({ name: "Default" });
+        if (!newOrganization) throw new InternalServerErrorException("Failed to create organization");
 
-            const existingAdminRole = await this.roleService.findRoleByOrganization('admin');
-            if (!existingAdminRole) throw new NotFoundException("Admin role not found.");
+        const existingAdminRole = await this.roleService.findRoleByOrganization('admin');
+        if (!existingAdminRole) throw new NotFoundException("Admin role not found.");
 
-            const copiedPermissions = await Promise.all(
-                existingAdminRole.permissions.map(permission =>
-                    this.permissionService.create({
-                        key: permission.key,
-                        label: permission.label,
-                        description: permission.description,
-                        entity: permission.entity,
-                        action: permission.action
-                    }, newOrganization.id)
-                )
-            );
+        const copiedPermissions = await Promise.all(
+            existingAdminRole.permissions.map(permission =>
+                this.permissionService.create({
+                    key: permission.key,
+                    label: permission.label,
+                    description: permission.description,
+                    entity: permission.entity,
+                    action: permission.action
+                }, newOrganization.id)
+            )
+        );
 
-            const newRole = await this.roleService.create({
-                key: existingAdminRole.key,
-                label: existingAdminRole.label,
-                description: existingAdminRole.description,
-                permissionIds: copiedPermissions.map(p => p.id)
-            }, newOrganization.id);
+        const newRole = await this.roleService.create({
+            key: existingAdminRole.key,
+            label: existingAdminRole.label,
+            description: existingAdminRole.description,
+            permissionIds: copiedPermissions.map(p => p.id)
+        }, newOrganization.id);
 
-            const newUser = this.userRepository.create({
-                name: signupDTO.name,
-                email: signupDTO.email,
-                password: signupDTO.password,
-                organization: newOrganization,
-                roles: [newRole]
-            });
+        const newUser = this.userRepository.create({
+            name: signupDTO.name,
+            email: signupDTO.email,
+            password: signupDTO.password,
+            organization: newOrganization,
+            roles: [newRole]
+        });
 
-            const user = await this.userRepository.save(newUser);
+        const user = await this.userRepository.save(newUser);
 
+        if(!user) {
             return {
-                status: 201,
-                success: true,
-                message: "Registration Successful."
+                status: 400,
+                success: false,
+                message: "Registration Unsuccessful."
             }
-        } catch (error) {
-            throw new SignupFailedError()
+        }
+
+        return {
+            status: 201,
+            success: true,
+            message: "Registration Successful."
         }
     }
 
@@ -90,7 +93,7 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        return  {
+        return {
             status: 200,
             success: true,
             message: "Login Successful"
