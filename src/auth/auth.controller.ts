@@ -26,14 +26,12 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @UseGuards(HcaptchaGuard)
     async login(@Body() loginDTO: LoginDTO, @Session() session: any, req: Request): Promise<any> {
-        const id = await this.authService.login(loginDTO);
-
-        session.userId = id;
-        session.orgId = loginDTO.organizationId;
+        const data = await this.authService.login(loginDTO);
 
         return {
             success: true,
-            message: "Login Successful."
+            message: "Login Successful.",
+            access_token: data
         }
     }
 

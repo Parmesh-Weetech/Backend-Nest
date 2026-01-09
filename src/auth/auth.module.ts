@@ -8,10 +8,24 @@ import { UserModule } from '../user/user.module.js';
 import { OrganizationModule } from '../organization/organization.module.js';
 import { PermissionModule } from '../permission/permission.module.js';
 import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
+import { JwtModule } from '@nestjs/jwt';
+import { JWTSecret } from './constants/jwt.constant.js';
 
 @Module({
   providers: [AuthService],
-  imports: [TypeOrmModule.forFeature([User]), RoleModule, forwardRef(() => UserModule), OrganizationModule, PermissionModule, HCaptchaModule],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    RoleModule,
+    forwardRef(() => UserModule),
+    OrganizationModule,
+    PermissionModule,
+    HCaptchaModule,
+    JwtModule.register({
+      global: true,
+      secret: JWTSecret.prototype.jwtSecret(),
+      signOptions: { expiresIn: "1h"}
+    })
+  ],
   controllers: [AuthController],
   exports: [AuthService]
 })

@@ -8,6 +8,7 @@ import { User } from '../user/entities/user.entity.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,8 @@ export class AuthService {
         private readonly userRepository: Repository<User>,
         private readonly organizationService: OrganizationService,
         private readonly roleService: RoleService,
-        private readonly permissionService: PermissionService
+        private readonly permissionService: PermissionService,
+        private readonly jwtService: JwtService
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<User> {
@@ -62,7 +64,7 @@ export class AuthService {
             if (!organization) throw new NotFoundException("Organization not found.");
             
         }
-        
+
         const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
 
         if (!user) {
@@ -75,6 +77,12 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        return user.id;
+        const payload = { userId: user.id, email: user.email }
+
+        const access_token = this.jwtService.signAsync(payload)
+
+        console.log(access_token)
+
+        return access_token
     }
 }
