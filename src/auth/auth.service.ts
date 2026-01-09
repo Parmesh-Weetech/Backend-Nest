@@ -57,7 +57,7 @@ export class AuthService {
 
         return await this.userRepository.save(newUser);
     }
-    async login(loginDTO: LoginDTO): Promise<string> {
+    async login(loginDTO: LoginDTO): Promise<any> {
         if(loginDTO.organizationId) {
             const organization = await this.organizationService.findOne(loginDTO.organizationId);
 
@@ -77,10 +77,14 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        const payload = { userId: user.id, email: user.email }
+        const payload = { sub: user.id, email: user.email }
 
-        const access_token = await this.jwtService.signAsync(payload)
+        const access_token = await this.jwtService.signAsync(payload);
+        const refresh_token = await this.jwtService.signAsync({ sub: user.id }, { expiresIn: "1d"});
 
-        return access_token
+        return {
+            access_token: `Bearer ${access_token}`,
+            refresh_token: refresh_token
+        }
     }
 }

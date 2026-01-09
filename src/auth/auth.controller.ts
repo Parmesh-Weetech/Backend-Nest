@@ -25,13 +25,14 @@ export class AuthController {
     @Post('/login')
     @HttpCode(HttpStatus.OK)
     @UseGuards(HcaptchaGuard)
-    async login(@Body() loginDTO: LoginDTO, @Session() session: any, req: Request): Promise<any> {
+    async login(@Body() loginDTO: LoginDTO, @Session() session: any): Promise<any> {
         const data = await this.authService.login(loginDTO);
 
         return {
             success: true,
             message: "Login Successful.",
-            access_token: data
+            access_token: data.access_token,
+            refresh_token: data.refresh_token
         }
     }
 
