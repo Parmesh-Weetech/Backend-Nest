@@ -9,8 +9,6 @@ import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
 import { signupResponse } from './dtos/signup-response.dto,.js';
-import { loginResponse } from './dtos/login-response.dto.js';
-import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -48,7 +46,7 @@ export class AuthService {
             permissionIds: copiedPermissions.map(p => p.id)
         }, newOrganization.id);
 
-        const newUser = this.userRepository.create({
+        const newUser = await this.userRepository.create({
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
@@ -60,20 +58,18 @@ export class AuthService {
 
         if(!user) {
             return {
-                status: 400,
                 success: false,
                 message: "Registration Unsuccessful."
             }
         }
 
         return {
-            status: 201,
             success: true,
             message: "Registration Successful."
         }
     }
 
-    async login(loginDTO: LoginDTO): Promise<loginResponse> {
+    async login(loginDTO: LoginDTO): Promise<string> {
         if (loginDTO.organizationId) {
             const organization = await this.organizationService.findOne(loginDTO.organizationId);
 
@@ -93,10 +89,6 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        return {
-            status: 200,
-            success: true,
-            message: "Login Successful"
-        }
+        return user.id
     }
 }

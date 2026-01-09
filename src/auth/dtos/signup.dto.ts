@@ -17,6 +17,6 @@ export class SignupDTO {
     email: string;
 
     @IsStrongPassword()
-    @MaxLength(10)
+    @MaxLength(20)
     password: string;
 }
