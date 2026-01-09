@@ -45,10 +45,4 @@ export class AuthController {
 
         throw new ForbiddenException("You must be loggedin to perform this action!")
     }
-
-    @Get("/g")
-    async getAuth() {
-        console.log("getting auth")
-        return "auth"
-    }
 }
