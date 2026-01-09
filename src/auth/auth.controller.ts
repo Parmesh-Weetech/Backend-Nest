@@ -6,7 +6,9 @@ import { SignupDTO } from './dtos/signup.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
-import type { Response } from 'express';
+import { signupResponse } from './dtos/signup-response.dto,.js';
+import { loginResponse } from './dtos/login-response.dto.js';
+import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -17,7 +19,8 @@ export class AuthController {
     @Public()
     @Serialize(User)
     @Post("/signup")
-    signup(@Body() signupDTO: SignupDTO): Promise<User> {
+    signup(@Body() signupDTO: SignupDTO, req: Request): Promise<signupResponse> {
+        console.log(req.originalUrl);
         return this.authService.signup(signupDTO);
     }
 
@@ -25,16 +28,8 @@ export class AuthController {
     @Post('/login')
     @HttpCode(HttpStatus.OK)
     @UseGuards(HcaptchaGuard)
-    async login(@Body() loginDTO: LoginDTO, @Session() session: any, req: Request): Promise<any> {
-        const id = await this.authService.login(loginDTO);
-
-        session.userId = id;
-        session.orgId = loginDTO.organizationId;
-
-        return {
-            success: true,
-            message: "Login Successful."
-        }
+    async login(@Body() loginDTO: LoginDTO, @Session() session: any): Promise<loginResponse> {
+        return await this.authService.login(loginDTO);
     }
 
     @Post("/logout")

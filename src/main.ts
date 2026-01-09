@@ -58,6 +58,10 @@ async function bootstrap() {
       new LoggingInterceptor(),
     );
     app.useGlobalFilters(new HttpErrorFilter());
+    app.enableCors({
+      origin: "*",
+      credentials: true
+    })
     const config = new DocumentBuilder()
       .setTitle('H-catpcha example')
       .setDescription('H-captcha API description')
