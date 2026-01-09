@@ -9,6 +9,7 @@ import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js'
 import { HttpErrorFilter } from './common/exceptions/global.exception.js';
 import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   try {
@@ -57,7 +58,16 @@ async function bootstrap() {
       new LoggingInterceptor(),
     );
     app.useGlobalFilters(new HttpErrorFilter());
-    await app.listen(configService.get("PORT") ?? 3000);
+    const config = new DocumentBuilder()
+      .setTitle('H-catpcha example')
+      .setDescription('H-captcha API description')
+      .setVersion('1.0')
+      .addTag('H-captcha')
+      .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, documentFactory);
+    await app.listen(configService.get("PORT") ?? 3000, '0.0.0.0');
+
   } catch (error: any) {
     console.error('Error starting server:', error);
     throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error });

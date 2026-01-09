@@ -9,7 +9,7 @@ export class LoginDTO {
     password: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @IsUUID("all", { each: true })
     organizationId: string
 

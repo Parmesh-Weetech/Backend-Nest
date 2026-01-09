@@ -7,7 +7,7 @@ export class AuthGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean {
         const publicRoute = this.reflector.get<boolean>(
-            'isPublic',
+            'IS_PUBLIC_KEY',
             context.getHandler()
         );
 

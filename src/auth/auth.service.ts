@@ -56,11 +56,14 @@ export class AuthService {
         return await this.userRepository.save(newUser);
     }
     async login(loginDTO: LoginDTO): Promise<string> {
-        const organization = await this.organizationService.findOne(loginDTO.organizationId);
+        if(loginDTO.organizationId) {
+            const organization = await this.organizationService.findOne(loginDTO.organizationId);
 
-        if (!organization) throw new NotFoundException("Organization not found.");
-
-        const user = await this.userRepository.findOne({ where: { email: loginDTO.email, organization: { id: loginDTO.organizationId } } });
+            if (!organization) throw new NotFoundException("Organization not found.");
+            
+        }
+        
+        const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
 
         if (!user) {
             throw new NotFoundException("User with this email not exists")

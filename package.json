@@ -22,7 +22,9 @@
     "migration:run": "npx typeorm migration:run -d ./db/typeorm.config.ts",
     "migration:show": "npx typeorm migration:show -d ./db/typeorm.config.ts",
     "migration:revert": "npx typeorm migration:revert -d ./db/typeorm.config.ts",
-    "seed:run": "node --loader ts-node/esm ./dist/db/seed.js"
+    "seed:run": "node --loader ts-node/esm ./dist/db/seed.js",
+    "build:test": "tsc -p tsconfig.build.json",
+    "test:e2e:js": "npm run build:test && jest --config test/jest-e2e.js"
   },
   "dependencies": {
     "@faker-js/faker": "^10.1.0",
@@ -32,6 +34,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.4",
     "@nestjs/typeorm": "^11.0.0",
     "@types/express-session": "^1.18.2",
     "axios": "^1.13.2",
