@@ -9,6 +9,8 @@ import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
 import { JwtService } from '@nestjs/jwt';
+import { Refresh_token } from '../user/entities/refresh_token.entity.js';
+import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +20,9 @@ export class AuthService {
         private readonly organizationService: OrganizationService,
         private readonly roleService: RoleService,
         private readonly permissionService: PermissionService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        @InjectRepository(Refresh_token)
+        private readonly refresh_tokenRepository: Repository<Refresh_token>
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<User> {
@@ -57,12 +61,12 @@ export class AuthService {
 
         return await this.userRepository.save(newUser);
     }
-    async login(loginDTO: LoginDTO): Promise<any> {
-        if(loginDTO.organizationId) {
+    async login(loginDTO: LoginDTO): Promise<RefreshTokenResponse> {
+        if (loginDTO.organizationId) {
             const organization = await this.organizationService.findOne(loginDTO.organizationId);
 
             if (!organization) throw new NotFoundException("Organization not found.");
-            
+
         }
 
         const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
@@ -77,12 +81,26 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        const payload = { sub: user.id, email: user.email }
+        const access_token = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+        const refresh_token = await this.jwtService.signAsync({ sub: user.id }, { expiresIn: "1d" });
 
-        const access_token = await this.jwtService.signAsync(payload);
-        const refresh_token = await this.jwtService.signAsync({ sub: user.id }, { expiresIn: "1d"});
+        const saveRefreshToken = await this.refresh_tokenRepository.create({
+            user: user,
+            refresh_token: refresh_token
+        });
+
+        const savedRefreshToken = await this.refresh_tokenRepository.save(saveRefreshToken);
+
+        if (!savedRefreshToken) {
+            return {
+                success: false,
+                message: "Invalid Credentials"
+            }
+        }
 
         return {
+            success: true,
+            message: "Login Successful.",
             access_token: `Bearer ${access_token}`,
             refresh_token: refresh_token
         }

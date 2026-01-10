@@ -6,6 +6,7 @@ import { SignupDTO } from './dtos/signup.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
+import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -24,15 +25,8 @@ export class AuthController {
     @Post('/login')
     @HttpCode(HttpStatus.OK)
     @UseGuards(HcaptchaGuard)
-    async login(@Body() loginDTO: LoginDTO): Promise<any> {
-        const data = await this.authService.login(loginDTO);
-
-        return {
-            success: true,
-            message: "Login Successful.",
-            access_token: data.access_token,
-            refresh_token: data.refresh_token
-        }
+    async login(@Body() loginDTO: LoginDTO): Promise<RefreshTokenResponse> {
+        return await this.authService.login(loginDTO);
     }
 
     @Post("/logout")

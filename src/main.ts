@@ -45,6 +45,7 @@ async function bootstrap() {
     //     sameSite: "lax"
     //   }
     // }))
+    
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,

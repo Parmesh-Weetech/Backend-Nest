@@ -11,11 +11,12 @@ import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { JWTSecret } from './constants/jwt.constant.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Refresh_token } from '../user/entities/refresh_token.entity.js';
 
 @Module({
   providers: [AuthService],
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Refresh_token]),
     RoleModule,
     forwardRef(() => UserModule),
     OrganizationModule,
