@@ -11,7 +11,7 @@ import { PermissionService } from '../permission/permission.service.js';
 import { JwtService } from '@nestjs/jwt';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
 import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
-import { Auth } from '../common/util/auth.js';
+import { signupResponse } from './dtos/signup-response.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -23,11 +23,10 @@ export class AuthService {
         private readonly permissionService: PermissionService,
         private readonly jwtService: JwtService,
         @InjectRepository(Refresh_token)
-        private readonly refresh_tokenRepository: Repository<Refresh_token>,
-        private readonly auth: Auth
+        private readonly refresh_tokenRepository: Repository<Refresh_token>
     ) { }
 
-    async signup(signupDTO: SignupDTO): Promise<User> {
+    async signup(signupDTO: SignupDTO): Promise<signupResponse> {
         const newOrganization = await this.organizationService.create({ name: "Default" });
         if (!newOrganization) throw new InternalServerErrorException("Failed to create organization");
 
@@ -61,7 +60,19 @@ export class AuthService {
             roles: [newRole]
         });
 
-        return await this.userRepository.save(newUser);
+        const user = await this.userRepository.save(newUser);
+
+        if (!user) {
+            return {
+                success: false,
+                message: "Registration Unsuccessful."
+            }
+        }
+
+        return {
+            success: true,
+            message: "Registration Successful."
+        }
     }
     async login(loginDTO: LoginDTO): Promise<RefreshTokenResponse> {
         if (loginDTO.organizationId) {
@@ -83,8 +94,8 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email });
-        const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
+        const access_token = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+        const refresh_token = await this.jwtService.signAsync({ sub: user.id }, { expiresIn: "1d" });
 
         const saveRefreshToken = await this.refresh_tokenRepository.create({
             user: user,
