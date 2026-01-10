@@ -11,6 +11,7 @@ import { PermissionService } from '../permission/permission.service.js';
 import { JwtService } from '@nestjs/jwt';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
 import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
+import { Auth } from '../common/util/auth.js';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,8 @@ export class AuthService {
         private readonly permissionService: PermissionService,
         private readonly jwtService: JwtService,
         @InjectRepository(Refresh_token)
-        private readonly refresh_tokenRepository: Repository<Refresh_token>
+        private readonly refresh_tokenRepository: Repository<Refresh_token>,
+        private readonly auth: Auth
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<User> {
@@ -81,8 +83,8 @@ export class AuthService {
             throw new UnauthorizedException("Invalid Credentials");
         }
 
-        const access_token = await this.jwtService.signAsync({ sub: user.id, email: user.email });
-        const refresh_token = await this.jwtService.signAsync({ sub: user.id }, { expiresIn: "1d" });
+        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email });
+        const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
 
         const saveRefreshToken = await this.refresh_tokenRepository.create({
             user: user,

@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Headers, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { Serialize } from './interceptors/serialize.interceptor.js';
 import { AuthService } from './auth.service.js';
 import { LoginDTO } from './dtos/login.dto.js';
@@ -7,11 +7,16 @@ import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
 import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Refresh_token } from '../user/entities/refresh_token.entity.js';
+import { Repository } from 'typeorm';
 
 @Controller('auth')
 export class AuthController {
     constructor(
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        @InjectRepository(Refresh_token)
+        private readonly refresh_tokenRepository: Repository<Refresh_token>
     ) { }
 
     @Public()
@@ -34,8 +39,16 @@ export class AuthController {
     @Public()
     async logout(@Headers('authorization') authorization: string): Promise<string> {
         const token = authorization?.split(' ')[1];
-        
-        if(token) return "Logout successful."
+
+        if(!token) {
+            throw new ForbiddenException("You must be loggedin to perform this action!")
+        }
+
+        const acknowledge = await this.refresh_tokenRepository.delete({ refresh_token: token });
+
+        if(acknowledge.affected !== undefined && acknowledge.affected !== null && acknowledge.affected > 0) {
+            return "Logout successful."
+        }
 
         throw new ForbiddenException("You must be loggedin to perform this action!")
     }

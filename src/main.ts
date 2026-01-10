@@ -9,6 +9,7 @@ import { HttpErrorFilter } from './common/exceptions/global.exception.js';
 import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { JwtService } from '@nestjs/jwt';
 
 async function bootstrap() {
   try {
@@ -41,7 +42,7 @@ async function bootstrap() {
     )
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
-      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService)),
+      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService), app.get(JwtService)),
       new LoggingInterceptor(),
     );
     app.useGlobalFilters(new HttpErrorFilter());
