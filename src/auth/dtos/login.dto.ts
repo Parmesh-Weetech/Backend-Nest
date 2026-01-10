@@ -14,5 +14,6 @@ export class LoginDTO {
     organizationId: string
 
     @IsString()
+    @IsOptional()
     hcaptchaToken: string
 }
