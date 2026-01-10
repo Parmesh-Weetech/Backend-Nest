@@ -2,12 +2,14 @@ import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInt
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 import { UserService } from "../../user/user.service.js";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class CurrentUserInterceptor implements NestInterceptor {
     constructor(
         private reflector: Reflector,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly jwtService: JwtService
     ) { }
 
     async intercept(context: ExecutionContext, next: CallHandler<any>): Promise<Observable<any>> {
@@ -20,8 +22,15 @@ export class CurrentUserInterceptor implements NestInterceptor {
 
         if (publicRoute) return next.handle();
 
-        if (request.session?.userId && request.session?.orgId) {
-            const user = await this.userService.findOne(request.session.userId);
+        const authorization = request.headers.authorization;
+        const token = authorization.split(' ')[1];
+
+        const decodedPayload = this.jwtService.decode(token, {
+            json: true
+        });
+
+        if (decodedPayload.sub && request.session?.orgId) {
+            const user = await this.userService.findOne(decodedPayload.sub);
 
             if (!user) throw new BadRequestException("User not exists!")
 

@@ -28,8 +28,12 @@ export class PermissionsGuard implements CanActivate {
         const authorization = request.headers.authorization;
         const token = authorization.split(' ')[1];
 
+        const decodedPayload = this.jwtService.decode(token, {
+            json: true
+        });
+
         const user = await this.userService.findOneWithRolesAndPermissions(
-            request.session.userId,
+            decodedPayload.sub,
         );
 
         if (!user) {
@@ -39,14 +43,11 @@ export class PermissionsGuard implements CanActivate {
         const orgId = user.organization.id;
 
         for (const role of user.roles) {
-            // role must belong to same org
             if (role.organization.id !== orgId) continue;
 
             for (const permission of role.permissions) {
-                // permission must belong to same org
                 if (permission.organization.id !== orgId) continue;
 
-                // exact match
                 if (
                     permission.entity === entity &&
                     permission.action === action
@@ -54,7 +55,6 @@ export class PermissionsGuard implements CanActivate {
                     return true;
                 }
 
-                // admin wildcard
                 if (
                     role.key === 'admin' &&
                     permission.entity === entity &&
