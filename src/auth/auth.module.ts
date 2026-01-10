@@ -9,7 +9,6 @@ import { OrganizationModule } from '../organization/organization.module.js';
 import { PermissionModule } from '../permission/permission.module.js';
 import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
 import { JwtModule } from '@nestjs/jwt';
-import { JWTSecret } from './constants/jwt.constant.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
 
@@ -32,6 +31,6 @@ import { Refresh_token } from '../user/entities/refresh_token.entity.js';
     }),
   ],
   controllers: [AuthController],
-  exports: [AuthService]
+  exports: [AuthService, JwtModule]
 })
 export class AuthModule { }

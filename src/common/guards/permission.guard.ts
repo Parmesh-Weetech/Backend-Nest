@@ -1,12 +1,14 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserService } from "../../user/user.service.js";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly userService: UserService,
+        private readonly jwtService: JwtService
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -22,6 +24,9 @@ export class PermissionsGuard implements CanActivate {
         }
 
         const { entity, action } = requiredPermission;
+
+        const authorization = request.headers.authorization;
+        const token = authorization.split(' ')[1];
 
         const user = await this.userService.findOneWithRolesAndPermissions(
             request.session.userId,

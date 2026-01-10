@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Post, Session, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { Serialize } from './interceptors/serialize.interceptor.js';
 import { AuthService } from './auth.service.js';
 import { LoginDTO } from './dtos/login.dto.js';

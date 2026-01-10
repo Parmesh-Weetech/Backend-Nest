@@ -1,7 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
-// import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
 import { UserService } from './user/user.service.js';
 import { ConfigService } from '@nestjs/config';
@@ -33,19 +32,6 @@ async function bootstrap() {
       console.log('✅ Database seeding completed');
     }
 
-    // app.use(session({
-    //   name: "sid",
-    //   secret: configService.get("SESSION_SECRET")!,
-    //   resave: false,
-    //   saveUninitialized: false,
-    //   cookie: {
-    //     httpOnly: true,
-    //     maxAge: 3600000,
-    //     secure: false,
-    //     sameSite: "lax"
-    //   }
-    // }))
-    
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
