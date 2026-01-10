@@ -15,9 +15,9 @@ export class HcaptchaGuard implements CanActivate {
     const token = req.body?.hcaptchaToken;
 
     if (!token) {
-      // throw new UnauthorizedException('hCaptcha required');
+      throw new UnauthorizedException('hCaptcha required');
 
-      return true;
+      // return true;
     }
 
     const res = await this.hcaptchaService.verify(token, req.ip);

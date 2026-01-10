@@ -13,7 +13,6 @@ export class LoginDTO {
     @IsUUID("all", { each: true })
     organizationId: string
 
-    @IsOptional()
     @IsString()
     hcaptchaToken: string
 }
