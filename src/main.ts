@@ -40,13 +40,18 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
       })
-    )
+    );
+
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
       new CurrentUserInterceptor(app.get(Reflector), app.get(UserService), app.get(JwtService), app.get(Auth)),
       new LoggingInterceptor(),
     );
+
     app.useGlobalFilters(new HttpErrorFilter());
+
+    app.enableCors();
+
     const config = new DocumentBuilder()
       .setTitle('H-catpcha example')
       .setDescription('H-captcha API description')
@@ -55,6 +60,7 @@ async function bootstrap() {
       .build();
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, documentFactory);
+
     await app.listen(configService.get("PORT") ?? 3000, '0.0.0.0');
 
   } catch (error: any) {
