@@ -92,7 +92,10 @@ export class AuthService {
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
 
         if (!checkPassword) {
-            throw new UnauthorizedException("Invalid Credentials");
+            return {
+                success: false,
+                message: "Invalid Credentials"
+            }
         }
 
         const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email });
@@ -120,20 +123,22 @@ export class AuthService {
         }
     }
 
-    async logout(token: string): Promise<string> {
-        const isValid = await this.auth.verify(token);
-
-        if(!isValid) throw new ForbiddenException("You must be loggedin to perform this action!")
-
+    async logout(token: string): Promise<TokenResponse> {
         const decodedPayload = await this.auth.decode(token);
 
         const deleteRefreshToken = await this.refresh_tokenRepository.delete({ user: { id: decodedPayload.sub} });
 
         if(deleteRefreshToken.affected !== null && deleteRefreshToken.affected !== undefined && deleteRefreshToken.affected > 0) {
-            return "Logout Successfully."
+            return {
+                success: true,
+                message: "Logout Successfully."
+            }
         }
 
-        throw new ForbiddenException("You must be loggedin to perform this action!")
+        return {
+            success: false,
+            message: "Error while logging out! try again."
+        }
     }
 
     async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {

@@ -35,26 +35,28 @@ export class AuthController {
     async login(@Body() loginDTO: LoginDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.login(loginDTO);
 
-        if(!response.success) res.status(401).json({ success: response.success, message: "Invalid credentials!"})
+        if(!response.success) res.status(401).json({ success: response.success, message: response.message });
 
         res.status(200).send(response);
     }
 
+    @Public()
     @Post("/logout")
     @HttpCode(HttpStatus.OK)
-    @Public()
-    async logout(@Headers('authorization') authorization: string): Promise<string> {
+    async logout(@Headers('authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const token = authorization?.split(' ')[1];
 
-        if(!token) {
-            throw new ForbiddenException("You must be loggedin to perform this action!")
-        }
+        if(!token) res.status(400).json({ success: false, message: "You must be logged in!" });
 
-        return await this.authService.logout(token)
+        const response = await this.authService.logout(token)
+
+        if(!response.success) res.status(400).send(response);
+
+        res.status(200).send(response);
     }
 
-    @Post("/refresh-token")
     @Public()
+    @Post("/refresh-token")
     async refreshAccessToken(@Body('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.refreshAccessToken(refreshToken);
 
