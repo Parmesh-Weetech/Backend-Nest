@@ -1,4 +1,4 @@
-export class RefreshTokenResponse {
+export class TokenResponse {
     success: boolean
     message: string
     access_token?: string

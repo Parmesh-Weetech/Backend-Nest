@@ -6,18 +6,13 @@ import { SignupDTO } from './dtos/signup.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
-import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Refresh_token } from '../user/entities/refresh_token.entity.js';
-import { Repository } from 'typeorm';
 import type { Response } from 'express';
+import { TokenResponse } from './dtos/refresh_token-response.dto.js';
 
 @Controller('auth')
 export class AuthController {
     constructor(
-        private readonly authService: AuthService,
-        @InjectRepository(Refresh_token)
-        private readonly refresh_tokenRepository: Repository<Refresh_token>
+        private readonly authService: AuthService
     ) { }
 
     @Public()
@@ -53,12 +48,12 @@ export class AuthController {
             throw new ForbiddenException("You must be loggedin to perform this action!")
         }
 
-        const acknowledge = await this.refresh_tokenRepository.delete({ refresh_token: token });
+        return await this.authService.logout(token)
+    }
 
-        if(acknowledge.affected !== undefined && acknowledge.affected !== null && acknowledge.affected > 0) {
-            return "Logout successful."
-        }
-
-        throw new ForbiddenException("You must be loggedin to perform this action!")
+    @Post("/refresh-token")
+    @Public()
+    async refreshAccessToken(@Body('refreshToken') refreshToken: string): Promise<TokenResponse> {
+        return await this.authService.refreshAccessToken(refreshToken)
     }
 }

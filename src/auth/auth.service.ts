@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import bcrypt from "bcryptjs";
@@ -10,7 +10,7 @@ import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
 import { JwtService } from '@nestjs/jwt';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
-import { RefreshTokenResponse } from './dtos/refresh_token-response.dto.js';
+import { TokenResponse } from './dtos/refresh_token-response.dto.js';
 import { signupResponse } from './dtos/signup-response.dto.js';
 import { Auth } from '../common/util/auth.js';
 
@@ -22,7 +22,6 @@ export class AuthService {
         private readonly organizationService: OrganizationService,
         private readonly roleService: RoleService,
         private readonly permissionService: PermissionService,
-        private readonly jwtService: JwtService,
         @InjectRepository(Refresh_token)
         private readonly refresh_tokenRepository: Repository<Refresh_token>,
         private readonly auth: Auth
@@ -76,7 +75,7 @@ export class AuthService {
             message: "Registration Successful."
         }
     }
-    async login(loginDTO: LoginDTO): Promise<RefreshTokenResponse> {
+    async login(loginDTO: LoginDTO): Promise<TokenResponse> {
         if (loginDTO.organizationId) {
             const organization = await this.organizationService.findOne(loginDTO.organizationId);
 
@@ -118,6 +117,52 @@ export class AuthService {
             message: "Login Successful.",
             access_token: access_token,
             refresh_token: refresh_token
+        }
+    }
+
+    async logout(token: string): Promise<string> {
+        const isValid = await this.auth.verify(token);
+
+        if(!isValid) throw new ForbiddenException("You must be loggedin to perform this action!")
+
+        const decodedPayload = await this.auth.decode(token);
+
+        const deleteRefreshToken = await this.refresh_tokenRepository.delete({ user: { id: decodedPayload.sub} });
+
+        if(deleteRefreshToken.affected !== null && deleteRefreshToken.affected !== undefined && deleteRefreshToken.affected > 0) {
+            return "Logout Successfully."
+        }
+
+        throw new ForbiddenException("You must be loggedin to perform this action!")
+    }
+
+    async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+        const isValid = this.auth.verify(refreshToken)
+
+        if(!isValid) throw new ForbiddenException("You must be logged in to perform this action!");
+
+        const decode = await this.auth.decode(refreshToken);
+
+        const user = await this.userRepository.findOne({ where: { id: decode.sub }});
+
+        if (!user) throw new ForbiddenException("You must be logged in to perform this action!");
+
+        const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email });
+        const newRefreshToken = await this.auth.generateRefreshToken({ sub: decode.sub });
+
+        if(!newAccessToken || !newRefreshToken) {
+            await this.logout(refreshToken)
+            return {
+                success: false,
+                message: "Error while refreshing the access token! Please login again."
+            }
+        }
+
+        return {
+            success: true,
+            message: "Refresh the access token successfully.",
+            access_token: newAccessToken,
+            refresh_token: newRefreshToken
         }
     }
 }
