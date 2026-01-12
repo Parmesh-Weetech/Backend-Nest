@@ -50,7 +50,10 @@ async function bootstrap() {
 
     app.useGlobalFilters(new HttpErrorFilter());
 
-    app.enableCors();
+    app.enableCors({
+      origin: "*",
+      credentials: true
+    })
 
     const config = new DocumentBuilder()
       .setTitle('H-catpcha example')
