@@ -2,11 +2,11 @@ import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisco
 import { Server, Socket } from 'socket.io';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
-import { Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../common/guards/auth.guard';
-import { Auth } from '../common/util/auth';
+import { Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
+import { WsAuthGuard } from './guards/websocket.guard';
 
-@UseGuards(AuthGuard)
+@UseGuards(WsAuthGuard)
 @WebSocketGateway({
   cors: {
     origin: ['*'],
@@ -17,9 +17,8 @@ import { Auth } from '../common/util/auth';
 export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
 
   constructor(
-    private readonly webSocketService: WebsocketService,
-    private readonly auth: Auth
-  ) {}
+    private readonly webSocketService: WebsocketService
+  ) { }
 
   @WebSocketServer() server: Server;
 
@@ -39,41 +38,43 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   async handleJoinConversation(
     @MessageBody() data: { anotherUserId: string },
     @ConnectedSocket() client: Socket,
-    @Headers("Authorization") authorization: string
+    @Res({ passthrough: true }) res: Response
   ) {
+    const userId = client.data.user.id;
 
-    const [type, token] = authorization?.split(' ') ?? [];
-    const access_token = type === 'Bearer' ? token : undefined;
-
-    if(!access_token) throw new UnauthorizedException("Token is not valid.")
-
-    const decodedPayload = await this.auth.decode(access_token)
-
-    const conversation = await this.webSocketService.findOrCreateConversation(data.userId, data.anotherUserId);
+    const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
 
     client.join(conversation.id);
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
 
-    // Optional: send back confirmation
-    client.emit('joined', { userId: data.userId, anotherUserId: data.anotherUserId, conversationId: conversation.id });
+    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id });
   }
 
   @SubscribeMessage("send_message")
-  async handleMessage(@MessageBody() data: SendMessageDto, @ConnectedSocket() client: Socket) {
-    const newMessage = await this.webSocketService.sendMessage(data);
+  async handleMessage(
+    @MessageBody() data: SendMessageDto,
+    @ConnectedSocket() client: Socket,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const userId = client.data.user.id;
+
+    const newMessage = await this.webSocketService.sendMessage(data, userId);
 
     client.broadcast.to(data.conversationId).emit('receive_message', {
       content: newMessage.content,
       type: newMessage.type,
       conversationId: data.conversationId,
-      senderId: data.senderId,
+      senderId: userId,
       receiverId: data.receiverId,
       createdAt: newMessage.createdAt,
     });
   }
 
   @SubscribeMessage("get_history")
-  async handleGetHistory(@MessageBody() data: { conversationId: string }, @ConnectedSocket() client: Socket) {
+  async handleGetHistory(
+    @MessageBody() data: { conversationId: string }, 
+    @ConnectedSocket() client: Socket
+  ) {
     console.log(`History request received from ${client.id} for conversation ${data.conversationId}`);
 
     const messages = await this.webSocketService.getMessages(data.conversationId);

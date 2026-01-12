@@ -14,8 +14,7 @@ import { RequestTimeMiddleware } from './common/middlewares/requestTime.middlewa
 import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
 import { WebsocketModule } from './websocket/websocket.module';
-import { GatewayGateway } from './gateway/gateway.gateway';
-import { GatewayGateway } from './gateway.gateway';
+import { Gateway } from './websocket/gateway.js';
 
 @Module({
   imports: [
@@ -32,7 +31,7 @@ import { GatewayGateway } from './gateway.gateway';
       inject: [ConfigService],
     }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule],
   controllers: [AppController],
-  providers: [AppService, GatewayGateway],
+  providers: [AppService, Gateway],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

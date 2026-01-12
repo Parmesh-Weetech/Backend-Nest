@@ -7,7 +7,7 @@ import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
 import type { Response } from 'express';
-import { TokenResponse } from './dtos/refresh_token-response.dto.js';
+import { TokenResponse } from './dtos/token-response.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +35,7 @@ export class AuthController {
     async login(@Body() loginDTO: LoginDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.login(loginDTO);
 
-        if(!response.success) res.status(401).json({ success: response.success, message: response.message });
+        if (!response.success) res.status(401).json({ success: response.success, message: response.message });
 
         res.status(200).send(response);
     }
@@ -46,11 +46,11 @@ export class AuthController {
     async logout(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const token = authorization?.split(' ')[1];
 
-        if(!token) res.status(400).json({ success: false, message: "You must be logged in!" });
+        if (!token) res.status(400).json({ success: false, message: "You must be logged in!" });
 
         const response = await this.authService.logout(token)
 
-        if(!response.success) res.status(400).send(response);
+        if (!response.success) res.status(400).send(response);
 
         res.status(200).send(response);
     }
@@ -60,7 +60,7 @@ export class AuthController {
     async refreshAccessToken(@Body('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.refreshAccessToken(refreshToken);
 
-        if(!response.success) res.status(403).send(response)
+        if (!response.success) res.status(403).send(response)
 
         res.status(200).send(response);
     }

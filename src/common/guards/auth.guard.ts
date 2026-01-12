@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Auth } from '../util/auth';
+import { AuthResponse } from '../response/auth-response.dto';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -26,6 +27,6 @@ export class AuthGuard implements CanActivate {
 
         if(isValid && access_token) return true; 
 
-        throw new UnauthorizedException('You must be logged in.');
+        throw new UnauthorizedException("You must be logged in.");
     }
 }

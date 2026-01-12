@@ -5,11 +5,6 @@ export class SendMessageDto {
     @IsString()
     @IsUUID("all", { each: true })
     @IsNotEmpty()
-    senderId: string;
-
-    @IsString()
-    @IsUUID("all", { each: true })
-    @IsNotEmpty()
     receiverId: string;
 
     @IsString()
