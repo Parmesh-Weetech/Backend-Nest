@@ -13,6 +13,9 @@ import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { GatewayGateway } from './gateway/gateway.gateway';
+import { GatewayGateway } from './gateway.gateway';
 
 @Module({
   imports: [
@@ -27,9 +30,9 @@ import { HCaptchaModule } from './h-captcha/h-captcha.module';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, GatewayGateway],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
