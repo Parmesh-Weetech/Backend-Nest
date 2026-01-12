@@ -55,7 +55,11 @@ export class AuthController {
 
     @Post("/refresh-token")
     @Public()
-    async refreshAccessToken(@Body('refreshToken') refreshToken: string): Promise<TokenResponse> {
-        return await this.authService.refreshAccessToken(refreshToken)
+    async refreshAccessToken(@Body('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.authService.refreshAccessToken(refreshToken);
+
+        if(!response.success) res.status(403).send(response)
+
+        res.status(200).send(response);
     }
 }
