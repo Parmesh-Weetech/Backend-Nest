@@ -10,6 +10,7 @@ import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
+import { Auth } from './common/util/auth.js';
 
 async function bootstrap() {
   try {
@@ -42,7 +43,7 @@ async function bootstrap() {
     )
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
-      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService), app.get(JwtService)),
+      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService), app.get(JwtService), app.get(Auth)),
       new LoggingInterceptor(),
     );
     app.useGlobalFilters(new HttpErrorFilter());

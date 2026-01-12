@@ -1,11 +1,15 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Auth } from '../util/auth';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    constructor(private reflector: Reflector) {}
+    constructor(
+        private reflector: Reflector,
+        private readonly auth: Auth
+    ) {}
 
-    canActivate(context: ExecutionContext): boolean {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const publicRoute = this.reflector.get<boolean>(
             'IS_PUBLIC_KEY',
             context.getHandler()
@@ -18,7 +22,9 @@ export class AuthGuard implements CanActivate {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
-        if(access_token) return true;
+        const isValid = await this.auth.verify(access_token)
+
+        if(isValid && access_token) return true; 
 
         throw new UnauthorizedException('You must be logged in.');
     }

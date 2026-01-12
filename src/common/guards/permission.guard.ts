@@ -2,13 +2,15 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Unauthor
 import { Reflector } from "@nestjs/core";
 import { UserService } from "../../user/user.service.js";
 import { JwtService } from "@nestjs/jwt";
+import { Auth } from "../util/auth.js";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly userService: UserService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly auth: Auth
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -28,9 +30,13 @@ export class PermissionsGuard implements CanActivate {
         const authorization = request.headers.authorization;
         const token = authorization.split(' ')[1];
 
-        const decodedPayload = this.jwtService.decode(token, {
-            json: true
-        });
+        const isValid = await this.auth.verify(token);
+
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid token');
+        }
+
+        const decodedPayload = await this.auth.decode(token)
 
         const user = await this.userService.findOneWithRolesAndPermissions(
             decodedPayload.sub,

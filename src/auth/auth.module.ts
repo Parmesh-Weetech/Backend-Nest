@@ -11,9 +11,10 @@ import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
+import { Auth } from '../common/util/auth.js';
 
 @Module({
-  providers: [AuthService],
+  providers: [AuthService, Auth],
   imports: [
     TypeOrmModule.forFeature([User, Refresh_token]),
     RoleModule,
@@ -31,6 +32,6 @@ import { Refresh_token } from '../user/entities/refresh_token.entity.js';
     }),
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule]
+  exports: [AuthService, JwtModule, Auth]
 })
 export class AuthModule { }

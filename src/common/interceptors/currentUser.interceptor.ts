@@ -1,15 +1,17 @@
-import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
+import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 import { UserService } from "../../user/user.service.js";
 import { JwtService } from "@nestjs/jwt";
+import { Auth } from "../util/auth.js";
 
 @Injectable()
 export class CurrentUserInterceptor implements NestInterceptor {
     constructor(
         private reflector: Reflector,
         private readonly userService: UserService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly auth: Auth
     ) { }
 
     async intercept(context: ExecutionContext, next: CallHandler<any>): Promise<Observable<any>> {
@@ -25,9 +27,11 @@ export class CurrentUserInterceptor implements NestInterceptor {
         const authorization = request.headers.authorization;
         const token = authorization.split(' ')[1];
 
-        const decodedPayload = this.jwtService.decode(token, {
-            json: true
-        });
+        const isValid = await this.auth.verify(token)
+
+        if(!isValid) throw new UnauthorizedException("Invalid token")
+
+        const decodedPayload = await this.auth.decode(token)
 
         if (decodedPayload.sub && request.session?.orgId) {
             const user = await this.userService.findOne(decodedPayload.sub);

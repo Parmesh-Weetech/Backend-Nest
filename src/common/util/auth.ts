@@ -14,13 +14,13 @@ export class Auth {
             secret: this.configService.get("JWT_SECRET")
         })
 
-        return isValid;
+        if(!isValid || isValid === null || isValid === undefined) return false;
+
+        return true;
     }
 
     async decode(authorization: string): Promise<DecodedJwt> {
-        const token = authorization.split(' ')[1];
-
-        const decodedPayload = this.jwtService.decode(token, {
+        const decodedPayload = this.jwtService.decode(authorization, {
             json: true
         });
 
