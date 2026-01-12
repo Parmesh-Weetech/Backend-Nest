@@ -14,18 +14,25 @@ export class WebsocketService {
         private readonly messageRepository: Repository<Message>,
     ) { }
     async findOrCreateConversation(userId: string, otherUserId: string) {
-        const conversation = await this.conversationRepository.findOne({ where: { user1: { id: userId }, user2: { id: otherUserId } } });
+        const conversation = await this.conversationRepository
+            .createQueryBuilder('conversation')
+            .where(
+                '(conversation.user1Id = :userId AND conversation.user2Id = :otherUserId) OR (conversation.user1Id = :otherUserId AND conversation.user2Id = :userId)',
+                { userId, otherUserId }
+            )
+            .getOne();
+
 
         if (conversation) {
             return conversation;
         }
 
-        const newConversation = this.conversationRepository.create({
+        const newConversation = await this.conversationRepository.create({
             user1: { id: userId },
             user2: { id: otherUserId },
         });
 
-        return this.conversationRepository.save(newConversation);
+        return await this.conversationRepository.save(newConversation);
     }
 
     async getMessages(conversationId: string): Promise<Message[]> {

@@ -42,7 +42,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     @Res({ passthrough: true }) res: Response
   ) {
     const userId = client.data.userId;
-    console.log(userId)
     
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     
@@ -58,7 +57,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     @ConnectedSocket() client: Socket,
     @Res({ passthrough: true }) res: Response
   ) {
-    const userId = client.data.user.id;
+    const userId = client.data.userId;
 
     const newMessage = await this.webSocketService.sendMessage(data, userId);
 
