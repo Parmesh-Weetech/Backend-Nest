@@ -35,6 +35,8 @@ export class AuthController {
     async login(@Body() loginDTO: LoginDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.login(loginDTO);
 
+        if(!response.success) res.status(400).json({ success: false, message: "Invalid credentials!"})
+
         res.status(200).send(response);
     }
 
