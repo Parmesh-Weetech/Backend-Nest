@@ -34,6 +34,7 @@
     "@nestjs/platform-socket.io": "^11.1.11",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.11",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express-session": "^1.18.2",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",

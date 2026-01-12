@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Post, Session } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Session, UseGuards } from '@nestjs/common';
 import { WebSocketService } from './web-socket.service.js';
+import { AuthGuard } from '../common/guards/auth.guard.js';
 
+@UseGuards(AuthGuard)
 @Controller('web-socket')
 export class WebSocketController {
 
@@ -14,20 +16,5 @@ export class WebSocketController {
     @Get('messages/:conversationId')
     async getMessages(@Param('conversationId') conversationId: string) {
         return await this.websocketService.getMessages(conversationId);
-    }
-
-    @Post("/login")
-    async loginUser(@Body() body: { id: string }, @Session() session: any) {
-        const { id } = body;
-        
-        const user = await this.websocketService.checkUserExists(id);
-
-        if (!user) {
-            throw new Error(`User with id ${id} does not exist.`);
-        }
-
-        session.userId = id;
-
-        return { message: 'Login successful', userId: id };
     }
 }

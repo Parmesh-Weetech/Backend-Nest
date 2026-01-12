@@ -96,11 +96,4 @@ export class WebSocketService {
 
         return messages;
     }
-
-    async checkUserExists(id: string): Promise<boolean> {
-        const user = await this.userRepository.findOne({ where: {
-            id: id
-        }});
-        return !!user;
-    }
 }

@@ -41,12 +41,6 @@ export class RoomGateWay {
 
   @SubscribeMessage('join_room')
   async handleCreateRoom(@ConnectedSocket() client: Socket, @MessageBody() payload: ChatRoomDto) {
-
-    const isUserExist = this.webSockerService.checkUserExists(payload.memberId);
-    if (!isUserExist) {
-      throw new Error(`User with id ${payload.memberId} does not exist.`);
-    }
-
     const chatRoom = await this.webSockerService.createChatRoom(payload);
 
     client.join(chatRoom.id);
