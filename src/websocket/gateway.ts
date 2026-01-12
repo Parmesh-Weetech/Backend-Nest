@@ -2,7 +2,11 @@ import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisco
 import { Server, Socket } from 'socket.io';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
+import { Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { Auth } from '../common/util/auth';
 
+@UseGuards(AuthGuard)
 @WebSocketGateway({
   cors: {
     origin: ['*'],
@@ -12,7 +16,10 @@ import { WebsocketService } from './websocket.service';
 })
 export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
 
-  constructor(private readonly webSocketService: WebsocketService) {}
+  constructor(
+    private readonly webSocketService: WebsocketService,
+    private readonly auth: Auth
+  ) {}
 
   @WebSocketServer() server: Server;
 
@@ -31,8 +38,17 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   @SubscribeMessage('join_conversation')
   async handleJoinConversation(
     @MessageBody() data: { anotherUserId: string },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
+    @Headers("Authorization") authorization: string
   ) {
+
+    const [type, token] = authorization?.split(' ') ?? [];
+    const access_token = type === 'Bearer' ? token : undefined;
+
+    if(!access_token) throw new UnauthorizedException("Token is not valid.")
+
+    const decodedPayload = await this.auth.decode(access_token)
+
     const conversation = await this.webSocketService.findOrCreateConversation(data.userId, data.anotherUserId);
 
     client.join(conversation.id);
