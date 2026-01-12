@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Message } from './entities/message.entity';
-import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity.js';
+import { Conversation } from './entities/conversation.entity.js';
 import { Repository } from 'typeorm';
-import { SendMessageDto } from './dtos/sendMessage.dto';
-import type { Response } from 'express';
+import { SendMessageDto } from './dtos/sendMessage.dto.js';
 
 @Injectable()
 export class WebsocketService {

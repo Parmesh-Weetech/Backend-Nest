@@ -9,13 +9,12 @@
 
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: Arial;
         background: #f5f5f5;
         display: flex;
         justify-content: center;
         padding-top: 40px;
       }
-
       .chat-box {
         width: 420px;
         background: #fff;
@@ -23,19 +22,16 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         padding: 16px;
       }
-
       h2 {
         text-align: center;
         margin-bottom: 10px;
       }
-
       input,
       button {
         width: 100%;
         padding: 8px;
         margin-top: 8px;
       }
-
       button {
         cursor: pointer;
         background: #4caf50;
@@ -43,7 +39,6 @@
         border: none;
         border-radius: 4px;
       }
-
       ul {
         list-style: none;
         padding: 0;
@@ -51,14 +46,12 @@
         max-height: 260px;
         overflow-y: auto;
       }
-
       li {
         padding: 6px;
         margin-bottom: 4px;
         border-radius: 4px;
         background: #e0e0e0;
       }
-
       .me {
         background: #c8e6c9;
         text-align: right;
@@ -70,7 +63,6 @@
     <div class="chat-box">
       <h2>1-to-1 Chat</h2>
 
-      <input id="userId" placeholder="Your User ID" />
       <input id="otherUserId" placeholder="Other User ID" />
       <button onclick="joinConversation()">Join Conversation</button>
 
@@ -85,8 +77,14 @@
     </div>
 
     <script>
+      // JWT token from login
+      const token =
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMzUyYmRhMS02ODMwLTRlZDEtOTRiMS1jNDk4OTcwOGQ2MDgiLCJlbWFpbCI6InBhcm1lc2hiMjdAZ21haWwuY29tIiwiaWF0IjoxNzY4MjE1ODY0LCJleHAiOjE3NjgyMTk0NjR9.9upCSViVZC9aDlFBhP_8XvJxVJ70YT-P--ByHhI8lNE';
+
+      // Connect socket with auth token
       const socket = io('http://localhost:3000', {
         withCredentials: true,
+        auth: { token },
       });
 
       let conversationId = null;
@@ -97,37 +95,32 @@
         console.log('Connected:', socket.id);
       });
 
+      socket.on('connect_error', (err) => {
+        console.error('Connection error:', err.message);
+      });
+
       // Join conversation
       function joinConversation() {
-        currentUserId = document.getElementById('userId').value;
-        const otherUserId = document.getElementById('otherUserId').value;
+        anotherUserId = document.getElementById('otherUserId').value;
+        if (!anotherUserId) return alert('Enter Other User ID');
 
-        socket.emit('join_conversation', {
-          userId: currentUserId,
-          anotherUserId: otherUserId,
-        });
+        socket.emit('join_conversation', { anotherUserId });
       }
 
       socket.on('joined', (data) => {
         console.log('Joined conversation:', data);
         conversationId = data.conversationId;
-        userId: data.userId;
-        anotherUserId: data.anotherUserId;
+        currentUserId = data.userId;
+        anotherUserId = data.anotherUserId;
       });
 
       // Send message
       function sendMessage() {
         const text = document.getElementById('messageInput').value;
-        console.log(conversationId, text);
-
-        if (!text || !conversationId) {
-          alert('Join conversation first!');
-          return;
-        }
+        if (!text || !conversationId) return alert('Join conversation first!');
 
         socket.emit('send_message', {
           conversationId,
-          senderId: currentUserId,
           receiverId: anotherUserId,
           content: text,
           type: 'text',
@@ -139,10 +132,21 @@
 
       // Receive message
       socket.on('receive_message', (msg) => {
-        console.log('Received:', msg);
+        const isMe = msg.senderId === currentUserId;
+        addMessage(`User ${msg.senderId}: ${msg.content}`, isMe);
+      });
 
-        conversationId = msg.conversationId;
-        addMessage(`User ${msg.senderId}: ${msg.content}`, false);
+      // Get history
+      function getHistory() {
+        if (!conversationId) return alert('Join conversation first!');
+        socket.emit('get_history', { conversationId });
+      }
+
+      socket.on('history', (messages) => {
+        messages.forEach((msg) => {
+          const isMe = msg.senderId === currentUserId;
+          addMessage(`User ${msg.senderId}: ${msg.content}`, isMe);
+        });
       });
 
       function addMessage(text, isMe) {
@@ -150,17 +154,6 @@
         li.textContent = text;
         if (isMe) li.classList.add('me');
         document.getElementById('messages').appendChild(li);
-      }
-
-      function getHistory() {
-        socket.emit('get_history', { conversationId });
-
-        socket.on('history', (messages) => {
-          messages.forEach((msg) => {
-            const isMe = msg.senderId === currentUserId;
-            addMessage(`User ${msg.senderId}: ${msg.content}`, isMe);
-          });
-        });
       }
     </script>
   </body>

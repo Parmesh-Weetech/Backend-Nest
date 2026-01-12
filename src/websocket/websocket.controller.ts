@@ -1,7 +1,7 @@
 import { Controller, Get, Headers, Param, Res } from '@nestjs/common';
-import { WebsocketService } from './websocket.service';
+import { WebsocketService } from './websocket.service.js';
 import type { Response } from 'express';
-import { Auth } from '../common/util/auth';
+import { Auth } from '../common/util/auth.js';
 
 @Controller('websocket')
 export class WebsocketController {

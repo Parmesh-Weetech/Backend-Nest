@@ -2,14 +2,15 @@ import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisco
 import { Server, Socket } from 'socket.io';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
-import { Res, UseGuards } from '@nestjs/common';
+import { Injectable, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { WsAuthGuard } from './guards/websocket.guard';
 
+@Injectable()
 @UseGuards(WsAuthGuard)
 @WebSocketGateway({
   cors: {
-    origin: ['*'],
+    origin: ['*', 'http://127.0.0.1:5500'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
   }
@@ -40,13 +41,14 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     @ConnectedSocket() client: Socket,
     @Res({ passthrough: true }) res: Response
   ) {
-    const userId = client.data.user.id;
-
+    const userId = client.data.userId;
+    console.log(userId)
+    
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
-
+    
     client.join(conversation.id);
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
-
+    
     client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id });
   }
 

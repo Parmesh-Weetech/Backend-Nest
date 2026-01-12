@@ -1,11 +1,11 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { WebsocketController } from './websocket.controller';
-import { WebsocketService } from './websocket.service';
-import { Gateway } from './gateway';
+import { WebsocketController } from './websocket.controller.js';
+import { WebsocketService } from './websocket.service.js';
+import { Gateway } from './gateway.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Conversation } from './entities/conversation.entity';
-import { Message } from './entities/message.entity';
-import { AuthModule } from '../auth/auth.module';
+import { Conversation } from './entities/conversation.entity.js';
+import { Message } from './entities/message.entity.js';
+import { AuthModule } from '../auth/auth.module.js';
 
 @Module({
   controllers: [WebsocketController],

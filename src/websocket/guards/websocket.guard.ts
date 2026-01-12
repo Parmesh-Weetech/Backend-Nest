@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Res } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Res, UnauthorizedException } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Auth } from '../../common/util/auth.js'; // your Auth class
 import { WsException } from '@nestjs/websockets';
@@ -17,7 +17,7 @@ export class WsAuthGuard implements CanActivate {
         const [type, token] = authorization?.split(' ') ?? [];
         const final_token = type === "Bearer" ? token : undefined
 
-        if (!final_token) throw new WsException('Unauthorized: No token');
+        if (!final_token) throw new UnauthorizedException('Unauthorized: No token');
 
         try {
             const isValid = await this.auth.verify(final_token);
@@ -28,9 +28,8 @@ export class WsAuthGuard implements CanActivate {
 
             const decodedPayload = await this.auth.decode(final_token);
 
-            client.data.user = decodedPayload.sub;
+            client.data.userId = decodedPayload.sub;
 
-            console.log(decodedPayload.sub)
             return true;
         } catch (err) {
             throw new WsException('Unauthorized: Invalid token');
