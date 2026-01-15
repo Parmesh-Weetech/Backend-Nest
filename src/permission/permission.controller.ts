@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post } from '@nestjs/common';
+import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post, Res } from '@nestjs/common';
 import { PermissionService } from './permission.service.js';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
 import { Permission } from './entities/permission.entity.js';
@@ -9,6 +9,7 @@ import { Permission as PermissionDecorator } from '../common/decorators/permissi
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
+import type { Response } from 'express';
 
 @Controller('permissions')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -16,30 +17,40 @@ export class PermissionController {
     constructor(private readonly permissionService: PermissionService) { }
 
     @Get()
-    findAll(): Promise<Permission[]> {
-        return this.permissionService.findAll();
+    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
+        const permissions = await this.permissionService.findAll();
+
+        res.status(permissions.statusCode).send(permissions);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string): Promise<Permission> {
-        return this.permissionService.findOne(id);
+    async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const permission = await this.permissionService.findOne(id);
+
+        res.status(permission.statusCode).send(permission);
     }
 
     @Post()
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.CREATE)
-    create(@Body() dto: CreatePermissionDTO, @CurrentOrganizationId() Id: string): Promise<Permission> {
-        return this.permissionService.create(dto, Id)
+    async create(@Body() dto: CreatePermissionDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const permission = await this.permissionService.create(dto, Id);
+
+        res.status(permission.statusCode).send(permission);
     }
 
     @Put()
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.UPDATE)
-    update(@Body() dto: UpdatePermissionDTO): Promise<Permission> {
-        return this.permissionService.update(dto);
+    async update(@Body() dto: UpdatePermissionDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const permission = await this.permissionService.update(dto);
+
+        res.status(permission.statusCode).send(permission);
     }
 
     @Delete(':id')
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.DELETE)
-    delete(@Param('id') id: string) {
-        return this.permissionService.delete(id);
+    async delete(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const permission = await this.permissionService.delete(id);
+
+        res.status(permission.statusCode).send(permission);
     }
 }
