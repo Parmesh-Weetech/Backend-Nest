@@ -15,7 +15,6 @@ import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
 import { ProductModule } from './product/product.module';
 import { WebsocketModule } from './websocket/websocket.module';
-import { Gateway } from './websocket/gateway.js';
 
 @Module({
   imports: [
@@ -30,7 +29,7 @@ import { Gateway } from './websocket/gateway.js';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule],
   controllers: [AppController],
   providers: [AppService],
 })
