@@ -1,10 +1,6 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
 
-export class ProductDTO {
-    @IsString()
-    @IsOptional()
-    id: string
-
+export class CreateProductDTO {
     @IsString()
     @IsNotEmpty()
     name: string

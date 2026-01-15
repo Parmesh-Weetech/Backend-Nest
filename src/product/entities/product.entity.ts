@@ -15,11 +15,11 @@ export class Product {
     @Column()
     image: string
 
-    @Column()
-    price: number
+    @Column("numeric", { precision: 10, scale: 2 })
+    price: number;
 
-    @Column()
-    rating: number
+    @Column("numeric", { precision: 2, scale: 1 })
+    rating: number;
 
     @Column("text", { array: true })
     mealType: [string]
