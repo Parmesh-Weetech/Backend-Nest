@@ -46,7 +46,7 @@ export class AuthController {
     @Public()
     @Post("/logout")
     @HttpCode(HttpStatus.OK)
-    async logout(@Headers('authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+    async logout(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const token = authorization?.split(' ')[1];
 
         if (!token) {

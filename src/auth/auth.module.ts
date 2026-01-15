@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
 import { Auth } from '../common/util/auth.js';
+import { WebsocketModule } from '../websocket/websocket.module.js';
 
 @Module({
   providers: [AuthService, Auth],
