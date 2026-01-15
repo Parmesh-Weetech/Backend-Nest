@@ -13,6 +13,7 @@ import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
+import { ProductModule } from './product/product.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { Gateway } from './websocket/gateway.js';
 

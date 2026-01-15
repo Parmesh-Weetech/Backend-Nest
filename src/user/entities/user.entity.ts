@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { Role } from "../../role/entities/role.entity.js";
 import { Organization } from "../../organization/entities/organization.entity.js";
 import { Refresh_token } from "./refresh_token.entity.js";
+import { Product } from "../../product/entities/product.entity.js";
 
 @Entity("user")
 export class User {
@@ -32,6 +33,9 @@ export class User {
 
     @OneToMany(() => Refresh_token, token => token.refresh_token)
     tokens: Refresh_token[]
+
+    @OneToMany(() => Product, product => product.user)
+    products: Product[];
 
     @Index(["email", "organizationId"], { unique: true })
 
