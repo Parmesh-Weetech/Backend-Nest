@@ -46,9 +46,9 @@ export class PermissionsGuard implements CanActivate {
             throw new ForbiddenException('User not found');
         }
 
-        const orgId = user.organization.id;
+        const orgId = user.data.organization.id;
 
-        for (const role of user.roles) {
+        for (const role of user.data.roles) {
             if (role.organization.id !== orgId) continue;
 
             for (const permission of role.permissions) {

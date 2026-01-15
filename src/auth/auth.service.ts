@@ -34,30 +34,30 @@ export class AuthService {
         if (!existingAdminRole) throw new NotFoundException("Admin role not found.");
 
         const copiedPermissions = await Promise.all(
-            existingAdminRole.permissions.map(permission =>
+            existingAdminRole.data.permissions.map(permission =>
                 this.permissionService.create({
                     key: permission.key,
                     label: permission.label,
                     description: permission.description,
                     entity: permission.entity,
                     action: permission.action
-                }, newOrganization.id)
+                }, newOrganization.data.id)
             )
         );
 
         const newRole = await this.roleService.create({
-            key: existingAdminRole.key,
-            label: existingAdminRole.label,
-            description: existingAdminRole.description,
+            key: existingAdminRole.data.key,
+            label: existingAdminRole.data.label,
+            description: existingAdminRole.data.description,
             permissionIds: copiedPermissions.map(p => p.id)
-        }, newOrganization.id);
+        }, newOrganization.data.id);
 
         const newUser = this.userRepository.create({
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
-            organization: newOrganization,
-            roles: [newRole]
+            organization: newOrganization.data,
+            roles: [newRole.data]
         });
 
         const user = await this.userRepository.save(newUser);
