@@ -1,156 +1,165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>1-to-1 Chat Test (Socket.IO)</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      padding-top: 40px;
-    }
-    .chat-box {
-      width: 420px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      padding: 16px;
-    }
-    h2 { text-align: center; margin-bottom: 10px; }
-    input, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 8px;
-    }
-    button {
-      cursor: pointer;
-      background: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 10px;
-      max-height: 260px;
-      overflow-y: auto;
-    }
-    li {
-      padding: 6px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      background: #e0e0e0;
-    }
-    .me { background: #c8e6c9; text-align: right; }
-  </style>
-</head>
-<body>
-<div class="chat-box">
-  <h2>1-to-1 Chat</h2>
+  <head>
+    <meta charset="UTF-8" />
+    <title>1-to-1 Chat Test (Socket.IO)</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial;
+        background: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        padding-top: 40px;
+      }
+      .chat-box {
+        width: 420px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        padding: 16px;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 8px;
+      }
+      button {
+        cursor: pointer;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+        max-height: 260px;
+        overflow-y: auto;
+      }
+      li {
+        padding: 6px;
+        margin-bottom: 4px;
+        border-radius: 4px;
+        background: #e0e0e0;
+      }
+      .me {
+        background: #c8e6c9;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-box">
+      <h2>1-to-1 Chat</h2>
 
-  <input id="otherUserId" placeholder="Other User ID">
-  <button onclick="joinConversation()">Join Conversation</button>
+      <input id="otherUserId" placeholder="Other User ID" />
+      <button onclick="joinConversation()">Join Conversation</button>
 
-  <hr>
+      <hr />
 
-  <input id="messageInput" placeholder="Type a message...">
-  <button onclick="sendMessage()">Send Message</button>
+      <input id="messageInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send Message</button>
 
-  <ul id="messages"></ul>
+      <ul id="messages"></ul>
 
-  <button onclick="getHistory()">Get Chat History</button>
-</div>
+      <button onclick="getHistory()">Get Chat History</button>
+    </div>
 
-<script>
-  // JWT token from login
-  const token = localStorage.getItem("token");
-  console.log(token)
+    <script>
+      // JWT token from login
+      const token = localStorage.getItem('token');
 
-  // Connect Socket.IO with JWT auth
-  const socket = io('http://localhost:3000', {
-    withCredentials: true,
-    auth: { token: token }
-  });
+      // Connect Socket.IO with JWT auth
+      window.socket = io('http://localhost:3000', {
+        transports: ['websocket'],
+        withCredentials: true,
+        auth: { token },
+      });
 
-  let conversationId = null;
-  let currentUserId = null;
-  let anotherUserId = null;
+      const socket = window.socket;
 
-  socket.on('connect', () => {
-    console.log('Connected:', socket.id);
-  });
+      let conversationId = null;
+      let currentUserId = null;
+      let anotherUserId = null;
 
-  socket.on('connect_error', (err) => {
-    console.error('Connection error:', err.message);
-  });
+      socket.on('connect', () => {
+        console.log('Connected:', socket.id);
+      });
 
-  // Join conversation
-  function joinConversation() {
-    anotherUserId = document.getElementById('otherUserId').value.trim();
-    if (!anotherUserId) return alert('Enter Other User ID');
+      socket.on('connect_error', (err) => {
+        console.error('Connection error:', err.message);
+      });
 
-    socket.emit('join_conversation', { anotherUserId });
-  }
+      // Join conversation
+      function joinConversation() {
+        anotherUserId = document.getElementById('otherUserId').value.trim();
+        if (!anotherUserId) return alert('Enter Other User ID');
 
-  socket.on('joined', (data) => {
-    console.log('Joined conversation:', data);
-    conversationId = data.conversationId;
-    currentUserId = data.userId;
-    anotherUserId = data.anotherUserId;
-    addMessage(`You joined the chat with ${anotherUserId}`, true);
-  });
+        socket.emit('join_conversation', { anotherUserId });
+      }
 
-  // Send message
-  function sendMessage() {
-    const text = document.getElementById('messageInput').value.trim();
-    if (!text) return;
-    if (!conversationId) return alert('Join a conversation first!');
+      socket.on('joined', (data) => {
+        console.log('Joined conversation:', data);
+        conversationId = data.conversationId;
+        currentUserId = data.userId;
+        anotherUserId = data.anotherUserId;
+        addMessage(`You joined the chat with ${anotherUserId}`, true);
+      });
 
-    socket.emit('send_message', {
-      conversationId,
-      receiverId: anotherUserId,
-      content: text,
-      type: 'text'
-    });
+      // Send message
+      function sendMessage() {
+        const text = document.getElementById('messageInput').value.trim();
+        if (!text) return;
+        if (!conversationId) return alert('Join a conversation first!');
 
-    addMessage(`Me: ${text}`, true);
-    document.getElementById('messageInput').value = '';
-  }
+        socket.emit('send_message', {
+          conversationId,
+          receiverId: anotherUserId,
+          content: text,
+          type: 'text',
+        });
 
-  // Receive message
-  socket.on('receive_message', (msg) => {
-    const isMe = msg.senderId === currentUserId;
-    const senderLabel = isMe ? 'Me' : `User ${msg.senderId}`;
-    addMessage(`${senderLabel}: ${msg.content}`, isMe);
-  });
+        addMessage(`Me: ${text}`, true);
+        document.getElementById('messageInput').value = '';
+      }
 
-  // Get chat history
-  function getHistory() {
-    if (!conversationId) return alert('Join a conversation first!');
-    socket.emit('get_history', { conversationId });
-  }
+      // Receive message
+      socket.on('receive_message', (msg) => {
+        const isMe = msg.senderId === currentUserId;
+        const senderLabel = isMe ? 'Me' : `User ${msg.senderId}`;
+        addMessage(`${senderLabel}: ${msg.content}`, isMe);
+      });
 
-  socket.on('history', (messages) => {
-    document.getElementById('messages').innerHTML = ''; // clear previous
-    messages.forEach(msg => {
-      const isMe = msg.senderId === currentUserId;
-      const senderLabel = isMe ? 'Me' : `User ${msg.senderId}`;
-      addMessage(`${senderLabel}: ${msg.content}`, isMe);
-    });
-  });
+      // Get chat history
+      function getHistory() {
+        if (!conversationId) return alert('Join a conversation first!');
+        socket.emit('get_history', { conversationId });
+      }
 
-  // Helper to add message to DOM
-  function addMessage(text, isMe) {
-    const li = document.createElement('li');
-    li.textContent = text;
-    if (isMe) li.classList.add('me');
-    document.getElementById('messages').appendChild(li);
-    li.scrollIntoView({ behavior: 'smooth' });
-  }
-</script>
-</body>
+      socket.on('history', (messages) => {
+        document.getElementById('messages').innerHTML = ''; // clear previous
+        messages.forEach((msg) => {
+          const isMe = msg.senderId === currentUserId;
+          const senderLabel = isMe ? 'Me' : `User ${msg.senderId}`;
+          addMessage(`${senderLabel}: ${msg.content}`, isMe);
+        });
+      });
+
+      // Helper to add message to DOM
+      function addMessage(text, isMe) {
+        const li = document.createElement('li');
+        li.textContent = text;
+        if (isMe) li.classList.add('me');
+        document.getElementById('messages').appendChild(li);
+        li.scrollIntoView({ behavior: 'smooth' });
+      }
+    </script>
+  </body>
 </html>

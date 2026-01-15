@@ -9,7 +9,7 @@ import { AuthModule } from '../auth/auth.module.js';
 
 @Module({
   controllers: [WebsocketController],
-  providers: [WebsocketService, Gateway],
+  providers: [WebsocketService],
   imports: [TypeOrmModule.forFeature([Conversation, Message]), AuthModule],
   exports: [WebsocketService]
 })

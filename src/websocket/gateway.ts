@@ -1,30 +1,55 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketServer, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketServer, MessageBody, ConnectedSocket, WsException } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
-import { Injectable, Res, UseGuards } from '@nestjs/common';
-import type { Response } from 'express';
-import { WsAuthGuard } from './guards/websocket.guard';
+import { Injectable, Res } from '@nestjs/common';
+import { Auth } from '../common/util/auth';
 
 @Injectable()
-@UseGuards(WsAuthGuard)
 @WebSocketGateway({
+  transports: ['websocket'],
   cors: {
-    origin: ['*', 'http://127.0.0.1:5500'],
+    origin: ['*'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
   }
 })
+
 export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
 
   constructor(
-    private readonly webSocketService: WebsocketService
+    private readonly webSocketService: WebsocketService,
+    private readonly auth: Auth
   ) { }
 
   @WebSocketServer() server: Server;
 
-  handleConnection(client: Socket, ...args: any[]) {
-    console.log(`Client connected: ${client.id}`);
+  async handleConnection(client: Socket, ...args: any[]) {
+    try {
+
+      const authorization = client.handshake.auth?.token;
+
+      if (!authorization) {
+        throw new WsException('Missing token');
+      }
+
+      const [type, token] = authorization.split(' ');
+      if (type !== 'Bearer' || !token) {
+        throw new WsException('Invalid token');
+      }
+
+      const isValid = this.auth.verify(token)
+
+      if(!isValid) throw new WsException("Token is expired!");
+
+      const decoded = await this.auth.decode(token);
+      client.data.userId = decoded.sub;
+
+      console.log(`Client connected: ${client.id}`);
+    } catch (err) {
+      console.log('Unauthorized socket connection');
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -38,14 +63,14 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   @SubscribeMessage('join_conversation')
   async handleJoinConversation(
     @MessageBody() data: { anotherUserId: string },
-    @ConnectedSocket() client: Socket,
-    @Res({ passthrough: true }) res: Response
+    @ConnectedSocket() client: Socket
   ) {
     const userId = client.data.userId;
     
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     
     client.join(conversation.id);
+
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
     
     client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id });
@@ -54,8 +79,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   @SubscribeMessage("send_message")
   async handleMessage(
     @MessageBody() data: SendMessageDto,
-    @ConnectedSocket() client: Socket,
-    @Res({ passthrough: true }) res: Response
+    @ConnectedSocket() client: Socket
   ) {
     const userId = client.data.userId;
 
