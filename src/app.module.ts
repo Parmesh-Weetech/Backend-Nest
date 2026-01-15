@@ -13,6 +13,7 @@ import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { HCaptchaModule } from './h-captcha/h-captcha.module';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, ProductModule],
   controllers: [AppController],
   providers: [AppService],
 })
