@@ -14,6 +14,8 @@ import { RequestTimeMiddleware } from './common/middlewares/requestTime.middlewa
 import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
 import { ProductModule } from './product/product.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { Gateway } from './websocket/gateway.js';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { ProductModule } from './product/product.module';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, ProductModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule],
   controllers: [AppController],
   providers: [AppService],
 })
