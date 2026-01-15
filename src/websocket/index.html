@@ -132,8 +132,8 @@
 
       // Receive message
       socket.on('receive_message', (msg) => {
-        const isMe = msg.senderId === currentUserId;
-        const senderLabel = isMe ? 'Me' : `User ${msg.senderId}`;
+        const isMe = msg.sender.id === currentUserId;
+        const senderLabel = isMe ? 'Me' : `${msg.sender.name}`;
         addMessage(`${senderLabel}: ${msg.content}`, isMe);
       });
 
@@ -147,7 +147,7 @@
         document.getElementById('messages').innerHTML = ''; // clear previous
         messages.forEach((msg) => {
           const isMe = msg.sender.id === currentUserId;
-          const senderLabel = isMe ? 'Me' : `User ${msg.sender.id}`;
+          const senderLabel = isMe ? 'Me' : `${msg.sender.name}`;
           addMessage(`${senderLabel}: ${msg.content}`, isMe);
         });
       });
