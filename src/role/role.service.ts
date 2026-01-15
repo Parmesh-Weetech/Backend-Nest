@@ -7,6 +7,7 @@ import { UpdateRoleDTO } from './dtos/update-role.dto.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
 import { RoleCreationFailedError, RoleDeletionFailedError, RoleUpdationFailedError } from './errors/errors.js';
+import { Response } from '../common/response/response.dto.js';
 
 @Injectable()
 export class RoleService {
@@ -18,31 +19,57 @@ export class RoleService {
         private readonly permissionService: PermissionService
     ) { }
 
-    async findAll(): Promise<Role[]> {
+    async findAll(): Promise<Response> {
         const roles = await this.roleRepository.find({ relations: ['permissions'] });
 
-        if (!roles) throw new NotFoundException("Roles not found.");
+        if (!roles) return {
+            success: false,
+            expired: false,
+            message: "Roles not found.",
+            data: null,
+            statusCode: 404
+        }
 
-        return roles;
+        return {
+            success: true,
+            expired: false,
+            message: "Roles fetched successfully.",
+            data: roles,
+            statusCode: 200
+        };
     }
 
-    async findOne(id: string): Promise<Role> {
+    async findOne(id: string): Promise<Response> {
         const role = await this.roleRepository.findOne({ where: { id }, relations: ['organization', 'permissions'] });
 
-        if (!role) throw new NotFoundException("Role not found.")
+        if (!role) return {
+            success: false,
+            message: "Role not found.",
+            expired: false,
+            data: null,
+            statusCode: 404
+        }
 
-        return role;
+        return {
+            success: true,
+            message: "Role found successfully",
+            expired: false,
+            data: role,
+            statusCode: 200
+        };
     }
 
-    async create(dto: CreateRoleDTO, orgId: string): Promise<Role> {
+    async create(dto: CreateRoleDTO, orgId: string): Promise<Response> {
         const organization = await this.organizationService.findOne(orgId);
+
+        if(!organization.success) return organization;
 
         const requestedPermissions = await Promise.all(
             dto.permissionIds.map(id => this.permissionService.findOne(id))
         );
 
         const requestedSignature = requestedPermissions
-            .map(p => `${p.entity}:${p.action}`)
+            .map(p => `${p.data.entity}:${p.data.action}`)
             .sort()
             .join('|');
 
@@ -61,7 +88,7 @@ export class RoleService {
                 .join('|');
 
             if (existingSignature === requestedSignature) {
-                throw new ConflictException(
+                throw new Error(
                     `Role "${dto.key}" with same effective permissions already exists.`
                 );
             }
@@ -72,18 +99,36 @@ export class RoleService {
                 key: dto.key,
                 label: dto.label,
                 description: dto.description,
-                organization,
-                permissions: requestedPermissions
+                organization: organization.data,
+                permissions: requestedPermissions.map(p => p.data)
             });
 
-            return await this.roleRepository.save(role);
+            const savedRole = await this.roleRepository.save(role);
+
+            return {
+                statusCode: 201,
+                success: true,
+                data: savedRole,
+                expired: false,
+                message: "Role created successfully."
+            }
         } catch (error) {
-            throw new RoleCreationFailedError();
+            return {
+                success: false,
+                message: error.message,
+                expired: false,
+                data: null,
+                statusCode: 500
+            }
         }
     }
 
-    async update(dto: UpdateRoleDTO): Promise<Role> {
-        const role = await this.findOne(dto.id);
+    async update(dto: UpdateRoleDTO): Promise<Response> {
+        const roleResponse = await this.findOne(dto.id);
+
+        if (!roleResponse.success) return roleResponse;
+
+        const role = roleResponse.data;
 
         if (dto.key) role.key = dto.key;
         if (dto.label) role.label = dto.label;
@@ -94,7 +139,7 @@ export class RoleService {
                 dto.permissionIds.map(permissionId => this.permissionService.findOne(permissionId))
             );
 
-            role.permissions = existingPermissions;
+            role.permissions = existingPermissions.map(p => p.data);
         }
 
         if (dto.organizationIds && dto.organizationIds.length > 0) {
@@ -102,34 +147,85 @@ export class RoleService {
                 dto.organizationIds.map(orgId => this.organizationService.findOne(orgId))
             );
 
-            existingOrganization.map(org => {
-                role.organization = org;
-            });
+            if (existingOrganization.length > 0) {
+                role.organization = existingOrganization[0].data;
+            }
         }
 
         try {
+            const updatedRole = await this.roleRepository.save(role);
 
-            return this.roleRepository.save(role);
+            return {
+                statusCode: 200,
+                success: true,
+                data: updatedRole,
+                expired: false,
+                message: "Role updated successfully."
+            };
         } catch (error) {
-            throw new RoleUpdationFailedError();
+            return {
+                success: false,
+                message: error.message,
+                expired: false,
+                data: null,
+                statusCode: 500
+            };
         }
     }
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string): Promise<Response> {
         const role = await this.findOne(id);
 
+        if(!role.success) return role;
+
         try {
-            await this.roleRepository.softDelete(id);
+            const deletedRows = await this.roleRepository.softDelete(id);
+
+            if((deletedRows.affected === null || deletedRows.affected === undefined) && deletedRows.affected === 0) {
+                return {
+                    success: false,
+                    statusCode: 400,
+                    data: null,
+                    expired: false,
+                    message: "Role not deleted."
+                }
+            }
+
+            return {
+                success: true,
+                data: deletedRows.raw,
+                expired: false,
+                message: "Role deleted successfully.",
+                statusCode: 200
+            }
         } catch (error) {
-            throw new RoleDeletionFailedError();
+            return {
+                success: false,
+                statusCode: 500,
+                data: null,
+                expired: false,
+                message: error.message
+            }
         }
     }
 
-    async findRoleByOrganization(key: string): Promise<Role> {
+    async findRoleByOrganization(key: string): Promise<Response> {
         const role = await this.roleRepository.findOne({ where: { key: key, organization: IsNull() }, relations: ['permissions'] });
 
-        if (!role) throw new NotFoundException("Role not found.");
+        if (!role) return {
+            success: false,
+            message: "Role not found.",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
 
-        return role;
+        return {
+            success: true,
+            message: "Role fetched successfully.",
+            data: role,
+            expired: false,
+            statusCode: 200
+        };
     }
 }
