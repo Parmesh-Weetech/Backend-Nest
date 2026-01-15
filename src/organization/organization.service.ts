@@ -1,15 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateOrganizationDto } from './dto/create-organization.dto.js';
 import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity.js';
 import { Repository } from 'typeorm';
 import { Response } from '../common/response/response.dto.js';
+import { Auth } from '../common/util/auth.js';
+import { UserService } from '../user/user.service.js';
 
 @Injectable()
 export class OrganizationService {
-  constructor(@InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>) { }
-  async findAll(): Promise<Response> {
+  constructor(
+    @InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>,
+    private readonly auth: Auth,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService
+  ) { }
+  async findAll(authorization: string): Promise<Response> {
+    const [type, token] = authorization?.split(' ') ?? [];
+    const access_token = type === 'Bearer' ? token : undefined;
+
+    if (!access_token) return {
+      success: false,
+      message: "Token is required",
+      data: null,
+      expired: false,
+      statusCode: 401,
+    }
+
+    const isValid = await this.auth.verify(access_token);
+
+    if (!isValid) return {
+      success: false,
+      message: "Token expired!",
+      data: null,
+      expired: true,
+      statusCode: 400
+    }
+
+    const decodedPayload = await this.auth.decode(access_token);
+
+    const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+    if (!isUserExists) return {
+      success: false,
+      message: "User not found!",
+      data: null,
+      expired: false,
+      statusCode: 404
+    }
+
     const organizations = await this.organizationRepository.find();
 
     if (!organizations) return {

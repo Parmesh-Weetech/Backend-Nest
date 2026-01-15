@@ -10,7 +10,7 @@ import { OrganizationModule } from '../organization/organization.module.js';
 
 @Module({
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, forwardRef(() => PermissionModule), OrganizationModule],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, forwardRef(() => PermissionModule), forwardRef(() => OrganizationModule)],
   controllers: [UserController],
   exports: [UserService]
 })

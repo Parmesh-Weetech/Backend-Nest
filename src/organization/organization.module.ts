@@ -4,13 +4,13 @@ import { OrganizationController } from './organization.controller.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity.js';
 import { PermissionModule } from '../permission/permission.module.js';
-import { Auth } from '../common/util/auth.js';
 import { AuthModule } from '../auth/auth.module.js';
+import { UserModule } from '../user/user.module.js';
 
 @Module({
   controllers: [OrganizationController],
   providers: [OrganizationService],
-  imports: [TypeOrmModule.forFeature([Organization]), forwardRef(() => PermissionModule),forwardRef(() => AuthModule)],
+  imports: [TypeOrmModule.forFeature([Organization]), forwardRef(() => PermissionModule), forwardRef(() => AuthModule), forwardRef(() => UserModule)],
   exports: [OrganizationService]
 })
 export class OrganizationModule {}

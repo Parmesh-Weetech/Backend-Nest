@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity.js';
 import { Repository } from 'typeorm';
@@ -6,8 +6,6 @@ import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
-import { UserCreationFailedError, UserDeletionFailedError } from './errors/errors.js';
-import { UserUpdationFailedError } from './errors/errors.js';
 import { Response } from '../common/response/response.dto.js';
 
 @Injectable()

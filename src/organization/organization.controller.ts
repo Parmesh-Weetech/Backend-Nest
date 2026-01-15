@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Res, Headers } from '@nestjs/common';
 import { OrganizationService } from './organization.service.js';
 import { CreateOrganizationDto } from './dto/create-organization.dto.js';
 import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
@@ -11,14 +11,14 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) { }
 
   @Get()
-  async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
-    const response = await this.organizationService.findAll();
+  async findAll(@Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+    const response = await this.organizationService.findAll(authorization);
 
     res.status(response.statusCode).send(response);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+  async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
     const response = await this.organizationService.findOne(id);
 
     res.status(response.statusCode).send(response);
