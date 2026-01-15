@@ -66,6 +66,9 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     @ConnectedSocket() client: Socket
   ) {
     const userId = client.data.userId;
+
+    console.log(userId);
+    console.log(data.anotherUserId);
     
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     

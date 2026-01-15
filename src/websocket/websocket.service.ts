@@ -39,6 +39,7 @@ export class WebsocketService {
         const messages = await this.messageRepository.find({
             where: { conversation: { id: conversationId } },
             order: { createdAt: 'ASC' },
+            relations: ['sender', 'conversation']
         });
 
         return messages;
