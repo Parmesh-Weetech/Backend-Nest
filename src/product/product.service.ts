@@ -50,7 +50,7 @@ export class ProductService {
             statusCode: 404
         }
 
-        const products = await this.productRepository.findBy({ user: { id: isUserExists.id } });
+        const products = await this.productRepository.findBy({ user: { id: isUserExists.data.id } });
 
         if (products.length === 0) return {
             success: false,
@@ -158,7 +158,7 @@ export class ProductService {
 
         const newProduct = this.productRepository.create({
             name: product.name,
-            user: isUserExists,
+            user: isUserExists.data,
             image: product.image,
             price: product.price,
             rating: product.rating,
@@ -223,7 +223,7 @@ export class ProductService {
 
         const data = products.map((product) => ({
             ...product,
-            user: isUserExists
+            user: isUserExists.data
         }))
 
         const bulkProduct = await this.productRepository
@@ -349,7 +349,7 @@ export class ProductService {
             statusCode: 404
         }
 
-        const existingProduct = await this.productRepository.find({ where: { user: { id: isUserExists.id } } });
+        const existingProduct = await this.productRepository.find({ where: { user: { id: isUserExists.data.id } } });
 
         if (existingProduct.length === 0) return {
             success: false,
@@ -359,7 +359,7 @@ export class ProductService {
             statusCode: 404
         }
 
-        const deleteProduct = await this.productRepository.softDelete({ user: isUserExists });
+        const deleteProduct = await this.productRepository.softDelete({ user: isUserExists.data });
 
         if (deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) return {
             success: true,
