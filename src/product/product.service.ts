@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Auth } from '../common/util/auth';
-import { ProductResponse } from './dtos/product-response.dto';
 import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
+import { Response } from '../common/response/response.dto';
 
 @Injectable()
 export class ProductService {
@@ -16,7 +16,7 @@ export class ProductService {
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    async getAll(authorization: string): Promise<ProductResponse> {
+    async getAll(authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -24,7 +24,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401
         }
 
@@ -46,7 +46,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
@@ -55,7 +55,7 @@ export class ProductService {
         if (products.length === 0) return {
             success: false,
             message: "No Products found.",
-            data: [],
+            data: null,
             expired: false,
             statusCode: 404
         }
@@ -69,7 +69,7 @@ export class ProductService {
         }
     }
 
-    async getById(id: string, authorization: string): Promise<ProductResponse> {
+    async getById(id: string, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -77,7 +77,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401,
         }
 
@@ -99,7 +99,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
@@ -122,7 +122,7 @@ export class ProductService {
         }
     }
 
-    async create(product: CreateProductDTO, authorization: string): Promise<ProductResponse> {
+    async create(product: CreateProductDTO, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -130,7 +130,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401,
         }
 
@@ -152,7 +152,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
@@ -187,7 +187,7 @@ export class ProductService {
         }
     }
 
-    async insertBulk(products: CreateProductDTO[], authorization: string): Promise<ProductResponse> {
+    async insertBulk(products: CreateProductDTO[], authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -195,7 +195,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401,
         }
 
@@ -217,7 +217,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
@@ -251,7 +251,7 @@ export class ProductService {
         }
     }
 
-    async update(product: UpdateProductDTO, authorization: string): Promise<ProductResponse> {
+    async update(product: UpdateProductDTO, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -259,7 +259,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401,
         }
 
@@ -281,7 +281,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
@@ -315,7 +315,7 @@ export class ProductService {
         }
     }
 
-    async deleteAll(authorization: string): Promise<ProductResponse> {
+    async deleteAll(authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -323,7 +323,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401,
         }
 
@@ -345,7 +345,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
@@ -378,7 +378,7 @@ export class ProductService {
         }
     }
 
-    async deleteById(id: string, authorization: string): Promise<ProductResponse> {
+    async deleteById(id: string, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -386,7 +386,7 @@ export class ProductService {
             success: false,
             message: "Token is required",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 401,
         }
 
@@ -408,7 +408,7 @@ export class ProductService {
             success: false,
             message: "User not found!",
             data: null,
-            expired: null,
+            expired: false,
             statusCode: 404
         }
 
