@@ -1,37 +1,47 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Res } from '@nestjs/common';
 import { OrganizationService } from './organization.service.js';
 import { CreateOrganizationDto } from './dto/create-organization.dto.js';
 import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
-import { Organization } from './entities/organization.entity.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
+import type { Response } from 'express';
 
 @Controller('organization')
 @UseGuards(AuthGuard)
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) {}
+  constructor(private readonly organizationService: OrganizationService) { }
 
   @Get()
-  async findAll(): Promise<Organization[]> {
-    return await this.organizationService.findAll();
+  async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
+    const response = await this.organizationService.findAll();
+
+    res.status(response.statusCode).send(response);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.organizationService.findOne(id);
+  async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+    const response = await this.organizationService.findOne(id);
+
+    res.status(response.statusCode).send(response);
   }
 
   @Post()
-  create(@Body() createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
-    return this.organizationService.create(createOrganizationDto);
+  async create(@Body() createOrganizationDto: CreateOrganizationDto, @Res({ passthrough: true }) res: Response): Promise<void> {
+    const response = await this.organizationService.create(createOrganizationDto);
+
+    res.status(response.statusCode).send(response);
   }
 
   @Put()
-  update(@Body() updateOrganizationDto: UpdateOrganizationDto): Promise<Organization> {
-    return this.organizationService.update(updateOrganizationDto);
+  async update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Res({ passthrough: true }) res: Response): Promise<void> {
+    const response = await this.organizationService.update(updateOrganizationDto);
+
+    res.status(response.statusCode).send(response);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<string> {
-    return this.organizationService.remove(id);
+  async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+    const response = await this.organizationService.remove(id);
+
+    res.status(response.statusCode).send(response);
   }
 }
