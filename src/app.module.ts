@@ -31,7 +31,7 @@ import { Gateway } from './websocket/gateway.js';
       inject: [ConfigService],
     }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule],
   controllers: [AppController],
-  providers: [AppService, Gateway],
+  providers: [AppService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
