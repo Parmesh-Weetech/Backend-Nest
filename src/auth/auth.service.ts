@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import bcrypt from "bcryptjs";
@@ -10,8 +10,8 @@ import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
 import { Refresh_token } from '../user/entities/refresh_token.entity.js';
 import { TokenResponse } from './dtos/token-response.dto.js';
-import { signupResponse } from './dtos/signup-response.dto.js';
 import { Auth } from '../common/util/auth.js';
+import { Response } from '../common/response/response.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -26,12 +26,24 @@ export class AuthService {
         private readonly auth: Auth
     ) { }
 
-    async signup(signupDTO: SignupDTO): Promise<signupResponse> {
+    async signup(signupDTO: SignupDTO): Promise<Response> {
         const newOrganization = await this.organizationService.create({ name: "Default" });
-        if (!newOrganization) throw new InternalServerErrorException("Failed to create organization");
+        if (!newOrganization) return {
+            success: false,
+            data: null,
+            expired: false,
+            message: "Failed to create new organization.",
+            statusCode: 400
+        }
 
         const existingAdminRole = await this.roleService.findRoleByOrganization('admin');
-        if (!existingAdminRole) throw new NotFoundException("Admin role not found.");
+        if (!existingAdminRole) return {
+            success: false,
+            data: null,
+            expired: false,
+            message: "Admin role not found.",
+            statusCode: 404
+        }
 
         const copiedPermissions = await Promise.all(
             existingAdminRole.data.permissions.map(permission =>
@@ -65,13 +77,19 @@ export class AuthService {
         if (!user) {
             return {
                 success: false,
-                message: "Registration Unsuccessful."
+                message: "Registration Unsuccessful.",
+                data: null,
+                expired: false,
+                statusCode: 400
             }
         }
 
         return {
             success: true,
-            message: "Registration Successful."
+            message: "Registration Successful.",
+            data: user,
+            expired: false,
+            statusCode: 201
         }
     }
     async login(loginDTO: LoginDTO): Promise<TokenResponse> {
@@ -93,6 +111,7 @@ export class AuthService {
         if (!checkPassword) {
             return {
                 success: false,
+                statusCode: 401,
                 message: "Invalid Credentials"
             }
         }
@@ -110,6 +129,7 @@ export class AuthService {
         if (!savedRefreshToken) {
             return {
                 success: false,
+                statusCode: 401,
                 message: "Invalid Credentials"
             }
         }
@@ -117,6 +137,7 @@ export class AuthService {
         return {
             success: true,
             message: "Login Successful.",
+            statusCode: 200,
             access_token: access_token,
             refresh_token: refresh_token
         }
@@ -130,12 +151,14 @@ export class AuthService {
         if (deleteRefreshToken.affected !== null && deleteRefreshToken.affected !== undefined && deleteRefreshToken.affected > 0) {
             return {
                 success: true,
+                statusCode: 200,
                 message: "Logout Successfully."
             }
         }
 
         return {
             success: false,
+            statusCode: 400,
             message: "Error while logging out! try again."
         }
     }
@@ -158,6 +181,7 @@ export class AuthService {
             await this.logout(refreshToken)
             return {
                 success: false,
+                statusCode: 400,
                 message: "Error while refreshing the access token! Please login again."
             }
         }
@@ -165,6 +189,7 @@ export class AuthService {
         return {
             success: true,
             message: "Refresh the access token successfully.",
+            statusCode: 200,
             access_token: newAccessToken,
             refresh_token: newRefreshToken
         }

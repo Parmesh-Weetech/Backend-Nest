@@ -18,14 +18,9 @@ export class AuthController {
     @Serialize(User)
     @Post("/signup")
     async signup(@Body() signupDTO: SignupDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const signup = await this.authService.signup(signupDTO);
+        const response = await this.authService.signup(signupDTO);
 
-        if (!signup.success) {
-            res.status(400).json({ success: signup.success, message: signup.message });
-            return;
-        }
-
-        res.status(201).json({ success: signup.success, message: signup.message });
+        res.status(response.statusCode).send(response);
     }
 
     @Public()
@@ -35,12 +30,7 @@ export class AuthController {
     async login(@Body() loginDTO: LoginDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.login(loginDTO);
 
-        if (!response.success) {
-            res.status(401).json({ success: response.success, message: response.message });
-            return;
-        }
-
-        res.status(200).send(response);
+        res.status(response.statusCode).send(response);
     }
 
     @Public()
@@ -56,12 +46,7 @@ export class AuthController {
 
         const response = await this.authService.logout(token)
 
-        if (!response.success) {
-            res.status(400).send(response);
-            return;
-        }
-
-        res.status(200).send(response);
+        res.status(response.statusCode).send(response);
     }
 
     @Public()
@@ -69,11 +54,6 @@ export class AuthController {
     async refreshAccessToken(@Body('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.authService.refreshAccessToken(refreshToken);
 
-        if (!response.success) {
-            res.status(403).send(response);
-            return;
-        }
-
-        res.status(200).send(response);
+        res.status(response.statusCode).send(response);
     }
 }
