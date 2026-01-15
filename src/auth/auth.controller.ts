@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Session, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 import { Serialize } from './interceptors/serialize.interceptor.js';
 import { AuthService } from './auth.service.js';
 import { LoginDTO } from './dtos/login.dto.js';
@@ -6,6 +6,7 @@ import { SignupDTO } from './dtos/signup.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { Public } from '../common/decorators/public.decorator.js';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -13,35 +14,66 @@ export class AuthController {
         private readonly authService: AuthService
     ) { }
 
-    @Serialize(User)
     @Public()
+    @Serialize(User)
     @Post("/signup")
-    signup(@Body() signupDTO: SignupDTO): Promise<User> {
-        return this.authService.signup(signupDTO);
+    async signup(@Body() signupDTO: SignupDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const signup = await this.authService.signup(signupDTO);
+
+        if (!signup.success) {
+            res.status(400).json({ success: signup.success, message: signup.message });
+            return;
+        }
+
+        res.status(201).json({ success: signup.success, message: signup.message });
     }
 
+    @Public()
     @Post('/login')
     @HttpCode(HttpStatus.OK)
     @UseGuards(HcaptchaGuard)
-    @Public()
-    async login(@Body() loginDTO: LoginDTO, @Session() session: any): Promise<string> {
-        const id = await this.authService.login(loginDTO);
+    async login(@Body() loginDTO: LoginDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.authService.login(loginDTO);
 
-        session.userId = id;
-        session.orgId = loginDTO.organizationId;
-
-        return "Login Successful."
-    }
-
-    @Post("/logout")
-    @HttpCode(HttpStatus.OK)
-    @Public()
-    async logout(@Session() session: any): Promise<string> {
-        if (session.userId) {
-            session.userId = null;
-            return "Logout Successful."
+        if (!response.success) {
+            res.status(401).json({ success: response.success, message: response.message });
+            return;
         }
 
-        throw new ForbiddenException("You must be loggedin to perform this action!")
+        res.status(200).send(response);
+    }
+
+    @Public()
+    @Post("/logout")
+    @HttpCode(HttpStatus.OK)
+    async logout(@Headers('authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const token = authorization?.split(' ')[1];
+
+        if (!token) {
+            res.status(400).json({ success: false, message: "You must be logged in!" });
+            return;
+        }
+
+        const response = await this.authService.logout(token)
+
+        if (!response.success) {
+            res.status(400).send(response);
+            return;
+        }
+
+        res.status(200).send(response);
+    }
+
+    @Public()
+    @Post("/refresh-token")
+    async refreshAccessToken(@Body('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.authService.refreshAccessToken(refreshToken);
+
+        if (!response.success) {
+            res.status(403).send(response);
+            return;
+        }
+
+        res.status(200).send(response);
     }
 }

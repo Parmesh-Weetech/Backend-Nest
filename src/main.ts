@@ -1,7 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
-import session from 'express-session';
 import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
 import { UserService } from './user/user.service.js';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +8,9 @@ import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js'
 import { HttpErrorFilter } from './common/exceptions/global.exception.js';
 import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { JwtService } from '@nestjs/jwt';
+import { Auth } from './common/util/auth.js';
 
 async function bootstrap() {
   try {
@@ -32,32 +34,38 @@ async function bootstrap() {
       console.log('✅ Database seeding completed');
     }
 
-    app.use(session({
-      name: "sid",
-      secret: configService.get("SESSION_SECRET")!,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        maxAge: 3600000,
-        secure: false,
-        sameSite: "lax"
-      }
-    }))
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
       })
-    )
+    );
+
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
-      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService)),
+      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService), app.get(JwtService), app.get(Auth)),
       new LoggingInterceptor(),
     );
+
     app.useGlobalFilters(new HttpErrorFilter());
-    await app.listen(configService.get("PORT") ?? 3000);
+
+    app.enableCors({
+      origin: "*",
+      credentials: true
+    })
+
+    const config = new DocumentBuilder()
+      .setTitle('H-catpcha example')
+      .setDescription('H-captcha API description')
+      .setVersion('1.0')
+      .addTag('H-captcha')
+      .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, documentFactory);
+
+    await app.listen(configService.get("PORT") ?? 3000, '0.0.0.0');
+
   } catch (error: any) {
     console.error('Error starting server:', error);
     throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error });

@@ -8,11 +8,30 @@ import { UserModule } from '../user/user.module.js';
 import { OrganizationModule } from '../organization/organization.module.js';
 import { PermissionModule } from '../permission/permission.module.js';
 import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Refresh_token } from '../user/entities/refresh_token.entity.js';
+import { Auth } from '../common/util/auth.js';
 
 @Module({
-  providers: [AuthService],
-  imports: [TypeOrmModule.forFeature([User]), RoleModule, forwardRef(() => UserModule), OrganizationModule, PermissionModule, HCaptchaModule],
+  providers: [AuthService, Auth],
+  imports: [
+    TypeOrmModule.forFeature([User, Refresh_token]),
+    RoleModule,
+    forwardRef(() => UserModule),
+    OrganizationModule,
+    PermissionModule,
+    HCaptchaModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1h' },
+      }),
+    }),
+  ],
   controllers: [AuthController],
-  exports: [AuthService]
+  exports: [AuthService, JwtModule, Auth]
 })
 export class AuthModule { }

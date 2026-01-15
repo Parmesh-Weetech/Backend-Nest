@@ -12,8 +12,8 @@ export class HCaptchaService {
             throw new UnauthorizedException('hCaptcha token missing');
         }
 
-        const res = await firstValueFrom(
-            this.httpService.post(
+        const res = await firstValueFrom<{ data: { success: boolean } }>(
+            this.httpService.post<{ success: boolean }>(
                 this.configureService.get<string>('HCAPTCHA_VERIFY_URL')!,
                 {
                     secret: this.configureService.get<string>('HCAPTCHA_SECRET_KEY'),

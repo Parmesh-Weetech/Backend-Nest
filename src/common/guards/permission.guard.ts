@@ -1,12 +1,16 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserService } from "../../user/user.service.js";
+import { JwtService } from "@nestjs/jwt";
+import { Auth } from "../util/auth.js";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly userService: UserService,
+        private readonly jwtService: JwtService,
+        private readonly auth: Auth
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,8 +27,19 @@ export class PermissionsGuard implements CanActivate {
 
         const { entity, action } = requiredPermission;
 
+        const authorization = request.headers.authorization;
+        const token = authorization.split(' ')[1];
+
+        const isValid = await this.auth.verify(token);
+
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid token');
+        }
+
+        const decodedPayload = await this.auth.decode(token)
+
         const user = await this.userService.findOneWithRolesAndPermissions(
-            request.session.userId,
+            decodedPayload.sub,
         );
 
         if (!user) {
@@ -34,14 +49,11 @@ export class PermissionsGuard implements CanActivate {
         const orgId = user.organization.id;
 
         for (const role of user.roles) {
-            // role must belong to same org
             if (role.organization.id !== orgId) continue;
 
             for (const permission of role.permissions) {
-                // permission must belong to same org
                 if (permission.organization.id !== orgId) continue;
 
-                // exact match
                 if (
                     permission.entity === entity &&
                     permission.action === action
@@ -49,7 +61,6 @@ export class PermissionsGuard implements CanActivate {
                     return true;
                 }
 
-                // admin wildcard
                 if (
                     role.key === 'admin' &&
                     permission.entity === entity &&

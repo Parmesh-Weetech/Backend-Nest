@@ -1,8 +1,9 @@
 import { Exclude, Expose } from "class-transformer";
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import bcrypt from "bcryptjs";
 import { Role } from "../../role/entities/role.entity.js";
 import { Organization } from "../../organization/entities/organization.entity.js";
+import { Refresh_token } from "./refresh_token.entity.js";
 
 @Entity("user")
 export class User {
@@ -28,6 +29,9 @@ export class User {
 
     @ManyToMany(() => Role, role => role.users)
     roles: Role[];
+
+    @OneToMany(() => Refresh_token, token => token.refresh_token)
+    tokens: Refresh_token[]
 
     @Index(["email", "organizationId"], { unique: true })
 
