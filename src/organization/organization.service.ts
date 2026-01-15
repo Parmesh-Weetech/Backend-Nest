@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity.js';
 import { Repository } from 'typeorm';
 import { OrganizationCreationFailedError, OrganizationDeletionFailedError, OrganizationUpdationFailedError } from './errors/error.js';
-import { Response } from '../common/response/auth-response.dto.js';
+import { Response } from '../common/response/response.dto.js';
 
 @Injectable()
 export class OrganizationService {
@@ -104,12 +104,12 @@ export class OrganizationService {
     try {
       const organization = await this.findOne(id);
 
-      if(!organization.success) return organization;
+      if (!organization.success) return organization;
 
       const res = await this.organizationRepository.softDelete(id);
 
-      if(res.affected === null && res.affected === undefined && res.affected === 0) {
-        throw new Error("Error while removing organization.")  
+      if (res.affected === null && res.affected === undefined && res.affected === 0) {
+        throw new Error("Error while removing organization.")
       }
 
       return {

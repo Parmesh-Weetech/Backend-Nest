@@ -7,7 +7,7 @@ import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionCreationFailedError, PermissionDeletionFailedError, PermissionUpdationFailedError } from './errors/errors.js';
-import { Response } from '../common/response/auth-response.dto.js';
+import { Response } from '../common/response/response.dto.js';
 
 @Injectable()
 export class PermissionService {
@@ -139,12 +139,12 @@ export class PermissionService {
     async delete(id: string): Promise<Response> {
         const perm = await this.findOne(id);
 
-        if(!perm.data) return perm;
+        if (!perm.data) return perm;
 
         try {
             const response = await this.permissionRepository.softDelete(id);
 
-            if(response.affected === undefined && response.affected === null && response.affected === 0) {
+            if (response.affected === undefined && response.affected === null && response.affected === 0) {
                 throw new Error("Error while deleting permission.")
             }
 
@@ -173,7 +173,7 @@ export class PermissionService {
             .where('role.id = :roleId', { roleId })
             .getMany();
 
-        if(permissions.length > 0) {
+        if (permissions.length > 0) {
             return {
                 success: true,
                 message: "Permission fetched successfully",
