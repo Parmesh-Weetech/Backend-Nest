@@ -5,6 +5,8 @@ import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
+import { ProductDTO } from './dtos/product.dto';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class ProductService {
@@ -13,12 +15,12 @@ export class ProductService {
         private readonly userService: UserService,
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
-    ) {}
+    ) { }
     async getAll(authorization: string): Promise<ProductResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
-        if(!access_token) return {
+        if (!access_token) return {
             success: false,
             message: "Token is required",
             data: null,
@@ -28,7 +30,7 @@ export class ProductService {
 
         const isValid = await this.auth.verify(access_token);
 
-        if(!isValid) return {
+        if (!isValid) return {
             success: false,
             message: "Token expired!",
             data: null,
@@ -40,7 +42,7 @@ export class ProductService {
 
         const isUserExists = await this.userService.findOne(decodedPayload.sub);
 
-        if(!isUserExists) return {
+        if (!isUserExists) return {
             success: false,
             message: "User not found!",
             data: null,
@@ -48,9 +50,9 @@ export class ProductService {
             statusCode: 404
         }
 
-        const products = await this.productRepository.findBy({ user: { id: isUserExists.id }});
+        const products = await this.productRepository.findBy({ user: { id: isUserExists.id } });
 
-        if(products.length === 0) return {
+        if (products.length === 0) return {
             success: true,
             message: "No Products found.",
             data: [],
@@ -117,6 +119,261 @@ export class ProductService {
             data: product,
             expired: false,
             statusCode: 200
+        }
+    }
+
+    async create(product: ProductDTO, authorization: string): Promise<ProductResponse> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: null,
+            statusCode: 401,
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: null,
+            statusCode: 404
+        }
+
+        const newProduct = this.productRepository.create({
+            name: product.name,
+            user: isUserExists,
+            image: product.image,
+            price: product.price,
+            rating: product.rating,
+            mealType: product.mealType,
+            cuisine: product.cuisine,
+            ingredients: product.ingredients,
+            instructions: product.instructions
+        });
+
+        const saveProduct = await this.productRepository.save(newProduct);
+
+        if (!saveProduct) return {
+            success: false,
+            message: "Failed to save product! try again.",
+            statusCode: 400,
+            expired: false,
+            data: null
+        }
+
+        return {
+            success: true,
+            message: "Product saved successfully.",
+            statusCode: 201,
+            expired: false,
+            data: saveProduct
+        }
+    }
+
+    async update(product: ProductDTO, authorization: string): Promise<ProductResponse> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: null,
+            statusCode: 401,
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: null,
+            statusCode: 404
+        }
+
+        const existingProduct = await this.productRepository.findOne({ where: { id: product.id } })
+
+        if (!product.name && existingProduct?.name) product.name = existingProduct.name;
+        if (!product.image && existingProduct?.image) product.image = existingProduct.image;
+        if (!product.price && existingProduct?.price) product.price = existingProduct.price;
+        if (!product.rating && existingProduct?.rating) product.rating = existingProduct.rating;
+        if (!product.mealType?.length && existingProduct?.mealType?.length) product.mealType = existingProduct.mealType;
+        if (!product.cuisine && existingProduct?.cuisine) product.cuisine = existingProduct.cuisine;
+        if (!product.ingredients?.length && existingProduct?.ingredients?.length) product.ingredients = existingProduct.ingredients;
+        if (!product.instructions?.length && existingProduct?.instructions?.length) product.instructions = existingProduct.instructions;
+
+        const saveProduct = await this.productRepository.save(product);
+
+        if (!saveProduct) return {
+            success: false,
+            message: "Failed to update product! try again.",
+            statusCode: 400,
+            expired: false,
+            data: null
+        }
+
+        return {
+            success: true,
+            message: "Product updated successfully.",
+            statusCode: 200,
+            expired: false,
+            data: saveProduct
+        }
+    }
+
+    async deleteAll(authorization: string): Promise<ProductResponse> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: null,
+            statusCode: 401,
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: null,
+            statusCode: 404
+        }
+
+        const existingProduct = await this.productRepository.find({ where: { user: isUserExists } });
+
+        if(existingProduct.length === 0) return {
+            success: false,
+            message: "Products associated with current user not found.",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
+        const deleteProduct = await this.productRepository.softDelete({ user: isUserExists });
+
+        if(deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) return {
+            success: true,
+            message: "Products associated with current user is deleted successfully",
+            data: null,
+            expired: false,
+            statusCode: 200
+        }
+
+        return {
+            success: false,
+            message: "Products associated with current user is not deleted.",
+            data: null,
+            expired: false,
+            statusCode: 400
+        }
+    }
+
+    async deleteById(id: string, authorization: string): Promise<ProductResponse> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: null,
+            statusCode: 401,
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: null,
+            statusCode: 404
+        }
+
+        const existingProduct = await this.productRepository.findOne({ where: { id: id } });
+
+        if (!existingProduct) return {
+            success: false,
+            message: "Product associated with current user not found.",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
+        const deleteProduct = await this.productRepository.softDelete({ id: id });
+
+        if (deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) return {
+            success: true,
+            message: "Product associated with current user is deleted successfully",
+            data: null,
+            expired: false,
+            statusCode: 200
+        }
+
+        return {
+            success: false,
+            message: "Product associated with current user is not deleted.",
+            data: null,
+            expired: false,
+            statusCode: 400
         }
     }
 }
