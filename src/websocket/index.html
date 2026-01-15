@@ -88,6 +88,7 @@
       let conversationId = null;
       let currentUserId = null;
       let anotherUserId = null;
+      let messages = null;
 
       socket.on('connect', () => {
         console.log('Connected:', socket.id);
@@ -110,7 +111,8 @@
         conversationId = data.conversationId;
         currentUserId = data.userId;
         anotherUserId = data.anotherUserId;
-        addMessage(`You joined the chat with ${anotherUserId}`, true);
+        messages = data.messages;
+        loadMessages(messages);
       });
 
       // Send message
@@ -159,6 +161,15 @@
         if (isMe) li.classList.add('me');
         document.getElementById('messages').appendChild(li);
         li.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function loadMessages(messages) {
+        document.getElementById('messages').innerHTML = ''; // clear previous
+        messages.forEach((msg) => {
+          const isMe = msg.sender.id === currentUserId;
+          const senderLabel = isMe ? 'Me' : `${msg.sender.name}`;
+          addMessage(`${senderLabel}: ${msg.content}`, isMe);
+        });
       }
     </script>
   </body>

@@ -40,7 +40,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
       const isValid = this.auth.verify(token)
 
-      if(!isValid) throw new WsException("Token is expired!");
+      if (!isValid) throw new WsException("Token is expired!");
 
       const decoded = await this.auth.decode(token);
       client.data.userId = decoded.sub;
@@ -67,16 +67,14 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   ) {
     const userId = client.data.userId;
 
-    console.log(userId);
-    console.log(data.anotherUserId);
-    
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
-    
+    const messages = await this.webSocketService.getMessages(conversation.id);
+
     client.join(conversation.id);
 
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
-    
-    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id });
+
+    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.length === 0 ? [] : messages });
   }
 
   @SubscribeMessage("send_message")
@@ -87,8 +85,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     const userId = client.data.userId;
 
     const newMessage = await this.webSocketService.sendMessage(data, userId);
-
-    console.log(newMessage)
 
     client.broadcast.to(data.conversationId).emit('receive_message', {
       content: newMessage.content,
@@ -102,7 +98,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
   @SubscribeMessage("get_history")
   async handleGetHistory(
-    @MessageBody() data: { conversationId: string }, 
+    @MessageBody() data: { conversationId: string },
     @ConnectedSocket() client: Socket
   ) {
     console.log(`History request received from ${client.id} for conversation ${data.conversationId}`);
