@@ -64,12 +64,10 @@
 
       <hr />
 
-      <input id="messageInput" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send Message</button>
-
       <ul id="messages"></ul>
 
-      <button onclick="getHistory()">Get Chat History</button>
+      <input id="messageInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send Message</button>
     </div>
 
     <script>
@@ -138,12 +136,6 @@
         const senderLabel = isMe ? 'Me' : `${msg.sender.name}`;
         addMessage(`${senderLabel}: ${msg.content}`, isMe);
       });
-
-      // Get chat history
-      function getHistory() {
-        if (!conversationId) return alert('Join a conversation first!');
-        socket.emit('get_history', { conversationId });
-      }
 
       socket.on('history', (messages) => {
         document.getElementById('messages').innerHTML = ''; // clear previous

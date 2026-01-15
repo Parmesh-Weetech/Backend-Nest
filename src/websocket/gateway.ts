@@ -4,6 +4,9 @@ import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
 import { Injectable, Res } from '@nestjs/common';
 import { Auth } from '../common/util/auth';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../user/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 @WebSocketGateway({
@@ -19,7 +22,9 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
   constructor(
     private readonly webSocketService: WebsocketService,
-    private readonly auth: Auth
+    private readonly auth: Auth,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
   ) { }
 
   @WebSocketServer() server: Server;
@@ -44,6 +49,10 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
       const decoded = await this.auth.decode(token);
       client.data.userId = decoded.sub;
+
+      const isUserExists = await this.userRepository.findOne({ where: { id: client.data.userId }});
+
+      if(!isUserExists) throw new WsException("user not found!");
 
       console.log(`Client connected: ${client.id}`);
     } catch (err) {

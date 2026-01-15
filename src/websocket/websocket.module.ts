@@ -6,11 +6,13 @@ import { Conversation } from './entities/conversation.entity.js';
 import { Message } from './entities/message.entity.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { User } from '../user/entities/user.entity.js';
+import { UserModule } from '../user/user.module.js';
+import { Gateway } from './gateway.js';
 
 @Module({
   controllers: [WebsocketController],
-  providers: [WebsocketService],
-  imports: [TypeOrmModule.forFeature([Conversation, Message, User]), AuthModule],
+  providers: [WebsocketService, Gateway],
+  imports: [TypeOrmModule.forFeature([Conversation, Message, User]), AuthModule, UserModule],
   exports: [WebsocketService]
 })
 export class WebsocketModule { }
