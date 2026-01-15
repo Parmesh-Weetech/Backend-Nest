@@ -10,8 +10,8 @@ import { UpdateProductDTO } from './dtos/update-product.dto';
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
     @Get()
-    async getAll(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.getAll(authorization)
+    async findAll(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.productService.findAll(authorization)
 
         if (!response.success) {
             res.status(response.statusCode).send(response);
@@ -21,9 +21,9 @@ export class ProductController {
         res.status(response.statusCode).send(response);
     }
 
-    @Get("/:id")
-    async getById(@Param("id") id: string, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.getById(id, authorization)
+    @Get(":id")
+    async findOne(@Param("id") id: string, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.productService.findOne(id, authorization)
 
         if (!response.success) {
             res.status(response.statusCode).send(response);
@@ -81,7 +81,7 @@ export class ProductController {
         res.status(response.statusCode).send(response);
     }
 
-    @Delete("/:id")
+    @Delete(":id")
     async deleteById(@Param("id") id: string, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.productService.deleteById(id, authorization);
 

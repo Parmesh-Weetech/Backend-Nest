@@ -11,7 +11,7 @@ export class WebsocketController {
     ) { }
 
     @Get('conversations/:otherUserId')
-    async getOrCreateConversation(
+    async findOrCreateConversation(
         @Param('otherUserId') otherUserId: string,
         @Headers("Authorization") authorization: string,
         @Res({ passthrough: true }) res: Response
@@ -35,7 +35,7 @@ export class WebsocketController {
     }
 
     @Get('messages/:conversationId')
-    async getMessages(
+    async findMessages(
         @Param('conversationId') conversationId: string,
         @Headers("Authorization") authorization: string,
         @Res({ passthrough: true }) res: Response
@@ -53,6 +53,6 @@ export class WebsocketController {
             res.status(400).json({ success: false, expired: true, message: "Token expired!" });
         }
 
-        return await this.websocketService.getMessages(conversationId);
+        return await this.websocketService.findMessages(conversationId);
     }
 }

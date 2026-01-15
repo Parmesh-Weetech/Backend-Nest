@@ -136,7 +136,7 @@ export class PermissionService {
         }
     }
 
-    async delete(id: string): Promise<Response> {
+    async remove(id: string): Promise<Response> {
         const perm = await this.findOne(id);
 
         if (!perm.data) return perm;

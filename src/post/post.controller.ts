@@ -50,8 +50,8 @@ export class PostController {
 
     @Delete(":id")
     @Permission(AccessEntityEnum.POST, AccessActionEnum.DELETE)
-    async delete(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.delete(id);
+    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.postService.remove(id);
 
         res.status(response.statusCode).send(response);
     }

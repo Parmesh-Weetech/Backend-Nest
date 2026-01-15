@@ -77,7 +77,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     const userId = client.data.userId;
 
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
-    const messages = await this.webSocketService.getMessages(conversation.id);
+    const messages = await this.webSocketService.findMessages(conversation.id);
 
     client.join(conversation.id);
 
@@ -112,7 +112,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   ) {
     console.log(`History request received from ${client.id} for conversation ${data.conversationId}`);
 
-    const messages = await this.webSocketService.getMessages(data.conversationId);
+    const messages = await this.webSocketService.findMessages(data.conversationId);
 
     client.emit('history', messages);
 

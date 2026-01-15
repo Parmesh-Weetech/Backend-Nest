@@ -48,8 +48,8 @@ export class UserController {
 
     @Delete(":id")
     @Permission(AccessEntityEnum.USER, AccessActionEnum.DELETE)
-    async delete(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.delete(id);
+    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.userService.remove(id);
 
         res.status(response.statusCode).send(response);
     }

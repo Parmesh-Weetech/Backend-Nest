@@ -38,7 +38,7 @@ export class WebsocketService {
         return await this.conversationRepository.save(newConversation);
     }
 
-    async getMessages(conversationId: string): Promise<Message[]> {
+    async findMessages(conversationId: string): Promise<Message[]> {
         const messages = await this.messageRepository.find({
             where: { conversation: { id: conversationId } },
             order: { createdAt: 'ASC' },

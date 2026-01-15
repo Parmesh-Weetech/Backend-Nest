@@ -145,7 +145,7 @@ export class UserService {
         }
     }
 
-    async delete(id: string): Promise<Response> {
+    async remove(id: string): Promise<Response> {
         const user = await this.findOne(id);
 
         try {

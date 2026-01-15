@@ -16,7 +16,7 @@ export class ProductService {
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    async getAll(authorization: string): Promise<Response> {
+    async findAll(authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -69,7 +69,7 @@ export class ProductService {
         }
     }
 
-    async getById(id: string, authorization: string): Promise<Response> {
+    async findOne(id: string, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 

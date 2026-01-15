@@ -117,7 +117,7 @@ export class PostService {
         }
     }
 
-    async delete(id: string): Promise<Response> {
+    async remove(id: string): Promise<Response> {
         const existingPost = await this.findOne(id);
 
         if(!existingPost) {

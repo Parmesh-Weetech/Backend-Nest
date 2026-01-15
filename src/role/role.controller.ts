@@ -47,8 +47,8 @@ export class RoleController {
 
     @Delete(':id')
     @Permission(AccessEntityEnum.ROLE, AccessActionEnum.DELETE)
-    async delete(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.roleService.delete(id);
+    async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const response = await this.roleService.remove(id);
 
         res.status(response.statusCode).send(response);
     }

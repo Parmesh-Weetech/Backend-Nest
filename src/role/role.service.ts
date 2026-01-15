@@ -173,7 +173,7 @@ export class RoleService {
         }
     }
 
-    async delete(id: string): Promise<Response> {
+    async remove(id: string): Promise<Response> {
         const role = await this.findOne(id);
 
         if(!role.success) return role;

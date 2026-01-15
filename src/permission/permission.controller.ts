@@ -48,8 +48,8 @@ export class PermissionController {
 
     @Delete(':id')
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.DELETE)
-    async delete(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const permission = await this.permissionService.delete(id);
+    async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+        const permission = await this.permissionService.remove(id);
 
         res.status(permission.statusCode).send(permission);
     }
