@@ -29,7 +29,7 @@ export class CurrentUserInterceptor implements NestInterceptor {
 
         const isValid = await this.auth.verify(token)
 
-        if(!isValid) throw new UnauthorizedException("Invalid token")
+        if (!isValid) throw new UnauthorizedException("Invalid token")
 
         const decodedPayload = await this.auth.decode(token)
 
