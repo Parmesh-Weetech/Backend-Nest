@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Role } from './entities/role.entity.js';
@@ -6,8 +6,9 @@ import { CreateRoleDTO } from './dtos/create-role.dto.js';
 import { UpdateRoleDTO } from './dtos/update-role.dto.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
-import { RoleCreationFailedError, RoleDeletionFailedError, RoleUpdationFailedError } from './errors/errors.js';
 import { Response } from '../common/response/response.dto.js';
+import { Auth } from '../common/util/auth.js';
+import { UserService } from '../user/user.service.js';
 
 @Injectable()
 export class RoleService {
@@ -16,10 +17,45 @@ export class RoleService {
         private roleRepository: Repository<Role>,
         private readonly organizationService: OrganizationService,
         @Inject(forwardRef(() => PermissionService))
-        private readonly permissionService: PermissionService
+        private readonly permissionService: PermissionService,
+        private readonly auth: Auth,
+        private readonly userService: UserService
     ) { }
 
-    async findAll(): Promise<Response> {
+    async findAll(authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
         const roles = await this.roleRepository.find({ relations: ['permissions'] });
 
         if (!roles) return {
@@ -39,7 +75,40 @@ export class RoleService {
         };
     }
 
-    async findOne(id: string): Promise<Response> {
+    async findOne(id: string, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
         const role = await this.roleRepository.findOne({ where: { id }, relations: ['organization', 'permissions'] });
 
         if (!role) return {
@@ -59,13 +128,46 @@ export class RoleService {
         };
     }
 
-    async create(dto: CreateRoleDTO, orgId: string): Promise<Response> {
-        const organization = await this.organizationService.findOne(orgId);
+    async create(dto: CreateRoleDTO, orgId: string, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
+        const organization = await this.organizationService.findOne(orgId, authorization);
 
         if(!organization.success) return organization;
 
         const requestedPermissions = await Promise.all(
-            dto.permissionIds.map(id => this.permissionService.findOne(id))
+            dto.permissionIds.map(id => this.permissionService.findOne(id, authorization))
         );
 
         const requestedSignature = requestedPermissions
@@ -123,8 +225,41 @@ export class RoleService {
         }
     }
 
-    async update(dto: UpdateRoleDTO): Promise<Response> {
-        const roleResponse = await this.findOne(dto.id);
+    async update(dto: UpdateRoleDTO, authorization): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
+        const roleResponse = await this.findOne(dto.id, authorization);
 
         if (!roleResponse.success) return roleResponse;
 
@@ -136,7 +271,7 @@ export class RoleService {
 
         if (dto.permissionIds && dto.permissionIds.length > 0) {
             const existingPermissions = await Promise.all(
-                dto.permissionIds.map(permissionId => this.permissionService.findOne(permissionId))
+                dto.permissionIds.map(permissionId => this.permissionService.findOne(permissionId, authorization))
             );
 
             role.permissions = existingPermissions.map(p => p.data);
@@ -144,7 +279,7 @@ export class RoleService {
 
         if (dto.organizationIds && dto.organizationIds.length > 0) {
             const existingOrganization = await Promise.all(
-                dto.organizationIds.map(orgId => this.organizationService.findOne(orgId))
+                dto.organizationIds.map(orgId => this.organizationService.findOne(orgId, authorization))
             );
 
             if (existingOrganization.length > 0) {
@@ -173,8 +308,41 @@ export class RoleService {
         }
     }
 
-    async remove(id: string): Promise<Response> {
-        const role = await this.findOne(id);
+    async remove(id: string, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
+        const role = await this.findOne(id, authorization);
 
         if(!role.success) return role;
 
