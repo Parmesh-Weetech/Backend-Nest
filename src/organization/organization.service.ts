@@ -16,40 +16,7 @@ export class OrganizationService {
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService
   ) { }
-  async findAll(authorization: string): Promise<Response> {
-    const [type, token] = authorization?.split(' ') ?? [];
-    const access_token = type === 'Bearer' ? token : undefined;
-
-    if (!access_token) return {
-      success: false,
-      message: "Token is required",
-      data: null,
-      expired: false,
-      statusCode: 401,
-    }
-
-    const isValid = await this.auth.verify(access_token);
-
-    if (!isValid) return {
-      success: false,
-      message: "Token expired!",
-      data: null,
-      expired: true,
-      statusCode: 400
-    }
-
-    const decodedPayload = await this.auth.decode(access_token);
-
-    const isUserExists = await this.userService.findOne(decodedPayload.sub);
-
-    if (!isUserExists) return {
-      success: false,
-      message: "User not found!",
-      data: null,
-      expired: false,
-      statusCode: 404
-    }
-
+  async findAll(): Promise<Response> {
     const organizations = await this.organizationRepository.find();
 
     if (!organizations) return {
@@ -69,40 +36,7 @@ export class OrganizationService {
     };
   }
 
-  async findOne(id: string, authorization: string): Promise<Response> {
-    const [type, token] = authorization?.split(' ') ?? [];
-    const access_token = type === 'Bearer' ? token : undefined;
-
-    if (!access_token) return {
-      success: false,
-      message: "Token is required",
-      data: null,
-      expired: false,
-      statusCode: 401,
-    }
-
-    const isValid = await this.auth.verify(access_token);
-
-    if (!isValid) return {
-      success: false,
-      message: "Token expired!",
-      data: null,
-      expired: true,
-      statusCode: 400
-    }
-
-    const decodedPayload = await this.auth.decode(access_token);
-
-    const isUserExists = await this.userService.findOne(decodedPayload.sub);
-
-    if (!isUserExists) return {
-      success: false,
-      message: "User not found!",
-      data: null,
-      expired: false,
-      statusCode: 404
-    }
-
+  async findOne(id: string): Promise<Response> {
     const organization = await this.organizationRepository.findOne({ where: { id: id } });
 
     if (!organization) return {
@@ -122,41 +56,8 @@ export class OrganizationService {
     };
   }
 
-  async create(createOrganizationDto: CreateOrganizationDto, authorization: string): Promise<Response> {
+  async create(createOrganizationDto: CreateOrganizationDto): Promise<Response> {
     try {
-      const [type, token] = authorization?.split(' ') ?? [];
-      const access_token = type === 'Bearer' ? token : undefined;
-
-      if (!access_token) return {
-        success: false,
-        message: "Token is required",
-        data: null,
-        expired: false,
-        statusCode: 401,
-      }
-
-      const isValid = await this.auth.verify(access_token);
-
-      if (!isValid) return {
-        success: false,
-        message: "Token expired!",
-        data: null,
-        expired: true,
-        statusCode: 400
-      }
-
-      const decodedPayload = await this.auth.decode(access_token);
-
-      const isUserExists = await this.userService.findOne(decodedPayload.sub);
-
-      if (!isUserExists) return {
-        success: false,
-        message: "User not found!",
-        data: null,
-        expired: false,
-        statusCode: 404
-      }
-
       const newOrganization = await this.organizationRepository.create(createOrganizationDto);
 
       const organization = await this.organizationRepository.save(newOrganization);
@@ -179,41 +80,8 @@ export class OrganizationService {
     }
   }
 
-  async update(updateOrganizationDto: UpdateOrganizationDto, authorization: string): Promise<Response> {
-    const [type, token] = authorization?.split(' ') ?? [];
-    const access_token = type === 'Bearer' ? token : undefined;
-
-    if (!access_token) return {
-      success: false,
-      message: "Token is required",
-      data: null,
-      expired: false,
-      statusCode: 401,
-    }
-
-    const isValid = await this.auth.verify(access_token);
-
-    if (!isValid) return {
-      success: false,
-      message: "Token expired!",
-      data: null,
-      expired: true,
-      statusCode: 400
-    }
-
-    const decodedPayload = await this.auth.decode(access_token);
-
-    const isUserExists = await this.userService.findOne(decodedPayload.sub);
-
-    if (!isUserExists) return {
-      success: false,
-      message: "User not found!",
-      data: null,
-      expired: false,
-      statusCode: 404
-    }
-
-    const existingOrganization = await this.findOne(updateOrganizationDto.id, authorization);
+  async update(updateOrganizationDto: UpdateOrganizationDto): Promise<Response> {
+    const existingOrganization = await this.findOne(updateOrganizationDto.id);
 
     if (existingOrganization.data.name) existingOrganization.data.name = updateOrganizationDto.name;
 
@@ -238,42 +106,9 @@ export class OrganizationService {
     }
   }
 
-  async remove(id: string, authorization: string): Promise<Response> {
+  async remove(id: string): Promise<Response> {
     try {
-      const [type, token] = authorization?.split(' ') ?? [];
-      const access_token = type === 'Bearer' ? token : undefined;
-
-      if (!access_token) return {
-        success: false,
-        message: "Token is required",
-        data: null,
-        expired: false,
-        statusCode: 401,
-      }
-
-      const isValid = await this.auth.verify(access_token);
-
-      if (!isValid) return {
-        success: false,
-        message: "Token expired!",
-        data: null,
-        expired: true,
-        statusCode: 400
-      }
-
-      const decodedPayload = await this.auth.decode(access_token);
-
-      const isUserExists = await this.userService.findOne(decodedPayload.sub);
-
-      if (!isUserExists) return {
-        success: false,
-        message: "User not found!",
-        data: null,
-        expired: false,
-        statusCode: 404
-      }
-
-      const organization = await this.findOne(id, authorization);
+      const organization = await this.findOne(id);
 
       if (!organization.success) return organization;
 

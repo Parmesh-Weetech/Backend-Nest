@@ -12,35 +12,35 @@ export class OrganizationController {
 
   @Get()
   async findAll(@Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-    const response = await this.organizationService.findAll(authorization);
+    const response = await this.organizationService.findAll();
 
     res.status(response.statusCode).send(response);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-    const response = await this.organizationService.findOne(id, authorization);
+    const response = await this.organizationService.findOne(id);
 
     res.status(response.statusCode).send(response);
   }
 
   @Post()
   async create(@Body() createOrganizationDto: CreateOrganizationDto, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-    const response = await this.organizationService.create(createOrganizationDto, authorization);
+    const response = await this.organizationService.create(createOrganizationDto);
 
     res.status(response.statusCode).send(response);
   }
 
   @Put()
   async update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-    const response = await this.organizationService.update(updateOrganizationDto, authorization);
+    const response = await this.organizationService.update(updateOrganizationDto);
 
     res.status(response.statusCode).send(response);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-    const response = await this.organizationService.remove(id, authorization);
+    const response = await this.organizationService.remove(id);
 
     res.status(response.statusCode).send(response);
   }

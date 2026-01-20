@@ -1,21 +1,18 @@
-import { ForbiddenException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Permission } from './entities/permission.entity.js';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
 import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
-import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
-import { PermissionCreationFailedError, PermissionDeletionFailedError, PermissionUpdationFailedError } from './errors/errors.js';
 import { Response } from '../common/response/response.dto.js';
+import { Auth } from '../common/util/auth.js';
 
 @Injectable()
 export class PermissionService {
     constructor(
         @InjectRepository(Permission)
         private readonly permissionRepository: Repository<Permission>,
-        @Inject(forwardRef(() => RoleService))
-        private readonly roleService: RoleService,
         private readonly organizationService: OrganizationService
     ) { }
 

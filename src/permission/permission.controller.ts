@@ -47,7 +47,7 @@ export class PermissionController {
 
     @Delete(':id')
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.DELETE)
-    async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+    async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
         const permission = await this.permissionService.remove(id);
 
         res.status(permission.statusCode).send(permission);
