@@ -7,13 +7,15 @@ import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { Response } from '../common/response/response.dto.js';
+import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         private readonly roleService: RoleService,
-        private readonly organizationService: OrganizationService
+        private readonly organizationService: OrganizationService,
+        private readonly cacheService: CacheService
     ) { }
 
     async findAll(currentUser: User): Promise<Response> {
@@ -39,7 +41,23 @@ export class UserService {
     }
 
     async findOne(id: string): Promise<Response> {
-        const user = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
+        const cacheKey = `user:${id}`;
+        let user = await this.cacheService.get(cacheKey);
+
+        if (!user) {
+            const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
+
+            if (!fetchedUser) return {
+                success: false,
+                data: null,
+                expired: false,
+                message: "User not found.",
+                statusCode: 404
+            }
+            
+            await this.cacheService.set(cacheKey, fetchedUser?.email , 300);
+            console.log("setting")
+        }
         
         if (!user) return {
             success: false,
