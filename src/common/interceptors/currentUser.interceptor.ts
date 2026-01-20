@@ -34,7 +34,7 @@ export class CurrentUserInterceptor implements NestInterceptor {
         const decodedPayload = await this.auth.decode(token)
 
         if (decodedPayload.sub && request.session?.orgId) {
-            const user = await this.userService.findOne(decodedPayload.sub);
+            const user = await this.userService.findOne(decodedPayload.sub, authorization);
 
             if (!user) throw new BadRequestException("User not exists!")
 

@@ -1,7 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
-import { User } from './entities/user.entity.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
@@ -17,39 +16,39 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Get()
-    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.findAll();
+    async findAll(@Res({ passthrough: true }) res: Response, @Headers('Authorization') authorization: string): Promise<void> {
+        const response = await this.userService.findAll(authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Get(":id")
-    async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.findOne(id);
+    async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response, @Headers('Authorization') authorization: string): Promise<void> {
+        const response = await this.userService.findOne(id, authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Post()
     @Permission(AccessEntityEnum.USER, AccessActionEnum.CREATE)
-    async create(@Body() createUserDTO: CreateUserDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.create(createUserDTO, Id);
+    async create(@Body() createUserDTO: CreateUserDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response, @Headers('Authorization') authorization: string): Promise<void> {
+        const response = await this.userService.create(createUserDTO, Id, authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Put()
     @Permission(AccessEntityEnum.USER, AccessActionEnum.UPDATE)
-    async update(@Body() updateUserDTO: updateUserDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.update(updateUserDTO);
+    async update(@Body() updateUserDTO: updateUserDTO, @Res({ passthrough: true }) res: Response, @Headers('Authorization') authorization: string): Promise<void> {
+        const response = await this.userService.update(updateUserDTO, authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Delete(":id")
     @Permission(AccessEntityEnum.USER, AccessActionEnum.DELETE)
-    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.remove(id);
+    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response, @Headers('Authorization') authorization: string): Promise<void> {
+        const response = await this.userService.remove(id, authorization);
 
         res.status(response.statusCode).send(response);
     }

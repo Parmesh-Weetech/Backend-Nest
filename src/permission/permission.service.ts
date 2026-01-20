@@ -43,7 +43,7 @@ export class PermissionService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -96,7 +96,7 @@ export class PermissionService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -149,7 +149,7 @@ export class PermissionService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -219,7 +219,7 @@ export class PermissionService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -292,7 +292,7 @@ export class PermissionService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -301,7 +301,7 @@ export class PermissionService {
             expired: false,
             statusCode: 404
         }
-        
+
         const perm = await this.findOne(id, authorization);
 
         if (!perm.data) return perm;

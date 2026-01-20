@@ -42,7 +42,7 @@ export class PostService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -95,7 +95,7 @@ export class PostService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -148,7 +148,7 @@ export class PostService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -209,7 +209,7 @@ export class PostService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -269,7 +269,7 @@ export class PostService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -278,7 +278,7 @@ export class PostService {
             expired: false,
             statusCode: 404
         }
-        
+
         const existingPost = await this.findOne(id, authorization);
 
         if(!existingPost) {

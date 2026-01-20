@@ -40,7 +40,7 @@ export class OrganizationService {
 
     const decodedPayload = await this.auth.decode(access_token);
 
-    const isUserExists = await this.userService.findOne(decodedPayload.sub);
+    const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
     if (!isUserExists) return {
       success: false,
@@ -93,7 +93,7 @@ export class OrganizationService {
 
     const decodedPayload = await this.auth.decode(access_token);
 
-    const isUserExists = await this.userService.findOne(decodedPayload.sub);
+    const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
     if (!isUserExists) return {
       success: false,
@@ -147,7 +147,7 @@ export class OrganizationService {
 
       const decodedPayload = await this.auth.decode(access_token);
 
-      const isUserExists = await this.userService.findOne(decodedPayload.sub);
+      const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
       if (!isUserExists) return {
         success: false,
@@ -203,7 +203,7 @@ export class OrganizationService {
 
     const decodedPayload = await this.auth.decode(access_token);
 
-    const isUserExists = await this.userService.findOne(decodedPayload.sub);
+    const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
     if (!isUserExists) return {
       success: false,
@@ -263,7 +263,7 @@ export class OrganizationService {
 
       const decodedPayload = await this.auth.decode(access_token);
 
-      const isUserExists = await this.userService.findOne(decodedPayload.sub);
+      const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
       if (!isUserExists) return {
         success: false,
@@ -272,7 +272,7 @@ export class OrganizationService {
         expired: false,
         statusCode: 404
       }
-      
+
       const organization = await this.findOne(id, authorization);
 
       if (!organization.success) return organization;

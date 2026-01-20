@@ -40,7 +40,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -93,7 +93,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -146,7 +146,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -211,7 +211,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -275,7 +275,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -339,7 +339,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
@@ -402,7 +402,7 @@ export class ProductService {
 
         const decodedPayload = await this.auth.decode(access_token);
 
-        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
 
         if (!isUserExists) return {
             success: false,
