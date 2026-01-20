@@ -17,14 +17,20 @@ export class UserService {
     ) { }
 
     async findAll(): Promise<Response> {
-        const users = await this.userRepository.find({ relations: ['roles'] });
+        const users = await this.userRepository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.roles', 'role')
+            .distinctOn(['user.email'])
+            .getMany();
 
-        if (!users) return {
-            success: false,
-            data: null,
-            expired: false,
-            message: "Users not found.",
-            statusCode: 404
+        if (!users || users.length === 0) {
+            return {
+                success: false,
+                data: null,
+                expired: false,
+                message: "Users not found.",
+                statusCode: 404
+            };
         }
 
         return {
