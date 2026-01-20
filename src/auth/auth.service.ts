@@ -27,6 +27,16 @@ export class AuthService {
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<Response> {
+        const isUserExists = await this.userRepository.findOne({ where: { email: signupDTO.email }});
+
+        if(isUserExists) return {
+            success: false,
+            data: null,
+            expired: false,
+            message: "User already exists with same email!",
+            statusCode: 409
+        }
+        
         const newOrganization = await this.organizationService.create({ name: "Default" });
         if (!newOrganization) return {
             success: false,
