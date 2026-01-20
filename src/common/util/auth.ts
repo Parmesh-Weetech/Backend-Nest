@@ -10,6 +10,8 @@ export class Auth {
         private readonly configService: ConfigService
     ) {}
     async verify(token: string): Promise<boolean> {
+        if(!token) return false
+
         const isValid = await this.jwtService.verify(token, {
             secret: this.configService.get("JWT_SECRET")
         })
