@@ -25,21 +25,21 @@ export class OrganizationController {
   }
 
   @Post()
-  async create(@Body() createOrganizationDto: CreateOrganizationDto, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+  async create(@Body() createOrganizationDto: CreateOrganizationDto, @Res({ passthrough: true }) res: Response): Promise<void> {
     const response = await this.organizationService.create(createOrganizationDto);
 
     res.status(response.statusCode).send(response);
   }
 
   @Put()
-  async update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+  async update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Res({ passthrough: true }) res: Response): Promise<void> {
     const response = await this.organizationService.update(updateOrganizationDto);
 
     res.status(response.statusCode).send(response);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+  async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
     const response = await this.organizationService.remove(id);
 
     res.status(response.statusCode).send(response);
