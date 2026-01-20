@@ -1,7 +1,6 @@
-import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post, Res } from '@nestjs/common';
+import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post, Res, Headers } from '@nestjs/common';
 import { PermissionService } from './permission.service.js';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
-import { Permission } from './entities/permission.entity.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
@@ -17,14 +16,14 @@ export class PermissionController {
     constructor(private readonly permissionService: PermissionService) { }
 
     @Get()
-    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
+    async findAll(@Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
         const permissions = await this.permissionService.findAll();
 
         res.status(permissions.statusCode).send(permissions);
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+    async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
         const permission = await this.permissionService.findOne(id);
 
         res.status(permission.statusCode).send(permission);
@@ -32,7 +31,7 @@ export class PermissionController {
 
     @Post()
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.CREATE)
-    async create(@Body() dto: CreatePermissionDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
+    async create(@Body() dto: CreatePermissionDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
         const permission = await this.permissionService.create(dto, Id);
 
         res.status(permission.statusCode).send(permission);
@@ -40,7 +39,7 @@ export class PermissionController {
 
     @Put()
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.UPDATE)
-    async update(@Body() dto: UpdatePermissionDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
+    async update(@Body() dto: UpdatePermissionDTO, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
         const permission = await this.permissionService.update(dto);
 
         res.status(permission.statusCode).send(permission);

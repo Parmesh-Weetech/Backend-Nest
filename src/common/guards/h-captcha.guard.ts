@@ -12,6 +12,11 @@ export class HcaptchaGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const req = context.switchToHttp().getRequest();
+
+    if (req.method === 'OPTIONS') {
+      return true;
+    }
+
     const token = req.body?.hcaptchaToken;
 
     if (!token) {
