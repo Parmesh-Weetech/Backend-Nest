@@ -17,15 +17,47 @@ export class AuthGuard implements CanActivate {
 
         if (publicRoute) return true;
 
-        const request = context.switchToHttp().getRequest();
+        const ctx = context.switchToHttp();
+        const request = ctx.getRequest();
+        const response = ctx.getResponse();
 
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
-        const isValid = await this.auth.verify(access_token)
+        if (!access_token) {
+            response.status(404).json({
+                success: false,
+                data: null,
+                expired: false,
+                message: 'Token is required!',
+                statusCode: 404,
+            });
+            return false;
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) {
+            response.status(400).json({
+                success: false,
+                data: null,
+                expired: true,
+                message: 'Token is expired!',
+                statusCode: 400,
+            });
+            return false;
+        }
 
         if(isValid && access_token) return true; 
 
-        throw new UnauthorizedException("You must be logged in.");
+        response.status(401).json({
+            success: false,
+            data: null,
+            expired: false,
+            message: "You must be logged in!",
+            statusCode: 401
+        })
+
+        return false;
     }
 }
