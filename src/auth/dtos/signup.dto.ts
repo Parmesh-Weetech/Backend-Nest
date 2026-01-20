@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MaxLength, MinLength, ValidateIf, IsOptional, IsUUID } from "class-validator"
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MaxLength, MinLength, ValidateIf } from "class-validator"
 import { Transform } from 'class-transformer';
 
 export class SignupDTO {
@@ -17,6 +17,6 @@ export class SignupDTO {
     email: string;
 
     @IsStrongPassword()
-    @MaxLength(10)
+    @MaxLength(20)
     password: string;
 }
