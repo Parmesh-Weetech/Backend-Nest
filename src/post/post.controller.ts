@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard.js';
-import { PostEntity } from './entities/post.entity.js';
 import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { User } from '../user/entities/user.entity.js';
 import { CreatePostDTO } from './dtos/create-post.dto.js';
@@ -19,39 +18,39 @@ export class PostController {
     constructor(private readonly postService: PostService) { }
 
     @Get()
-    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.findAll();
+    async findAll(@Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+        const response = await this.postService.findAll(authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Get(":id")
-    async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.findOne(id);
+    async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+        const response = await this.postService.findOne(id, authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Post()
     @Permission(AccessEntityEnum.POST, AccessActionEnum.CREATE)
-    async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.create(createPostDTO, user);
+    async create(@Body() createPostDTO: CreatePostDTO, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+        const response = await this.postService.create(createPostDTO, authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Put()
     @Permission(AccessEntityEnum.POST, AccessActionEnum.UPDATE)
-    async update(@Body() updatePostDTO: UpdatePostDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.update(updatePostDTO);
+    async update(@Body() updatePostDTO: UpdatePostDTO, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+        const response = await this.postService.update(updatePostDTO, authorization);
 
         res.status(response.statusCode).send(response);
     }
 
     @Delete(":id")
     @Permission(AccessEntityEnum.POST, AccessActionEnum.DELETE)
-    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.remove(id);
+    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+        const response = await this.postService.remove(id, authorization);
 
         res.status(response.statusCode).send(response);
     }

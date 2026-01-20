@@ -1,18 +1,57 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostEntity } from './entities/post.entity.js';
 import { Repository } from 'typeorm';
 import { CreatePostDTO } from './dtos/create-post.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { UpdatePostDTO } from './dtos/update-post.dto.js';
-import { PostCreationFailedError, PostDeletionFailedError, PostUpdationFailedError } from './errors/error.js';
 import { Response } from '../common/response/response.dto.js';
+import { Auth } from '../common/util/auth.js';
+import { UserService } from '../user/user.service.js';
 
 @Injectable()
 export class PostService {
-    constructor(@InjectRepository(PostEntity) private readonly postRepository: Repository<PostEntity>) { }
+    constructor(
+        @InjectRepository(PostEntity) private readonly postRepository: Repository<PostEntity>,
+        private readonly auth: Auth,
+        private readonly userService: UserService
 
-    async findAll(): Promise<Response> {
+    ) { }
+
+    async findAll(authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
         const posts = await this.postRepository.find({ relations: ['user'] });
 
         if (!posts) return {
@@ -32,7 +71,40 @@ export class PostService {
         };
     }
 
-    async findOne(id: string): Promise<Response> {
+    async findOne(id: string, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
         const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
 
         if (!post) return {
@@ -52,22 +124,45 @@ export class PostService {
         };
     }
 
-    async create(post: CreatePostDTO, user: User): Promise<Response> {
-        if (!user) {
-            return {
-                success: false,
-                expired: false,
-                message: "User not found",
-                data: null,
-                statusCode: 404
-            }
+    async create(post: CreatePostDTO, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
         }
 
         try {
             const newPost = await this.postRepository.create({
                 name: post.name,
                 description: post.description,
-                user: user
+                user: isUserExists.data
             });
 
             const savePost = await this.postRepository.save(newPost);
@@ -90,8 +185,41 @@ export class PostService {
         }
     }
 
-    async update(post: UpdatePostDTO): Promise<Response> {
-        const existingPost = await this.findOne(post.id);
+    async update(post: UpdatePostDTO, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+
+        const existingPost = await this.findOne(post.id, authorization);
 
         if (post.name) existingPost.data.name = post.name;
         if (post.description) existingPost.data.description = post.description;
@@ -117,8 +245,41 @@ export class PostService {
         }
     }
 
-    async remove(id: string): Promise<Response> {
-        const existingPost = await this.findOne(id);
+    async remove(id: string, authorization: string): Promise<Response> {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
+
+        if (!access_token) return {
+            success: false,
+            message: "Token is required",
+            data: null,
+            expired: false,
+            statusCode: 401
+        }
+
+        const isValid = await this.auth.verify(access_token);
+
+        if (!isValid) return {
+            success: false,
+            message: "Token expired!",
+            data: null,
+            expired: true,
+            statusCode: 400
+        }
+
+        const decodedPayload = await this.auth.decode(access_token);
+
+        const isUserExists = await this.userService.findOne(decodedPayload.sub);
+
+        if (!isUserExists) return {
+            success: false,
+            message: "User not found!",
+            data: null,
+            expired: false,
+            statusCode: 404
+        }
+        
+        const existingPost = await this.findOne(id, authorization);
 
         if(!existingPost) {
             return {
