@@ -16,11 +16,21 @@ export class UserService {
         private readonly organizationService: OrganizationService
     ) { }
 
-    async findAll(): Promise<Response> {
+    async findAll(currentUser: User): Promise<Response> {
         const users = await this.userRepository
             .createQueryBuilder('user')
             .leftJoinAndSelect('user.roles', 'role')
+            .where('user.id != :id', { id: currentUser.id })
             .distinctOn(['user.email'])
+            .orderBy('user.email', 'ASC')
+            .select([
+                'user.id',
+                'user.name',
+                'user.createdAt',
+                'user.updatedAt',
+                'role.id',
+                'role.name',
+            ])
             .getMany();
 
         if (!users || users.length === 0) {
@@ -28,8 +38,8 @@ export class UserService {
                 success: false,
                 data: null,
                 expired: false,
-                message: "Users not found.",
-                statusCode: 404
+                message: 'Users not found.',
+                statusCode: 404,
             };
         }
 
@@ -37,10 +47,11 @@ export class UserService {
             success: true,
             data: users,
             expired: false,
-            message: "Users fetched successfully.",
-            statusCode: 200
+            message: 'Users fetched successfully.',
+            statusCode: 200,
         };
     }
+
 
     async findOne(id: string): Promise<Response> {
         const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'organization'] });

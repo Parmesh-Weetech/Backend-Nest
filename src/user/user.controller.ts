@@ -10,6 +10,7 @@ import { CurrentOrganizationId } from '../common/decorators/currentOrganizationI
 import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
 import type { Response } from 'express';
+import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 
 @Controller('user')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -17,8 +18,8 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Get()
-    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.userService.findAll();
+    async findAll(@Res({ passthrough: true }) res: Response, @CurrentUser() user: User): Promise<void> {
+        const response = await this.userService.findAll(user);
 
         res.status(response.statusCode).send(response);
     }

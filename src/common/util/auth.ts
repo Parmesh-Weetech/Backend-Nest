@@ -10,15 +10,17 @@ export class Auth {
         private readonly configService: ConfigService
     ) {}
     async verify(token: string): Promise<boolean> {
-        if(!token) return false
+        if (!token) return false;
 
-        const isValid = await this.jwtService.verify(token, {
-            secret: this.configService.get("JWT_SECRET")
-        })
+        try {
+            await this.jwtService.verifyAsync(token, {
+                secret: this.configService.get('JWT_SECRET'),
+            });
 
-        if(!isValid || isValid === null || isValid === undefined) return false;
-
-        return true;
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
     async decode(authorization: string): Promise<DecodedJwt> {
