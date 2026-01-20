@@ -17,14 +17,14 @@ export class PermissionController {
 
     @Get()
     async findAll(@Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-        const permissions = await this.permissionService.findAll();
+        const permissions = await this.permissionService.findAll(authorization);
 
         res.status(permissions.statusCode).send(permissions);
     }
 
     @Get(':id')
     async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-        const permission = await this.permissionService.findOne(id);
+        const permission = await this.permissionService.findOne(id, authorization);
 
         res.status(permission.statusCode).send(permission);
     }
@@ -32,7 +32,7 @@ export class PermissionController {
     @Post()
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.CREATE)
     async create(@Body() dto: CreatePermissionDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-        const permission = await this.permissionService.create(dto, Id);
+        const permission = await this.permissionService.create(dto, Id, authorization);
 
         res.status(permission.statusCode).send(permission);
     }
@@ -40,7 +40,7 @@ export class PermissionController {
     @Put()
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.UPDATE)
     async update(@Body() dto: UpdatePermissionDTO, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-        const permission = await this.permissionService.update(dto);
+        const permission = await this.permissionService.update(dto, authorization);
 
         res.status(permission.statusCode).send(permission);
     }
@@ -48,7 +48,7 @@ export class PermissionController {
     @Delete(':id')
     @PermissionDecorator(AccessEntityEnum.PERMISSION, AccessActionEnum.DELETE)
     async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
-        const permission = await this.permissionService.remove(id);
+        const permission = await this.permissionService.remove(id, authorization);
 
         res.status(permission.statusCode).send(permission);
     }
