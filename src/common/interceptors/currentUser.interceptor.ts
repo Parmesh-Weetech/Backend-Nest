@@ -44,7 +44,7 @@ export class CurrentUserInterceptor implements NestInterceptor {
 
         const decodedPayload = await this.auth.decode(token)
 
-        if (decodedPayload.sub && request.session?.orgId) {
+        if (decodedPayload.sub) {
             const user = await this.userService.findOne(decodedPayload.sub);
 
             if (!user) {
@@ -58,8 +58,7 @@ export class CurrentUserInterceptor implements NestInterceptor {
                 return EMPTY;
             }
 
-            request.currentUser = user;
-            request.orgId = request.session?.orgId;
+            request.currentUser = user.data;
         }
 
         return next.handle();

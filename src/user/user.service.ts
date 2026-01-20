@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity.js';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
@@ -17,21 +17,7 @@ export class UserService {
     ) { }
 
     async findAll(currentUser: User): Promise<Response> {
-        const users = await this.userRepository
-            .createQueryBuilder('user')
-            .leftJoinAndSelect('user.roles', 'role')
-            .where('user.id != :id', { id: currentUser.id })
-            .distinctOn(['user.email'])
-            .orderBy('user.email', 'ASC')
-            .select([
-                'user.id',
-                'user.name',
-                'user.createdAt',
-                'user.updatedAt',
-                'role.id',
-                'role.name',
-            ])
-            .getMany();
+        const users = await this.userRepository.find({where: { id: Not(currentUser.id) }, relations: [ 'roles' ]});
 
         if (!users || users.length === 0) {
             return {
@@ -52,9 +38,8 @@ export class UserService {
         };
     }
 
-
     async findOne(id: string): Promise<Response> {
-        const user = await this.userRepository.findOne({ where: { id }, relations: ['roles', 'organization'] });
+        const user = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
         
         if (!user) return {
             success: false,

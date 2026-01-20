@@ -59,7 +59,7 @@ export class PermissionService {
     async create(dto: CreatePermissionDTO, orgId: string): Promise<Response> {
         const organization = await this.organizationService.findOne(orgId);
 
-        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: { id: orgId } } });
+        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: organization.data } });
 
         if (existingPermissions) throw new Error("Permission already exists!");
 

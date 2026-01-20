@@ -102,6 +102,7 @@ export class AuthService {
             statusCode: 201
         }
     }
+    
     async login(loginDTO: LoginDTO): Promise<TokenResponse> {
         if (loginDTO.organizationId) {
             const organization = await this.organizationService.findOne(loginDTO.organizationId);
