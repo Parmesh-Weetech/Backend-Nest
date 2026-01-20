@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Res, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Res, Headers, Req } from '@nestjs/common';
 import { OrganizationService } from './organization.service.js';
 import { CreateOrganizationDto } from './dto/create-organization.dto.js';
 import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
 import { AuthGuard } from '../common/guards/auth.guard.js';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 @Controller('organization')
 @UseGuards(AuthGuard)
@@ -25,7 +25,7 @@ export class OrganizationController {
   }
 
   @Post()
-  async create(@Body() createOrganizationDto: CreateOrganizationDto, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string): Promise<void> {
+  async create(@Body() createOrganizationDto: CreateOrganizationDto, @Res({ passthrough: true }) res: Response, @Headers("Authorization") authorization: string, @Req() req: Request): Promise<void> {
     const response = await this.organizationService.create(createOrganizationDto, authorization);
 
     res.status(response.statusCode).send(response);

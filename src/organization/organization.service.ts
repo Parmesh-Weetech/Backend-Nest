@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Req } from '@nestjs/common';
 import { CreateOrganizationDto } from './dto/create-organization.dto.js';
 import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { Response } from '../common/response/response.dto.js';
 import { Auth } from '../common/util/auth.js';
 import { UserService } from '../user/user.service.js';
+import type { Request } from 'express';
 
 @Injectable()
 export class OrganizationService {
@@ -124,37 +125,49 @@ export class OrganizationService {
 
   async create(createOrganizationDto: CreateOrganizationDto, authorization: string): Promise<Response> {
     try {
-      const [type, token] = authorization?.split(' ') ?? [];
-      const access_token = type === 'Bearer' ? token : undefined;
+      let req: Request
 
-      if (!access_token) return {
-        success: false,
-        message: "Token is required",
-        data: null,
-        expired: false,
-        statusCode: 401
-      }
+      if(req.originalUrl !== '/auth/signup' && authorization) {
+        const [type, token] = authorization?.split(' ') ?? [];
+        const access_token = type === 'Bearer' ? token : undefined;
 
-      const isValid = await this.auth.verify(access_token);
+        if (!access_token) return {
+          success: false,
+          message: "Token is required",
+          data: null,
+          expired: false,
+          statusCode: 401
+        }
 
-      if (!isValid) return {
-        success: false,
-        message: "Token expired!",
-        data: null,
-        expired: true,
-        statusCode: 400
-      }
+        const isValid = await this.auth.verify(access_token);
 
-      const decodedPayload = await this.auth.decode(access_token);
+        if (!isValid) return {
+          success: false,
+          message: "Token expired!",
+          data: null,
+          expired: true,
+          statusCode: 400
+        }
 
-      const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization);
+        const decodedPayload = await this.auth.decode(access_token);
 
-      if (!isUserExists) return {
-        success: false,
-        message: "User not found!",
-        data: null,
-        expired: false,
-        statusCode: 404
+        const isUserExists = await this.userService.findOne(decodedPayload.sub, authorization!);
+
+        if (!isUserExists) return {
+          success: false,
+          message: "User not found!",
+          data: null,
+          expired: false,
+          statusCode: 404
+        }
+      } else if (req.originalUrl !== '/auth/signup' && !authorization) {
+        return {
+          success: false,
+          message: "Token is required",
+          data: null,
+          expired: false,
+          statusCode: 401
+        }
       }
 
       const newOrganization = await this.organizationRepository.create(createOrganizationDto);
