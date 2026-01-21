@@ -1,8 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
-import { CurrentUserInterceptor } from './common/interceptors/currentUser.interceptor.js';
-import { UserService } from './user/user.service.js';
 import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js';
 import { HttpErrorFilter } from './common/exceptions/global.exception.js';
@@ -44,7 +42,6 @@ async function bootstrap() {
 
     app.useGlobalInterceptors(
       new ClassSerializerInterceptor(app.get(Reflector)),
-      new CurrentUserInterceptor(app.get(Reflector), app.get(UserService), app.get(JwtService), app.get(Auth)),
       new LoggingInterceptor(),
     );
 
