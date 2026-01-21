@@ -3,24 +3,26 @@ import { Module, Global } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { CacheService } from './cache.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import redisStore from 'cache-manager-ioredis';
+import KeyvRedis from '@keyv/redis';
+import Keyv from 'keyv';
 
 @Global()
 @Module({
   imports: [
     ConfigModule,
     NestCacheModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const config = {
+      useFactory: async () => {
+        const redisStore = new KeyvRedis('redis://localhost:6379');
+
+        const keyv = new Keyv({
           store: redisStore,
-          host: configService.get<string>('REDIS_HOST', '127.0.0.1'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          ttl: configService.get<number>('CACHE_TTL', 60),
+          namespace: 'nest-cache',
+        });
+
+        return {
+          store: keyv,
+          ttl: 300_000,
         };
-        console.log('Cache config:', config);
-        return config;
       },
     }),
   ],

@@ -6,28 +6,23 @@ import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class CacheService implements CacheInterface {
-    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) { }
+    constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) { }
 
-    async get(key: string): Promise<any | null> {
-        const value = await this.cacheManager.get(key);
-
-        if (!value) {
-            console.log("null")
-            return null;
-        }
-
-        return value;
+    async get<T>(key: string): Promise<T | null> {
+        const value = await this.cache.get<T>(key);
+        return value ?? null;
     }
 
-    async set(key: string, value: any, ttl = 300): Promise<void> {
-            await this.cacheManager.set(key, value, ttl * 1000);
+    async set<T>(key: string, value: T, ttlSeconds = 300): Promise<void> {
+        const plainValue = JSON.parse(JSON.stringify(value));
+        await this.cache.set(key, plainValue, ttlSeconds * 1000);
     }
 
     async del(key: string): Promise<void> {
-        await this.cacheManager.del(key);
+        await this.cache.del(key);
     }
 
     async reset(): Promise<void> {
-        await this.cacheManager.clear();
+        await this.cache.clear();
     }
 }
