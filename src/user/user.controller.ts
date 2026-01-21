@@ -24,6 +24,13 @@ export class UserController {
         res.status(response.statusCode).send(response);
     }
 
+    @Get("/all")
+    async findAllUser(@Res({ passthrough: true }) res: Response, @CurrentUser() user: User): Promise<void> {
+        const response = await this.userService.findAllUser(user);
+
+        res.status(response.statusCode).send(response);
+    }
+
     @Get(":id")
     async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.userService.findOne(id);
