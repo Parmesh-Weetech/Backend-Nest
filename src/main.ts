@@ -7,8 +7,10 @@ import { HttpErrorFilter } from './common/exceptions/global.exception.js';
 import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { JwtService } from '@nestjs/jwt';
-import { Auth } from './common/util/auth.js';
+import { ExpressAdapter } from '@bull-board/express';
+import { Queue } from 'bullmq';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 
 async function bootstrap() {
   try {
@@ -17,6 +19,9 @@ async function bootstrap() {
     });
 
     const configService = app.get(ConfigService);
+
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath('/admin/queues');
 
     const auto_seed = configService.get("AUTO_SEED");
 
@@ -31,6 +36,15 @@ async function bootstrap() {
       await new MainSeeder().run(dataSource);
       console.log('✅ Database seeding completed');
     }
+
+    const notificationQueue = app.get<Queue>(
+      'BullQueue_notifications',
+    );
+
+    createBullBoard({
+      queues: [new BullMQAdapter(notificationQueue)],
+      serverAdapter,
+    });
 
     app.useGlobalPipes(
       new ValidationPipe({
@@ -63,6 +77,10 @@ async function bootstrap() {
       .build();
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, documentFactory);
+
+    app
+      .getHttpServer()
+      .use('/admin/queues', serverAdapter.getRouter());
 
     await app.listen(configService.get("PORT") ?? 3000, '0.0.0.0');
 

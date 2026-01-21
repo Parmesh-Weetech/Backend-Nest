@@ -16,6 +16,8 @@ import { HCaptchaModule } from './h-captcha/h-captcha.module';
 import { ProductModule } from './product/product.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { CacheModule } from './cache/cache.module.js';
+import { NotificationModule } from './notification/notification.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -31,7 +33,8 @@ import { CacheModule } from './cache/cache.module.js';
       }),
       inject: [ConfigService],
     }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule],
+
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule],
   controllers: [AppController],
   providers: [AppService],
 })

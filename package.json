@@ -27,9 +27,13 @@
     "test:e2e:js": "npm run build:test && jest --config test/jest-e2e.js"
   },
   "dependencies": {
+    "@bull-board/api": "^6.16.2",
+    "@bull-board/express": "^6.16.2",
+    "@bull-board/nestjs": "^6.16.2",
     "@faker-js/faker": "^10.1.0",
     "@keyv/redis": "^5.1.6",
     "@nestjs/axios": "^4.0.1",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -44,6 +48,7 @@
     "@types/express-session": "^1.18.2",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.66.5",
     "cache-manager": "^7.2.8",
     "cache-manager-ioredis": "^2.1.0",
     "class-transformer": "^0.5.1",
