@@ -8,18 +8,19 @@ import type { Cache } from 'cache-manager';
 export class CacheService implements CacheInterface {
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) { }
 
-    async get<T>(key: string): Promise<T | null> {
-        console.log("getting", key)
-        const value = await this.cacheManager.get<T>(key);
+    async get(key: string): Promise<any | null> {
+        const value = await this.cacheManager.get(key);
 
-        console.log(value)
-        if(!value) return null;
+        if (!value) {
+            console.log("null")
+            return null;
+        }
+
         return value;
     }
 
-    async set<T>(key: string, value: T, ttl = 300): Promise<void> {
-        console.log("setting", key, "value", value)
-        await this.cacheManager.set(key, value, ttl);
+    async set(key: string, value: any, ttl = 300): Promise<void> {
+            await this.cacheManager.set(key, value, ttl * 1000);
     }
 
     async del(key: string): Promise<void> {

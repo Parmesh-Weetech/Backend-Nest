@@ -31,8 +31,7 @@ import { CacheModule } from './cache/cache.module.js';
       }),
       inject: [ConfigService],
     }),
-    CacheModule,
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule],
   controllers: [AppController],
   providers: [AppService],
 })

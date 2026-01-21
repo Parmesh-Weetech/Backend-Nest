@@ -7,10 +7,11 @@ import { AuthModule } from '../auth/auth.module.js';
 import { RoleModule } from '../role/role.module.js';
 import { PermissionModule } from '../permission/permission.module.js';
 import { OrganizationModule } from '../organization/organization.module.js';
+import { CacheModule } from '../cache/cache.module.js';
 
 @Module({
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, forwardRef(() => PermissionModule), forwardRef(() => OrganizationModule)],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, forwardRef(() => PermissionModule), forwardRef(() => OrganizationModule), CacheModule],
   controllers: [UserController],
   exports: [UserService]
 })

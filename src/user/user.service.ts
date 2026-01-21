@@ -45,9 +45,8 @@ export class UserService {
     }
 
     async findOne(id: string): Promise<Response> {
-        console.log("sending2 ")
-        let cachedUser = await this.cacheService.get(this.userKey(id));
-        console.log("cachedUser", cachedUser)
+        const cacheKey = this.userKey(id);
+        let cachedUser = await this.cacheService.get(cacheKey);
 
         if (!cachedUser) {
             const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
@@ -61,7 +60,8 @@ export class UserService {
             }
 
             cachedUser = fetchedUser;
-            await this.cacheService.set(this.userKey(id), fetchedUser, 1000);
+            // TTL in seconds (600 = 10 minutes)
+            await this.cacheService.set(cacheKey, fetchedUser, 600);
         }
 
         if (!cachedUser) return {

@@ -28,8 +28,6 @@ export class UserController {
 
     @Get(":id")
     async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        console.log('Controller hit', Date.now());
-
         const response = await this.userService.findOne(id);
 
         res.status(response.statusCode).send(response);
