@@ -35,8 +35,14 @@ export class NotificationService {
             {
                 attempts: 5,
                 backoff: { type: 'exponential', delay: 2000 },
-                removeOnComplete: false,
-                removeOnFail: false,
+                removeOnComplete: {
+                    age: 60 * 60,
+                    count: 10
+                },
+                removeOnFail: {
+                    age: 24 * 60 * 60,
+                    count: 1000
+                },
                 
             },
         );
