@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class NotificationService {
@@ -12,7 +13,7 @@ export class NotificationService {
         private readonly queue: Queue,
 
         @InjectRepository(Notification)
-        private readonly repo: Repository<Notification>,
+        private readonly notificationRepository: Repository<Notification>,
     ) { }
 
     async create(
@@ -20,7 +21,7 @@ export class NotificationService {
         receiverId: string,
         message: string,
     ) {
-        const notification = await this.repo.save({
+        const notification = await this.notificationRepository.save({
             senderId,
             receiverId,
             message,
@@ -34,7 +35,9 @@ export class NotificationService {
             {
                 attempts: 5,
                 backoff: { type: 'exponential', delay: 2000 },
-                removeOnComplete: true,
+                removeOnComplete: false,
+                removeOnFail: false,
+                
             },
         );
 
@@ -42,5 +45,10 @@ export class NotificationService {
             notificationId: notification.id,
             status: 'PENDING',
         };
+    }
+
+    async findOne(user: User) {
+        console.log(user)
+        return await this.notificationRepository.find({ where: { receiverId: user.id }, order: { createdAt: "DESC"} });
     }
 }

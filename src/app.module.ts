@@ -18,6 +18,7 @@ import { WebsocketModule } from './websocket/websocket.module';
 import { CacheModule } from './cache/cache.module.js';
 import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -33,7 +34,13 @@ import { QueueModule } from './queue/queue.module';
       }),
       inject: [ConfigService],
     }),
-
+    BullModule.forRoot({
+      connection: {
+        url: "redis://localhost:6379",
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule],
   controllers: [AppController],
   providers: [AppService],

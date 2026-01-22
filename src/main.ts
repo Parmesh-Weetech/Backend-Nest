@@ -1,33 +1,40 @@
 import { NestFactory, Reflector } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import {
+  ClassSerializerInterceptor,
+  HttpException,
+  HttpStatus,
+  ValidationPipe,
+} from '@nestjs/common';
+
 import { AppModule } from './app.module.js';
-import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js';
 import { HttpErrorFilter } from './common/exceptions/global.exception.js';
+
 import { DataSource } from 'typeorm';
 import { MainSeeder } from '../db/seeders/main.seed.js';
+
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
 import { ExpressAdapter } from '@bull-board/express';
-import { Queue } from 'bullmq';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { Queue } from 'bullmq';
 
 async function bootstrap() {
   try {
-    const app = await NestFactory.create(AppModule, {
-      logger: ['error']
-    });
+    // ✅ CREATE ONLY ONE APP — EXPRESS BASED
+    const app =
+      await NestFactory.create<NestExpressApplication>(AppModule, {
+        logger: ['error'],
+      });
 
     const configService = app.get(ConfigService);
 
-    const serverAdapter = new ExpressAdapter();
-    serverAdapter.setBasePath('/admin/queues');
-
-    const auto_seed = configService.get("AUTO_SEED");
-
-    if (auto_seed) {
+    /* -------------------- DB SEEDING -------------------- */
+    if (configService.get('AUTO_SEED')) {
       const dataSource = app.get(DataSource);
-
       if (!dataSource.isInitialized) {
         await dataSource.initialize();
       }
@@ -37,21 +44,28 @@ async function bootstrap() {
       console.log('✅ Database seeding completed');
     }
 
-    const notificationQueue = app.get<Queue>(
-      'BullQueue_notifications',
-    );
+    /* -------------------- BULL BOARD -------------------- */
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath('/admin/queues');
+
+    const notificationQueue =
+      app.get<Queue>('BullQueue_notifications');
 
     createBullBoard({
       queues: [new BullMQAdapter(notificationQueue)],
       serverAdapter,
     });
 
+    // 🔥 THIS IS THE CORRECT LINE
+    app.use('/admin/queues', serverAdapter.getRouter());
+
+    /* -------------------- GLOBAL SETUP -------------------- */
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
-      })
+      }),
     );
 
     app.useGlobalInterceptors(
@@ -64,29 +78,29 @@ async function bootstrap() {
     app.enableCors({
       origin: '*',
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
     });
 
-
-    const config = new DocumentBuilder()
-      .setTitle('H-catpcha example')
-      .setDescription('H-captcha API description')
+    /* -------------------- SWAGGER -------------------- */
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('API')
+      .setDescription('API documentation')
       .setVersion('1.0')
-      .addTag('H-captcha')
       .build();
-    const documentFactory = () => SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, documentFactory);
 
-    app
-      .getHttpServer()
-      .use('/admin/queues', serverAdapter.getRouter());
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api', app, document);
 
-    await app.listen(configService.get("PORT") ?? 3000, '0.0.0.0');
+    /* -------------------- START SERVER -------------------- */
+    await app.listen(configService.get('PORT') ?? 3000, '0.0.0.0');
 
+    console.log('🚀 Server started successfully');
   } catch (error: any) {
     console.error('Error starting server:', error);
-    throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR, { cause: error });
+    throw new HttpException(
+      error.message,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      { cause: error },
+    );
   }
 }
 

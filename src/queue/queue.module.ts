@@ -14,7 +14,5 @@ import { Notification } from '../notification/entities/notification.entity';
         NotificationModule
     ],
     providers: [NotificationService, NotificationProcessor],
-    controllers: [NotificationController],
-
 })
 export class QueueModule {}
