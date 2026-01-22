@@ -12,9 +12,11 @@ import AppConfig from './config/app.config.js';
 import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 import { OrganizationModule } from './organization/organization.module.js';
-import { HCaptchaModule } from './h-captcha/h-captcha.module';
-import { ProductModule } from './product/product.module';
-import { WebsocketModule } from './websocket/websocket.module';
+import { HCaptchaModule } from './h-captcha/h-captcha.module.js';
+import { ProductModule } from './product/product.module.js';
+import { WebsocketModule } from './websocket/websocket.module.js';
+import { SupabaseModule } from './supabase/supabase.module.js';
+import { FilesModule } from './files/files.module.js';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { WebsocketModule } from './websocket/websocket.module';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, SupabaseModule, FilesModule],
   controllers: [AppController],
   providers: [AppService],
 })
