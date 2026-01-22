@@ -1,9 +1,6 @@
-import { BadRequestException, forwardRef, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
-import { User } from '../user/entities/user.entity';
-import { Response } from '../common/response/response.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { files } from './entities/file.entity';
 import { Repository } from 'typeorm';
