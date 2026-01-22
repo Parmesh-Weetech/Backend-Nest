@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Auth } from '../util/auth';
 
@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
 
         const isValid = await this.auth.verify(access_token)
 
-        if(!isValid) return false;
+        if(!isValid) throw new UnauthorizedException("Unauthorized access! Token expired.")
 
         return true;
 

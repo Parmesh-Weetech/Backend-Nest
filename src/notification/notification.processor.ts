@@ -40,14 +40,8 @@ export class NotificationProcessor extends WorkerHost {
             const notification = await this.repo.findOneBy({ id: notificationId });
             if (!notification) return;
 
-            const WORKER_ID = process.env.WORKER_ID ?? 'worker-unknown';
-
             console.log(
-                `[${WORKER_ID}] Picked job ${job.id} for notification ${notificationId}`,
-            );
-
-            console.log(
-                `${WORKER_ID} Sending notification to ${notification.receiverId}`,
+                `Sending notification to ${notification.receiverId}`,
             );
 
             /**

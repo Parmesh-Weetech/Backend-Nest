@@ -21,6 +21,8 @@ import { ExpressAdapter } from '@bull-board/express';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { Queue } from 'bullmq';
+import { AuthMiddleware } from './common/middlewares/auth.middleware.js';
+import { PermissionsMiddleware } from './common/middlewares/permission.middleware.js';
 
 async function bootstrap() {
   try {
@@ -31,6 +33,9 @@ async function bootstrap() {
       });
 
     const configService = app.get(ConfigService);
+
+    const authMiddleware = app.get(AuthMiddleware);
+    const permissionsMiddleware = app.get(PermissionsMiddleware);
 
     /* -------------------- DB SEEDING -------------------- */
     if (configService.get('AUTO_SEED')) {
@@ -57,7 +62,11 @@ async function bootstrap() {
     });
 
     // 🔥 THIS IS THE CORRECT LINE
-    app.use('/admin/queues', serverAdapter.getRouter());
+    app.use('/admin/queues',
+      authMiddleware.use.bind(authMiddleware),
+      permissionsMiddleware.use.bind(permissionsMiddleware),
+      serverAdapter.getRouter()
+    );
 
     /* -------------------- GLOBAL SETUP -------------------- */
     app.useGlobalPipes(

@@ -18,6 +18,9 @@ import { CurrentUserInterceptor } from '../common/interceptors/currentUser.inter
     AuthModule,
     BullModule.registerQueue({
       name: 'notifications',
+      connection: {
+        url: "redis://localhost:6379"
+      }
     }),
   ],
 })
