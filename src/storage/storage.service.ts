@@ -29,14 +29,21 @@ export class StorageService {
     }
 
     async download(path: string): Promise<Readable> {
-        const { data, error } = await this.client.storage.from(this.bucket).download(path);
+        const { data, error } = await this.client.storage
+            .from(this.bucket)
+            .createSignedUrl(path, 86400);
 
-        if (error) throw new InternalServerErrorException(error.message);
-        if (!data) throw new NotFoundException('File not found in storage');
+        if (error || !data?.signedUrl) {
+            throw new InternalServerErrorException('Failed to create signed URL');
+        }
 
-        // Convert Blob to Node.js Readable stream (Supabase Response has .body)
-        const nodeStream = Readable.from(data.stream());
-        return nodeStream;
+        const response = await fetch(data.signedUrl);
+
+        if (!response.ok || !response.body) {
+            throw new NotFoundException('File not found in storage');
+        }
+
+        return Readable.fromWeb(response.body as any);
     }
 
     async list(path: string = ''): Promise<string[]> {
@@ -51,15 +58,6 @@ export class StorageService {
         const { data, error } = await this.client.storage
             .from(this.bucket)
             .createSignedUrl(path, expiresIn);
-
-        if (error) throw new InternalServerErrorException(error.message);
-        return data.signedUrl;
-    }
-
-    async getSignedUploadUrl(path: string, expiresInSec = 3600): Promise<string> {
-        const { data, error } = await this.client.storage
-            .from(this.bucket)
-            .createSignedUrl(path, expiresInSec);
 
         if (error) throw new InternalServerErrorException(error.message);
         return data.signedUrl;
