@@ -31,11 +31,12 @@ export class FilesService {
 
         try {
             await this.fileRepository.save({
-                user_id: user.id,
+                user: user,
                 path,
                 bucket: this.configService.get<string>('SUPABASE_BUCKET'),
             });
         } catch (error) {
+            console.log(error)
             await this.storageService.deleteFile(path);
             throw new InternalServerErrorException('Failed to save file record');
         }
@@ -45,7 +46,7 @@ export class FilesService {
 
 
     async listFiles(user: User) {
-        const files = await this.fileRepository.find({ where: { user_id: user.id } });
+        const files = await this.fileRepository.find({ where: { user: user } });
 
         if(!files || files.length === 0) throw new NotFoundException("Files not found.");
 
@@ -56,7 +57,7 @@ export class FilesService {
         const file = await this.fileRepository.findOne({ where: { id: fileId } });
 
         if (!file) throw new NotFoundException('File not found');
-        if (file.user_id !== user.id) throw new ForbiddenException('Access denied');
+        if (file.user.id !== user.id) throw new ForbiddenException('Access denied');
 
         const stream = await this.storageService.download(file.path);
 
@@ -71,7 +72,7 @@ export class FilesService {
         const file = await this.fileRepository.findOne({ where: { id: fileId } });
 
         if (!file) throw new NotFoundException('File not found');
-        if (file.user_id !== user.id) throw new ForbiddenException("Invalid request");
+        if (file.user.id !== user.id) throw new ForbiddenException("Invalid request");
 
         return this.storageService.getSignedUrl(file.path);
     }
@@ -86,7 +87,7 @@ export class FilesService {
             throw new NotFoundException('File not found');
         }
 
-        if (file.user_id !== user.id) {
+        if (file.user.id !== user.id) {
             throw new ForbiddenException('Access denied');
         }
 
