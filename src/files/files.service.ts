@@ -6,6 +6,7 @@ import { User } from '../user/entities/user.entity';
 import { randomUUID } from 'crypto';
 import { StorageService } from '../storage/storage.service';
 import { ConfigService } from '@nestjs/config';
+import { Readable } from 'stream';
 
 @Injectable()
 export class FilesService {
@@ -18,30 +19,30 @@ export class FilesService {
 
     async uploadFile(file: Express.Multer.File, user: User): Promise<string> {
         if (!file) throw new BadRequestException('File missing');
-        if (!['image/png', 'image/jpeg'].includes(file.mimetype)) {
-            throw new BadRequestException('Invalid file type');
-        }
 
-        const ext = file.originalname.substring(
-            file.originalname.lastIndexOf('.') + 1,
-        );
+        const ext = file.originalname.split('.').pop();
         const path = `${user.id}/${randomUUID()}.${ext}`;
 
-        await this.storageService.upload(path, file.buffer, file.mimetype);
+        // Convert buffer to stream
+        const fileStream = Readable.from(file.buffer);
+
+        // Upload directly using storage client
+        await this.storageService.upload(path, fileStream, file.mimetype);
 
         try {
             await this.fileRepository.save({
                 user_id: user.id,
                 path,
-                bucket: this.configService.get<string>("SUPABASE_BUCKET")
+                bucket: this.configService.get<string>('SUPABASE_BUCKET'),
             });
-        } catch (error: any) {
+        } catch (error) {
             await this.storageService.deleteFile(path);
-            throw new InternalServerErrorException('Failed to save file');
+            throw new InternalServerErrorException('Failed to save file record');
         }
 
-        return this.storageService.getSignedUrl(path);
+        return path;
     }
+
 
     async listFiles(user: User) {
         const files = await this.fileRepository.find({ where: { user_id: user.id } });
