@@ -20,12 +20,12 @@ export class FilesController {
         @UploadedFile() file: Express.Multer.File,
         @CurrentUser() user: User
     ): Promise<Response> {
-        const signedUrl = await this.fileService.uploadFile(file, user);
+        const fileId = await this.fileService.uploadFile(file, user);
 
         return {
             success: true,
             message: 'File uploaded successfully',
-            data: signedUrl,
+            data: fileId,
             expired: false,
             statusCode: 201
         };

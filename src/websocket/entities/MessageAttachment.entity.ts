@@ -1,5 +1,6 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Message } from "./message.entity.js";
+import { Files } from "../../files/entities/File.entity.js";
 
 @Entity('message_attachments')
 export class MessageAttachment {
@@ -10,8 +11,12 @@ export class MessageAttachment {
     { cascade: true, onDelete: 'CASCADE', onUpdate: "CASCADE" })
     message: Message;
 
-    @Column() 
-    mediaId: string;
+    @ManyToOne(() => Files, {
+        nullable: false,
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'mediaId' })
+    media: Files;
 
     @Column() 
     mimeType: string;

@@ -30,18 +30,17 @@ export class FilesService {
         await this.storageService.upload(path, fileStream, file.mimetype);
 
         try {
-            await this.fileRepository.save({
+            const savedFile = await this.fileRepository.save({
                 user: user,
                 path,
                 bucket: this.configService.get<string>('SUPABASE_BUCKET'),
             });
+
+            return savedFile.id;
         } catch (error) {
-            console.log(error)
             await this.storageService.deleteFile(path);
             throw new InternalServerErrorException('Failed to save file record');
         }
-
-        return path;
     }
 
 

@@ -10,7 +10,9 @@ export class Files {
 
     @ManyToOne(() => User, user => user.files, {
         nullable: true,
+        cascade: true,
         onDelete: 'CASCADE',
+        onUpdate: "CASCADE"
     })
     @JoinColumn({ name: 'user_id' })
     user: User;

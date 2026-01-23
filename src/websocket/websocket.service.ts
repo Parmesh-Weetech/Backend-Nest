@@ -5,6 +5,7 @@ import { Conversation } from './entities/conversation.entity.js';
 import { Repository } from 'typeorm';
 import { SendMessageDto } from './dtos/sendMessage.dto.js';
 import { User } from '../user/entities/user.entity.js';
+import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 
 @Injectable()
 export class WebsocketService {
@@ -14,7 +15,9 @@ export class WebsocketService {
         @InjectRepository(Message)
         private readonly messageRepository: Repository<Message>,
         @InjectRepository(User)
-        private readonly userRepository: Repository<User>
+        private readonly userRepository: Repository<User>,
+        @InjectRepository(MessageAttachment)
+        private readonly messageAttachmentRepository: Repository<MessageAttachment>
     ) { }
     async findOrCreateConversation(userId: string, otherUserId: string) {
         const conversation = await this.conversationRepository
@@ -48,35 +51,49 @@ export class WebsocketService {
         return messages;
     }
 
-    async sendMessage(sendMessageDto: SendMessageDto, senderId: string): Promise<Message> {
-
-        const conversation = await this.conversationRepository.findOne({ where: {
-            id: sendMessageDto.conversationId
-        }});
+    async sendMessage(
+        sendMessageDto: SendMessageDto,
+        senderId: string
+    ): Promise<Message> {
+        const conversation = await this.conversationRepository.findOne({
+            where: { id: sendMessageDto.conversationId },
+        });
 
         if (!conversation) {
             throw new Error('Conversation not found');
         }
 
-        const sender = await this.userRepository.findOne({ where: { id: senderId }});
-        
+        const sender = await this.userRepository.findOne({
+            where: { id: senderId },
+        });
+
         if (!sender) {
             throw new Error('Sender not found');
         }
 
-        const receiver = await this.userRepository.findOne({ where: { id: sendMessageDto.receiverId }});
-
-        if (!receiver) {
-            throw new Error('Receiver not found');
-        }
-
-        const newMessage = this.messageRepository.create({
-            content: sendMessageDto.content,
+        const message = this.messageRepository.create({
+            content: sendMessageDto.content ?? null,
             type: sendMessageDto.type,
             conversation,
             sender,
         });
 
-        return await this.messageRepository.save(newMessage);
+        const savedMessage = await this.messageRepository.save(message);
+
+        if (sendMessageDto.attachments?.length) {
+
+            const attachments = sendMessageDto.attachments.map((mediaId, index) =>
+                this.messageAttachmentRepository.create({
+                    message: savedMessage,
+                    media: { id: mediaId } as any,
+                    order: index,
+                })
+            );
+
+            await this.messageAttachmentRepository.save(attachments);
+        }
+
+        return savedMessage;
     }
+
 }
