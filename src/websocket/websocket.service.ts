@@ -75,7 +75,6 @@ export class WebsocketService {
             type: sendMessageDto.type,
             conversation,
             sender,
-            receiver,
         });
 
         return await this.messageRepository.save(newMessage);

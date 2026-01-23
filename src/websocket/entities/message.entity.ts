@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Conversation } from "./conversation.entity.js";
 import { User } from "../../user/entities/user.entity.js";
+import { MessageAttachment } from "./MessageAttachment.entity.js";
 
 export enum MessageType {
     TEXT = 'text',
@@ -14,20 +15,20 @@ export class Message {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
-    content: string;
+    @Column({ type: "text", nullable: true })
+    content: string | null;
 
     @Column({ type: 'enum', enum: MessageType })
     type: MessageType;
+
+    @OneToMany(() => MessageAttachment, attachment => attachment.message)
+    attachments: MessageAttachment[];
 
     @ManyToOne(() => Conversation)
     conversation: Conversation;
 
     @ManyToOne(() => User)
     sender: User;
-
-    @ManyToOne(() => User)
-    receiver: User;
 
     @CreateDateColumn()
     createdAt: Date;

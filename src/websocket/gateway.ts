@@ -101,7 +101,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
       type: newMessage.type,
       conversation: newMessage.conversation,
       sender: newMessage.sender,
-      receiver: newMessage.receiver,
       createdAt: newMessage.createdAt,
     });
   }
