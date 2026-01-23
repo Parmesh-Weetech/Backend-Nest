@@ -11,6 +11,7 @@ import { MainSeeder } from '../db/seeders/main.seed.js';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { Auth } from './common/util/auth.js';
+import 'multer'
 
 async function bootstrap() {
   try {
