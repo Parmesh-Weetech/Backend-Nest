@@ -1,34 +1,76 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { SupabaseService } from '../supabase/supabase.service';
-import { ConfigService } from '@nestjs/config';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { files } from './entities/file.entity';
+import { Files } from './entities/File.entity';
 import { Repository } from 'typeorm';
+import { User } from '../user/entities/user.entity';
+import { randomUUID } from 'crypto';
+import { StorageService } from '../storage/storage.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FilesService {
     constructor(
-        @Inject(forwardRef(() => SupabaseService))
-        private readonly supabase: SupabaseService,
-        private readonly config: ConfigService,
-        @InjectRepository(files)
-        private readonly fileRepository: Repository<files>
+        @InjectRepository(Files)
+        private readonly fileRepository: Repository<Files>,
+        private readonly storageService: StorageService,
+        private readonly configService: ConfigService
     ) { }
 
-    
-    async save(userId: string, bucket: string, filePath: string): Promise<boolean> {
-        const saveFile = this.fileRepository.create({
-            user_id: userId,
-            bucket: bucket,
-            path: filePath
-        })
-
-        const savedFile = await this.fileRepository.save(saveFile);
-
-        if(saveFile.id) {
-            return true;
+    async uploadFile(file: Express.Multer.File, user: User): Promise<string> {
+        if (!file) throw new BadRequestException('File missing');
+        if (!['image/png', 'image/jpeg'].includes(file.mimetype)) {
+            throw new BadRequestException('Invalid file type');
         }
 
-        return false;
+        const ext = file.originalname.substring(
+            file.originalname.lastIndexOf('.') + 1,
+        );
+        const path = `${user.id}/${randomUUID()}.${ext}`;
+
+        await this.storageService.upload(path, file.buffer, file.mimetype);
+
+        try {
+            await this.fileRepository.save({
+                user_id: user.id,
+                path,
+                bucket: this.configService.get<string>("SUPABASE_BUCKET")
+            });
+        } catch (error: any) {
+            await this.storageService.deleteFile(path);
+            throw new InternalServerErrorException('Failed to save file');
+        }
+
+        return this.storageService.getSignedUrl(path);
+    }
+
+
+    async getSignedUrl(fileId: string, user: User) {
+        const file = await this.fileRepository.findOne({ where: { id: fileId } });
+
+        if (!file) throw new NotFoundException('File not found');
+        if (file.user_id !== user.id) throw new ForbiddenException("Invalid request");
+
+        return this.storageService.getSignedUrl(file.path);
+    }
+
+
+    async deleteFile(fileId: string, user: User): Promise<void> {
+        const file = await this.fileRepository.findOne({
+            where: { id: fileId },
+        });
+
+        if (!file) {
+            throw new NotFoundException('File not found');
+        }
+
+        if (file.user_id !== user.id) {
+            throw new ForbiddenException('Access denied');
+        }
+
+        // delete from storage first
+        await this.storageService.deleteFile(file.path);
+
+        // delete from DB
+        await this.fileRepository.delete(file.id);
     }
 }

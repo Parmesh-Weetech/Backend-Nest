@@ -15,8 +15,8 @@ import { OrganizationModule } from './organization/organization.module.js';
 import { HCaptchaModule } from './h-captcha/h-captcha.module.js';
 import { ProductModule } from './product/product.module.js';
 import { WebsocketModule } from './websocket/websocket.module.js';
-import { SupabaseModule } from './supabase/supabase.module.js';
 import { FilesModule } from './files/files.module.js';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -31,7 +31,7 @@ import { FilesModule } from './files/files.module.js';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, SupabaseModule, FilesModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, FilesModule, StorageModule],
   controllers: [AppController],
   providers: [AppService],
 })

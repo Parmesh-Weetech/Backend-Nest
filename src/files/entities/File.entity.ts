@@ -1,8 +1,8 @@
 import { Expose } from "class-transformer";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("files")
-export class files {
+export class Files {
     @PrimaryGeneratedColumn('uuid')
     @Expose()
     id: string;
@@ -21,4 +21,7 @@ export class files {
 
     @UpdateDateColumn({ type: 'timestamptz' })
     updated_at: Date;
+
+    @DeleteDateColumn({ type: 'timestamptz', nullable: true })
+    deleted_at?: Date;
 }
