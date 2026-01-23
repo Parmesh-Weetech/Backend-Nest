@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Readable } from 'stream';
 
 @Injectable()
 export class StorageService {
@@ -25,6 +26,26 @@ export class StorageService {
             });
 
         if (error) throw new InternalServerErrorException(error.message);
+    }
+
+    async download(path: string): Promise<Readable> {
+        const { data, error } = await this.client.storage.from(this.bucket).download(path);
+
+        if (error) throw new InternalServerErrorException(error.message);
+
+        const arrayBuffer = await data.arrayBuffer();
+
+        const buffer = Buffer.from(arrayBuffer);
+
+        return Readable.from(buffer);
+    }
+
+    async list(path: string = ''): Promise<string[]> {
+        const { data, error } = await this.client.storage.from(this.bucket).list(path);
+        if (error) throw new InternalServerErrorException(error.message);
+
+        // return only file names
+        return data.map(file => file.name);
     }
 
     async getSignedUrl(path: string, expiresIn = 86400): Promise<string> {

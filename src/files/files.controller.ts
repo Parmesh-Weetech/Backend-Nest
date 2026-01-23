@@ -1,10 +1,11 @@
-import { Controller, Delete, Get, Param, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 import { Response } from '../common/response/response.dto';
+import type { Response as response } from 'express'
 
 @Controller('files')
 @UseGuards(AuthGuard)
@@ -28,6 +29,28 @@ export class FilesController {
             expired: false,
             statusCode: 201
         };
+    }
+
+    @Get('list')
+    async listFiles(@CurrentUser() user: User) {
+        const files = await this.fileService.listFiles(user);
+        return { success: true, data: files, message: 'Files listed successfully' };
+    }
+
+    @Get('download/:fileId')
+    async downloadFile(
+        @Param('fileId') fileId: string,
+        @CurrentUser() user: User,
+        @Res({ passthrough: true }) res: response
+    ) {
+        const { stream, filename, contentType } = await this.fileService.downloadFile(fileId, user);
+
+        res.set({
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Type': contentType,
+        });
+
+        return new StreamableFile(stream);
     }
 
     @Get(':id/signed-url')
