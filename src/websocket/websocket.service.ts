@@ -92,8 +92,6 @@ export class WebsocketService {
 
             const savedAttachments =
                 await this.messageAttachmentRepository.save(attachments);
-            
-                console.log(savedAttachments.length)
 
             savedMessage.attachments = savedAttachments;
         }

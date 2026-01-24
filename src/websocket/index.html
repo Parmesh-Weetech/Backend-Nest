@@ -154,10 +154,13 @@
           const result = await res.json();
           const fileId = result.data;
 
+          const text = document.getElementById('messageInput').value.trim();
+
           // 2️⃣ Send websocket message with attachment UUID
           socket.emit('send_message', {
             conversationId,
             type: 'image',
+            content: text ? text : null,
             attachments: [fileId],
           });
 
