@@ -1,13 +1,26 @@
-import { Column, CreateDateColumn, DeleteDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { User } from "../../user/entities/user.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 export class Video {
     @PrimaryGeneratedColumn('uuid')
     id: string
 
     @Column()
-    original_url: string
+    path: string
 
-    @Column({ nullable: false, default: 'DRAFT'})
+    @Column()
+    bucket: string
+
+    @ManyToOne(() => User, user => user.files, {
+        nullable: true,
+        cascade: true,
+        onDelete: 'CASCADE',
+        onUpdate: "CASCADE"
+    })
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @Column({ nullable: false, default: 'DRAFT' })
     status: string
 
     @CreateDateColumn({ type: 'timestamptz' })
