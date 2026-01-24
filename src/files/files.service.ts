@@ -20,6 +20,8 @@ export class FilesService {
     async uploadFile(file: Express.Multer.File, user: User): Promise<string> {
         if (!file) throw new BadRequestException('File missing');
 
+        if (file.size > 10 * 1024 * 1024) throw new BadRequestException("File size is too large.");
+
         const ext = file.originalname.split('.').pop();
         const path = `${user.id}/${randomUUID()}.${ext}`;
 
@@ -54,7 +56,7 @@ export class FilesService {
 
     async downloadFile(fileId: string, user: User) {
         const file = await this.fileRepository.findOne({ where: { id: fileId }, relations: ["user"] });
-        
+
         if (!file) throw new NotFoundException('File not found');
 
         const stream = await this.storageService.download(file.path);
