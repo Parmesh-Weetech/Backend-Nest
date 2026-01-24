@@ -53,10 +53,9 @@ export class FilesService {
     }
 
     async downloadFile(fileId: string, user: User) {
-        const file = await this.fileRepository.findOne({ where: { id: fileId } });
-
+        const file = await this.fileRepository.findOne({ where: { id: fileId }, relations: ["user"] });
+        
         if (!file) throw new NotFoundException('File not found');
-        if (file.user.id !== user.id) throw new ForbiddenException('Access denied');
 
         const stream = await this.storageService.download(file.path);
 

@@ -13,6 +13,8 @@ export class MessageAttachment {
 
     @ManyToOne(() => Files, {
         nullable: false,
+        cascade: true,
+        onUpdate: "CASCADE",
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'mediaId' })

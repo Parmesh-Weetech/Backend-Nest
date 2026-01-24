@@ -45,7 +45,7 @@ export class WebsocketService {
         const messages = await this.messageRepository.find({
             where: { conversation: { id: conversationId } },
             order: { createdAt: 'ASC' },
-            relations: ['sender', 'conversation', 'receiver']
+            relations: ['sender', 'conversation']
         });
 
         return messages;
@@ -81,16 +81,19 @@ export class WebsocketService {
         const savedMessage = await this.messageRepository.save(message);
 
         if (sendMessageDto.attachments?.length) {
-
             const attachments = sendMessageDto.attachments.map((mediaId, index) =>
                 this.messageAttachmentRepository.create({
                     message: savedMessage,
-                    media: { id: mediaId } as any,
+                    mimeType: sendMessageDto.type,
+                    media: { id: mediaId },
                     order: index,
-                })
+                }),
             );
 
-            await this.messageAttachmentRepository.save(attachments);
+            const savedAttachments =
+                await this.messageAttachmentRepository.save(attachments);
+
+            savedMessage.attachments = savedAttachments;
         }
 
         return savedMessage;
