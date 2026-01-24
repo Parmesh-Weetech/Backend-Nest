@@ -78,12 +78,13 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     const messages = await this.webSocketService.findMessages(conversation.id);
+    const attachments = await this.webSocketService.findAttachments(messages);
 
     client.join(conversation.id);
 
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
 
-    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.length === 0 ? [] : messages });
+    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.length === 0 ? [] : messages, attachments: attachments.length === 0 ? [] : attachments });
   }
 
   @SubscribeMessage("send_message")

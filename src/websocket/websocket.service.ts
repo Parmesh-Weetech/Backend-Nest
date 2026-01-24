@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message } from './entities/message.entity.js';
 import { Conversation } from './entities/conversation.entity.js';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { SendMessageDto } from './dtos/sendMessage.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { MessageAttachment } from './entities/MessageAttachment.entity.js';
@@ -92,6 +92,8 @@ export class WebsocketService {
 
             const savedAttachments =
                 await this.messageAttachmentRepository.save(attachments);
+            
+                console.log(savedAttachments.length)
 
             savedMessage.attachments = savedAttachments;
         }
@@ -99,4 +101,25 @@ export class WebsocketService {
         return savedMessage;
     }
 
+    async findAttachments(messages: Message[]) {
+        if (!messages.length) return [];
+
+        const messageIds = messages.map(m => m.id);
+
+        const attachments = await this.messageAttachmentRepository.find({
+            where: {
+                message: {
+                    id: In(messageIds),
+                },
+            },
+            relations: {
+                media: true,
+                message: {
+                    sender: true,
+                },
+            },
+        });
+
+        return attachments;
+    }
 }

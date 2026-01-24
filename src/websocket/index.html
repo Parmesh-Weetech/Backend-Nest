@@ -60,7 +60,9 @@
       <h2>1-to-1 Chat</h2>
 
       <input id="otherUserId" placeholder="Other User ID" />
-      <button type="button" onclick="joinConversation()">Join Conversation</button>
+      <button type="button" onclick="joinConversation()">
+        Join Conversation
+      </button>
 
       <hr />
 
@@ -106,6 +108,7 @@
         conversationId = data.conversationId;
         currentUserId = data.userId;
         loadMessages(data.messages);
+        loadAttachments(data.attachments);
       });
 
       // -----------------------------
@@ -131,9 +134,9 @@
       async function sendFile() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
-        if (!file) alert("File is required!");
+        if (!file) alert('File is required!');
 
-        if(!conversationId) alert("Please join the conversation");
+        if (!conversationId) alert('Please join the conversation');
 
         const formData = new FormData();
         formData.append('file', file);
@@ -190,6 +193,7 @@
       // -----------------------------
       async function downloadAndRenderImage(fileId, isMe) {
         try {
+          console.log(fileId)
           const res = await fetch(
             `http://localhost:3000/files/download/${fileId}`,
             {
@@ -198,7 +202,6 @@
               },
             },
           );
-
           console.log(res);
 
           if (!res.ok) {
@@ -208,6 +211,7 @@
 
           // Browser consumes stream → Blob
           const blob = await res.blob();
+          console.log(blob);
 
           // Create URL from Blob
           const imageUrl = URL.createObjectURL(blob);
@@ -254,6 +258,17 @@
               `${isMe ? 'Me' : msg.sender.name}: ${msg.content}`,
               isMe,
             );
+          }
+        });
+      }
+
+      function loadAttachments(attachments) {
+        document.getElementById('messages').innerHTML = '';
+
+        attachments.map(async (attachment) => {
+          if (attachment.mimeType === 'image') {
+            const isMe = attachment.message.sender.id === currentUserId;
+            await downloadAndRenderImage(attachment.media.id, isMe);
           }
         });
       }
