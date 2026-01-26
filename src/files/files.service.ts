@@ -54,7 +54,7 @@ export class FilesService {
         return await this.storageService.list(user.id);
     }
 
-    async downloadFile(fileId: string, user: User) {
+    async downloadFile(fileId: string) {
         const file = await this.fileRepository.findOne({ where: { id: fileId }, relations: ["user"] });
 
         if (!file) throw new NotFoundException('File not found');

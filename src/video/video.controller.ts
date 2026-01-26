@@ -1,8 +1,9 @@
-import { Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VideoService } from './video.service';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
+import type { Response } from 'express';
 
 @Controller('video')
 export class VideoController {
@@ -12,5 +13,46 @@ export class VideoController {
     @UseInterceptors(FileInterceptor("file"))
     async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User) {
         return this.videoService.processVideo(file, user)
+    }
+
+    @Get(":videoId/master.m3u8")
+    async findMasterFile(@Param("videoId") videoId: string, @Res() res: Response) {
+        const { stream, filename } =
+            await this.videoService.findMasterFile(videoId);
+
+        res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+        res.setHeader(
+            'Content-Disposition',
+            `inline; filename="${filename}"`,
+        );
+
+        stream.pipe(res);
+    }
+
+    @Get(":videoId/:quality/index.m3u8")
+    async findIndexFile(@Param("videoId") videoId: string, @Param("quality") quality: string, @Res() res: Response) {
+        const { stream, filename } =
+            await this.videoService.findIndexFile(videoId, quality);
+
+        res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+
+        stream.pipe(res);
+    }
+
+    @Get(':videoId/:quality/:segment')
+    async getSegment(
+        @Param('videoId') videoId: string,
+        @Param('quality') quality: string,
+        @Param('segment') segment: string,
+        @Res() res: Response,
+    ) {
+        const { stream, filename } =
+            await this.videoService.findSegment(videoId, quality, segment);
+
+        res.setHeader('Content-Type', 'video/mp2t');
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+
+        stream.pipe(res);
     }
 }

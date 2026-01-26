@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { StorageService } from '../storage/storage.service';
 import { User } from '../user/entities/user.entity';
@@ -72,5 +72,48 @@ export class VideoService {
                 statusCode: error.status
             }
         }
+    }
+
+    async findMasterFile(videoId: string) {
+        const videoMetadata = await this.videoRepository.findOne({ where: { id: videoId } });
+        if (!videoMetadata) throw new NotFoundException('Video not found');
+
+        const stream = await this.storageService.download(videoMetadata.path);
+
+        return {
+            stream,
+            filename: videoMetadata.path.split('/').pop(),
+            contentType: 'application/octet-stream'
+        };
+    }
+
+    async findIndexFile(videoId: string, quality: string) {
+        const video = await this.videoRepository.findOne({ where: { id: videoId } });
+        if (!video) throw new NotFoundException('Video not found');
+
+        const path = `videos/${videoId}/${quality}/index.m3u8`;
+        const stream = await this.storageService.download(path);
+
+        return {
+            stream,
+            filename: 'index.m3u8',
+        };
+    }
+
+    async findSegment(
+        videoId: string,
+        quality: string,
+        segment: string,
+    ) {
+        const video = await this.videoRepository.findOne({ where: { id: videoId } });
+        if (!video) throw new NotFoundException('Video not found');
+
+        const path = `videos/${videoId}/${quality}/${segment}`;
+        const stream = await this.storageService.download(path);
+
+        return {
+            stream,
+            filename: segment,
+        };
     }
 }

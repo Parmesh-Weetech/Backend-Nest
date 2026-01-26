@@ -30,8 +30,8 @@ export class FfmpegService {
 
                 // 🔥 THIS IS THE MAGIC
                 '-var_stream_map',
-                'v:0,a:0 v:1,a:1 v:2,a:2',
-
+                'v:0,a:0,name:360 v:1,a:1,name:720 v:2,a:2,name:1080',
+                
                 '-master_pl_name', 'master.m3u8',
                 '-hls_segment_filename',
                 `${outputDir}/%v/seg_%03d.ts`,
