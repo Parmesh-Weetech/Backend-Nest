@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Readable } from 'stream';
+import fs from "fs";
+import { glob } from 'fs/promises';
 
 @Injectable()
 export class StorageService {
@@ -26,6 +28,19 @@ export class StorageService {
             });
 
         if (error) throw new InternalServerErrorException(error.message);
+    }
+
+    async uploadHls(videoId: string, dir: string) {
+        const files = glob(`${dir}/**/*`);
+
+        for await (const file of files) {
+            const relative = file.replace(dir, '');
+            await this.client.storage
+                .from(this.bucket)
+                .upload(`videos/${videoId}${relative}`, fs.createReadStream(file));
+        }
+
+        return `videos/${videoId}/master.m3u8`;
     }
 
     async download(path: string): Promise<Readable> {

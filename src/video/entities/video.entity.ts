@@ -1,6 +1,7 @@
 import { User } from "../../user/entities/user.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
+@Entity("videos")
 export class Video {
     @PrimaryGeneratedColumn('uuid')
     id: string
