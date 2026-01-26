@@ -108,12 +108,22 @@ export class VideoService {
         const video = await this.videoRepository.findOne({ where: { id: videoId } });
         if (!video) throw new NotFoundException('Video not found');
 
-        const path = `videos/${videoId}/${quality}/${segment}`;
-        const stream = await this.storageService.download(path);
+        if(segment.includes(".ts")) {
+            const path = `videos/${videoId}/${quality}/${segment}`;
+            const stream = await this.storageService.download(path);
 
-        return {
-            stream,
-            filename: segment,
-        };
+            return {
+                stream,
+                filename: segment,
+            };
+        } else {
+            const path = `videos/${videoId}/${quality}/${segment}.ts`;
+            const stream = await this.storageService.download(path);
+
+            return {
+                stream,
+                filename: segment,
+            };
+        }
     }
 }
