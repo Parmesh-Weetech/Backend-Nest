@@ -30,7 +30,7 @@ export class Files {
     mimeType: string
 
     @Column({ default: "PENDING" })
-    status: "PENDING" | "ACTIVE"
+    status: "PENDING" | "ACTIVE" | "ORPHAN"
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

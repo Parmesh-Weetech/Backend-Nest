@@ -50,7 +50,7 @@ export class FilesService {
     async listFiles(user: User) {
         const files = await this.fileRepository.find({ where: { user: user } });
 
-        if(!files || files.length === 0) throw new NotFoundException("Files not found.");
+        if (!files || files.length === 0) throw new NotFoundException("Files not found.");
 
         return await this.storageService.list(user.id);
     }
@@ -80,6 +80,7 @@ export class FilesService {
 
     async getUploadSignedUrl(
         filename: string,
+        type: string,
         user: User
     ) {
         if (!filename) {
@@ -96,23 +97,32 @@ export class FilesService {
             path: path,
             status: "PENDING",
             originalFileName: filename,
+            mimeType: type,
             bucket: this.configService.get<string>('SUPABASE_BUCKET'),
         });
 
         return {
             fileId: file.id,
-            path,
             signedUrl,
         };
     }
 
     async confirmFileUpload(fileId: string) {
-        const fileMetadata = await this.fileRepository.findOne({ where: { id: fileId }, relations: ['user']});
-        if(!fileMetadata) throw new NotFoundException("file not found!");
+        const fileMetadata = await this.fileRepository.findOne({ where: { id: fileId }, relations: ['user'] });
+        if (!fileMetadata) {
+            return {
+                confirm: false,
+                message: "File not found in db!",
+                status: 404
+            }
+        }
 
         const exists = await this.storageService.exists(fileMetadata.path);
 
         if (!exists) {
+            fileMetadata.status = 'ORPHAN';
+            await this.fileRepository.save(fileMetadata);
+
             return {
                 confirm: false,
                 message: "File not found in supabase!",
@@ -121,15 +131,15 @@ export class FilesService {
         }
 
         fileMetadata.status = 'ACTIVE';
-        fileMetadata.mimeType = fileMetadata.mimeType
-        const file = await this.fileRepository.save(fileMetadata);
-
-        if(!file) {
+        
+        try {
+            const file = await this.fileRepository.save(fileMetadata);
+        } catch (error: any) {
             return {
                 confirm: false,
-                message: "Internal Server Error while storing file in db!",
-                status: 500
-            };
+                message: error.message,
+                status: error.status
+            }
         }
 
         return {

@@ -33,11 +33,12 @@ export class FilesController {
 
     @Post('upload/signed-url')
     async getUploadSignedUrl(
-        @Body('filename') filename: string,
+        @Body() fileData: { filename: string, type: string },
         @CurrentUser() user: User
     ): Promise<Response> {
         const data = await this.fileService.getUploadSignedUrl(
-            filename,
+            fileData.filename,
+            fileData.type,
             user
         );
 
