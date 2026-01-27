@@ -70,12 +70,19 @@ export class StorageService {
     }
 
     async getSignedUrl(path: string, expiresIn = 86400): Promise<string> {
-        const { data, error } = await this.client.storage
-            .from(this.bucket)
-            .createSignedUrl(path, expiresIn);
+        try {
+            const { data, error } = await this.client.storage
+                .from(this.bucket)
+                .createSignedUrl(path, expiresIn);
 
-        if (error) throw new InternalServerErrorException(error.message);
-        return data.signedUrl;
+            if (error) {
+                throw new InternalServerErrorException(error.message);
+            }
+
+            return data.signedUrl;
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 
     async deleteFile(path: string): Promise<void> {

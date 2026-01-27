@@ -77,7 +77,6 @@ export class FilesService {
         return this.storageService.getSignedUrl(file.path);
     }
 
-
     async deleteFile(fileId: string, user: User): Promise<void> {
         const file = await this.fileRepository.findOne({
             where: { id: fileId },
