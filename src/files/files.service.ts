@@ -131,9 +131,15 @@ export class FilesService {
         }
 
         fileMetadata.status = 'ACTIVE';
-        
+
         try {
             const file = await this.fileRepository.save(fileMetadata);
+
+            return {
+                confirm: true,
+                message: "File found in supabase.",
+                status: 200
+            };
         } catch (error: any) {
             return {
                 confirm: false,
@@ -141,12 +147,6 @@ export class FilesService {
                 status: error.status
             }
         }
-
-        return {
-            confirm: true,
-            message: "File found in supabase.",
-            status: 200
-        };
     }
 
     async deleteFile(fileId: string, user: User): Promise<void> {
