@@ -69,12 +69,16 @@ export class FilesService {
         };
     }
 
-    async getSignedUrl(fileId: string, user: User) {
+    async getSignedUrl(fileId: string) {
         const file = await this.fileRepository.findOne({ where: { id: fileId } });
 
         if (!file) throw new NotFoundException('File not found');
 
         return this.storageService.getSignedUrl(file.path);
+    }
+
+    async getFileById(fileId: string) {
+        return await this.fileRepository.findOne({ where: { id: fileId }});
     }
 
     async getUploadSignedUrl(

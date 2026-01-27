@@ -86,8 +86,8 @@ export class FilesController {
     }
 
     @Get(':fileId/signed-url')
-    async getSignedUrl(@Param('fileId') fileId: string, @CurrentUser() user: User): Promise<Response> {
-        const url = await this.fileService.getSignedUrl(fileId, user);
+    async getSignedUrl(@Param('fileId') fileId: string): Promise<Response> {
+        const url = await this.fileService.getSignedUrl(fileId);
 
         return {
             success: true,

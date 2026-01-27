@@ -6,6 +6,7 @@ import { In, Repository } from 'typeorm';
 import { SendMessageDto } from './dtos/sendMessage.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { MessageAttachment } from './entities/MessageAttachment.entity.js';
+import { FilesService } from '../files/files.service.js';
 
 @Injectable()
 export class WebsocketService {
@@ -17,7 +18,8 @@ export class WebsocketService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         @InjectRepository(MessageAttachment)
-        private readonly messageAttachmentRepository: Repository<MessageAttachment>
+        private readonly messageAttachmentRepository: Repository<MessageAttachment>,
+        private readonly fileService: FilesService
     ) { }
     async findOrCreateConversation(userId: string, otherUserId: string) {
         const conversation = await this.conversationRepository
@@ -55,6 +57,7 @@ export class WebsocketService {
         sendMessageDto: SendMessageDto,
         senderId: string
     ): Promise<Message> {
+        const downloadUrls: string[] = []
         const conversation = await this.conversationRepository.findOne({
             where: { id: sendMessageDto.conversationId },
         });
@@ -81,22 +84,41 @@ export class WebsocketService {
         const savedMessage = await this.messageRepository.save(message);
 
         if (sendMessageDto.attachments?.length) {
-            const attachments = sendMessageDto.attachments.map((mediaId, index) =>
-                this.messageAttachmentRepository.create({
+
+            const attachmentEntities: MessageAttachment[] = [];
+
+            for (let index = 0; index < sendMessageDto.attachments.length; index++) {
+                const mediaId = sendMessageDto.attachments[index];
+
+                const file = await this.fileService.getFileById(mediaId);
+
+                if (!file) {
+                    throw new Error('File not found');
+                }
+
+                const url = await this.fileService.getSignedUrl(mediaId)
+
+                const attachment = this.messageAttachmentRepository.create({
                     message: savedMessage,
-                    mimeType: sendMessageDto.type,
-                    media: { id: mediaId },
+                    mimeType: file.mimeType,
+                    media: file,
                     order: index,
-                }),
-            );
+                    url: url
+                });
+
+                attachmentEntities.push(attachment);
+                downloadUrls.push(url);
+            }
 
             const savedAttachments =
-                await this.messageAttachmentRepository.save(attachments);
+                await this.messageAttachmentRepository.save(attachmentEntities);
+            
+            
 
             savedMessage.attachments = savedAttachments;
         }
 
-        return savedMessage;
+        return savedMessage
     }
 
     async findAttachments(messages: Message[]) {

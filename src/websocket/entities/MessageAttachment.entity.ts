@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Message } from "./message.entity.js";
 import { Files } from "../../files/entities/File.entity.js";
+import { Expose } from "class-transformer";
 
 @Entity('message_attachments')
 export class MessageAttachment {
@@ -25,4 +26,7 @@ export class MessageAttachment {
 
     @Column({ nullable: true })
     order: number;
+
+    @Expose()
+    url?: string;
 }
