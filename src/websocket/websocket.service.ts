@@ -95,15 +95,17 @@ export class WebsocketService {
                     throw new Error('File not found');
                 }
 
-                const url = await this.fileService.getSignedUrl(mediaId)
+                const url = await this.fileService.getSignedUrl(mediaId);
+                console.log(url);
 
                 const attachment = this.messageAttachmentRepository.create({
                     message: savedMessage,
                     mimeType: file.mimeType,
                     media: file,
                     order: index,
-                    url: url
                 });
+
+                attachment.url = url;
 
                 attachmentEntities.push(attachment);
             }
@@ -111,9 +113,13 @@ export class WebsocketService {
             const savedAttachments =
                 await this.messageAttachmentRepository.save(attachmentEntities);
 
+            console.log(savedAttachments);
+            console.log(attachmentEntities)
+
             savedMessage.attachments = savedAttachments;
         }
 
+        console.log(savedMessage)
         return savedMessage
     }
 

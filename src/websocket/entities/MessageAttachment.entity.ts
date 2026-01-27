@@ -28,5 +28,5 @@ export class MessageAttachment {
     order: number;
 
     @Expose()
-    url?: string;
+    url: string;
 }

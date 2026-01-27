@@ -95,6 +95,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     const userId = client.data.userId;
 
     const newMessage = await this.webSocketService.sendMessage(data, userId);
+    console.log(newMessage)
 
     this.server.to(data.conversationId).emit('receive_message', {
       id: newMessage.id,
