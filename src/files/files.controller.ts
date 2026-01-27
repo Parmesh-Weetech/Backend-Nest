@@ -85,9 +85,9 @@ export class FilesController {
         return new StreamableFile(stream);
     }
 
-    @Get(':id/signed-url')
-    async getSignedUrl(@Param('id') id: string, @CurrentUser() user: User): Promise<Response> {
-        const url = await this.fileService.getSignedUrl(id, user);
+    @Get(':fileId/signed-url')
+    async getSignedUrl(@Param('fileId') fileId: string, @CurrentUser() user: User): Promise<Response> {
+        const url = await this.fileService.getSignedUrl(fileId, user);
 
         return {
             success: true,
