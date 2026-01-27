@@ -73,7 +73,6 @@ export class FilesService {
         const file = await this.fileRepository.findOne({ where: { id: fileId } });
 
         if (!file) throw new NotFoundException('File not found');
-        if (file.user.id !== user.id) throw new ForbiddenException("Invalid request");
 
         return this.storageService.getSignedUrl(file.path);
     }
