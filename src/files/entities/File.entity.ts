@@ -23,6 +23,15 @@ export class Files {
     @Column()
     bucket: string
 
+    @Column({ default: "default.png" })
+    originalFileName: string
+
+    @Column({ default: "image/png" })
+    mimeType: string
+
+    @Column({ default: "PENDING" })
+    status: "PENDING" | "ACTIVE"
+
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;
 

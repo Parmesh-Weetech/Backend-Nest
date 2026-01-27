@@ -25,16 +25,17 @@ export class FilesService {
         const ext = file.originalname.split('.').pop();
         const path = `${user.id}/${randomUUID()}.${ext}`;
 
-        // Convert buffer to stream
         const fileStream = Readable.from(file.buffer);
 
-        // Upload directly using storage client
         await this.storageService.upload(path, fileStream, file.mimetype);
 
         try {
             const savedFile = await this.fileRepository.save({
                 user: user,
                 path,
+                mimeType: file.mimetype,
+                originalFileName: file.originalname,
+                status: "ACTIVE",
                 bucket: this.configService.get<string>('SUPABASE_BUCKET'),
             });
 
@@ -75,6 +76,67 @@ export class FilesService {
         if (file.user.id !== user.id) throw new ForbiddenException("Invalid request");
 
         return this.storageService.getSignedUrl(file.path);
+    }
+
+    async getUploadSignedUrl(
+        filename: string,
+        user: User
+    ) {
+        if (!filename) {
+            throw new BadRequestException('Filename is required');
+        }
+
+        const ext = filename.split('.').pop();
+        const path = `${user.id}/${randomUUID()}.${ext}`;
+
+        const { signedUrl } = await this.storageService.getSignedUploadUrl(path);
+
+        const file = await this.fileRepository.save({
+            user: user,
+            path: path,
+            status: "PENDING",
+            originalFileName: filename,
+            bucket: this.configService.get<string>('SUPABASE_BUCKET'),
+        });
+
+        return {
+            fileId: file.id,
+            path,
+            signedUrl,
+        };
+    }
+
+    async confirmFileUpload(fileId: string) {
+        const fileMetadata = await this.fileRepository.findOne({ where: { id: fileId }, relations: ['user']});
+        if(!fileMetadata) throw new NotFoundException("file not found!");
+
+        const exists = await this.storageService.exists(fileMetadata.path);
+
+        if (!exists) {
+            return {
+                confirm: false,
+                message: "File not found in supabase!",
+                status: 404
+            };
+        }
+
+        fileMetadata.status = 'ACTIVE';
+        fileMetadata.mimeType = fileMetadata.mimeType
+        const file = await this.fileRepository.save(fileMetadata);
+
+        if(!file) {
+            return {
+                confirm: false,
+                message: "Internal Server Error while storing file in db!",
+                status: 500
+            };
+        }
+
+        return {
+            confirm: true,
+            message: "File found in supabase.",
+            status: 200
+        };
     }
 
     async deleteFile(fileId: string, user: User): Promise<void> {

@@ -85,6 +85,33 @@ export class StorageService {
         }
     }
 
+    async getSignedUploadUrl(path: string) {
+        const { data, error } = await this.client
+            .storage
+            .from(this.bucket)
+            .createSignedUploadUrl(path, {
+                upsert: false
+            });
+
+        if (error) {
+            throw new InternalServerErrorException(error.message);
+        }
+
+        return data;
+    }
+
+    async exists(path: string): Promise<boolean> {
+        const { data, error } = await this.client
+            .storage
+            .from(this.bucket)
+            .list(path.split('/').slice(0, -1).join('/'), {
+                search: path.split('/').pop(),
+            });
+
+        if (error) return false;
+        return data.length > 0;
+    }
+
     async deleteFile(path: string): Promise<void> {
         const { error } = await this.client.storage
             .from(this.bucket)

@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -29,6 +29,38 @@ export class FilesController {
             expired: false,
             statusCode: 201
         };
+    }
+
+    @Post('upload/signed-url')
+    async getUploadSignedUrl(
+        @Body('filename') filename: string,
+        @CurrentUser() user: User
+    ): Promise<Response> {
+        const data = await this.fileService.getUploadSignedUrl(
+            filename,
+            user
+        );
+
+        return {
+            success: true,
+            message: 'Upload signed URL generated',
+            data,
+            expired: false,
+            statusCode: 200,
+        };
+    }
+
+    @Post(":fileId/confirm")
+    async confirmFileUpload(@Param("fileId") fileId: string): Promise<Response> {
+        const data = await this.fileService.confirmFileUpload(fileId);
+
+        return {
+            success: data.confirm,
+            data: null,
+            expired: false,
+            message: data.message,
+            statusCode: data.status
+        }
     }
 
     @Get('list')
