@@ -16,7 +16,7 @@ export class ProductService {
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    async findAll(authorization: string): Promise<Response> {
+    async findAll(authorization: string, skip: number, take: number): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -26,48 +26,51 @@ export class ProductService {
             data: null,
             expired: false,
             statusCode: 401
-        }
+        };
 
         const isValid = await this.auth.verify(access_token);
-
         if (!isValid) return {
             success: false,
             message: "Token expired!",
             data: null,
             expired: true,
             statusCode: 400
-        }
+        };
 
         const decodedPayload = await this.auth.decode(access_token);
-
         const isUserExists = await this.userService.findOne(decodedPayload.sub);
-
         if (!isUserExists) return {
             success: false,
             message: "User not found!",
             data: null,
             expired: false,
             statusCode: 404
-        }
+        };
 
-        const products = await this.productRepository.findBy({ user: { id: isUserExists.data.id } });
-
-        if (products.length === 0) return {
-            success: false,
-            message: "No Products found.",
-            data: null,
-            expired: false,
-            statusCode: 404
-        }
+        const [products, total] = await this.productRepository.findAndCount({
+            where: { user: { id: isUserExists.data.id } },
+            skip: skip,    // number of records to skip
+            take: take,    // number of records to take
+            order: { created_at: 'DESC' }
+        });
 
         return {
             success: true,
-            message: "Products fetched successfully.",
-            data: products,
+            message: products.length > 0 ? "Products fetched successfully." : "No Products found.",
+            data: {
+                items: products,
+                meta: {
+                    totalItems: total,
+                    skip,
+                    limit: take,
+                    total: skip === 0 ? take : total - skip
+                }
+            },
             expired: false,
             statusCode: 200
-        }
+        };
     }
+
 
     async findOne(id: string, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];

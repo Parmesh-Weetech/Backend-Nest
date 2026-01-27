@@ -35,6 +35,36 @@ export class UserService {
             };
         }
 
+        const user = users.map((user) => {
+            return {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
+        })
+
+        return {
+            success: true,
+            data: user,
+            expired: false,
+            message: 'Users fetched successfully.',
+            statusCode: 200,
+        };
+    }
+
+    async findAllUser(currentUser: User): Promise<Response> {
+        const users = await this.userRepository.find({ where: { id: Not(currentUser.id) }, relations: ['roles'] });
+
+        if (!users || users.length === 0) {
+            return {
+                success: false,
+                data: null,
+                expired: false,
+                message: 'Users not found.',
+                statusCode: 404,
+            };
+        }
+
         return {
             success: true,
             data: users,

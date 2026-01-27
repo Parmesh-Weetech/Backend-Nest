@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { AuthGuard } from '../common/guards/auth.guard';
 import type { Response } from 'express';
@@ -10,13 +10,16 @@ import { UpdateProductDTO } from './dtos/update-product.dto';
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
     @Get()
-    async findAll(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.findAll(authorization)
+    async findAll(
+        @Headers('Authorization') authorization: string,
+        @Query('_start') start = '0',
+        @Query('_limit') limit = '10',
+        @Res({ passthrough: true }) res: Response
+    ): Promise<void> {
+        const skip = Math.max(parseInt(start, 10), 0);
+        const take = Math.min(parseInt(limit, 10), 100);
 
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
+        const response = await this.productService.findAll(authorization, skip, take);
 
         res.status(response.statusCode).send(response);
     }

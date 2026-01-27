@@ -27,6 +27,18 @@ export class CurrentUserInterceptor implements NestInterceptor {
         if (publicRoute) return next.handle();
 
         const authorization = request.headers.authorization;
+
+        if(!authorization) {
+            response.status(401).json({
+                success: false,
+                expired: false,
+                message: "Unauthorized Request!",
+                statusCode: 401,
+                data: null
+            })
+            return EMPTY;
+        }
+
         const token = authorization.split(' ')[1];
 
         const isValid = await this.auth.verify(token)

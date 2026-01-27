@@ -20,8 +20,16 @@ export class UserController {
 
     @Get()
     @UseInterceptors(CurrentUserInterceptor)
-    async findAll(@Res({ passthrough: true }) res: Response, @CurrentUser() user: User): Promise<void> {
+    async findAll(@Res() res: Response, @CurrentUser() user: User): Promise<void> {
         const response = await this.userService.findAll(user);
+        res.setHeader('Cache-Control', 'no-store');
+        
+        res.status(response.statusCode).send(response);
+    }
+
+    @Get("/all")
+    async findAllUser(@Res({ passthrough: true }) res: Response, @CurrentUser() user: User): Promise<void> {
+        const response = await this.userService.findAllUser(user);
 
         res.status(response.statusCode).send(response);
     }

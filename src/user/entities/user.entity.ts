@@ -5,6 +5,7 @@ import { Role } from "../../role/entities/role.entity.js";
 import { Organization } from "../../organization/entities/organization.entity.js";
 import { Refresh_token } from "./refresh_token.entity.js";
 import { Product } from "../../product/entities/product.entity.js";
+import { Files } from "../../files/entities/File.entity.js";
 
 @Entity("user")
 export class User {
@@ -23,6 +24,9 @@ export class User {
     @Column()
     @Exclude()
     password: string;
+
+    @OneToMany(() => Files, file => file.user)
+    files: Files[];
 
     @ManyToOne(() => Organization, org => org.users, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
     @JoinColumn()

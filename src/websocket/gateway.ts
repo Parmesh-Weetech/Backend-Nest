@@ -78,12 +78,13 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     const messages = await this.webSocketService.findMessages(conversation.id);
+    const attachments = await this.webSocketService.findAttachments(messages);
 
     client.join(conversation.id);
 
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
 
-    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.length === 0 ? [] : messages });
+    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.length === 0 ? [] : messages, attachments: attachments.length === 0 ? [] : attachments });
   }
 
   @SubscribeMessage("send_message")
@@ -95,12 +96,15 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
     const newMessage = await this.webSocketService.sendMessage(data, userId);
 
-    client.broadcast.to(data.conversationId).emit('receive_message', {
+    this.server.to(data.conversationId).emit('receive_message', {
+      id: newMessage.id,
       content: newMessage.content,
       type: newMessage.type,
       conversation: newMessage.conversation,
       sender: newMessage.sender,
-      receiver: newMessage.receiver,
+      attachments: newMessage.attachments?.map(data => ({
+        id: data.media.id,
+      })),
       createdAt: newMessage.createdAt,
     });
   }
