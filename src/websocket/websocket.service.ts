@@ -57,7 +57,6 @@ export class WebsocketService {
         sendMessageDto: SendMessageDto,
         senderId: string
     ): Promise<Message> {
-        const downloadUrls: string[] = []
         const conversation = await this.conversationRepository.findOne({
             where: { id: sendMessageDto.conversationId },
         });
@@ -107,13 +106,10 @@ export class WebsocketService {
                 });
 
                 attachmentEntities.push(attachment);
-                downloadUrls.push(url);
             }
 
             const savedAttachments =
                 await this.messageAttachmentRepository.save(attachmentEntities);
-            
-            
 
             savedMessage.attachments = savedAttachments;
         }
