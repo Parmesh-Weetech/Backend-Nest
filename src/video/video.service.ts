@@ -9,6 +9,7 @@ import { Video } from './entities/video.entity';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Response } from '../common/response/response.dto';
+import { promises as fs } from 'fs';
 
 @Injectable()
 export class VideoService {
@@ -34,12 +35,25 @@ export class VideoService {
             const signedUrl = await this.storageService.getSignedUrl(originalFilePath, 86400);
 
             const outputDir = `/home/parmesh/Desktop/Backend-Nest/NestJs/tmp/hls/${videoId}`;
-            await this.ffmpegService.generateHls("assets/video/30902-383991325_small.mp4", outputDir);
+
+            try {
+                await this.ffmpegService.generateHls("assets/video/30902-383991325_small.mp4", outputDir);
+            } catch (error) {
+                console.log(error)
+                throw new InternalServerErrorException(error.message);
+            }
 
             const masterFileUrl = await this.storageService.uploadHls(videoId, outputDir);
 
             if (!masterFileUrl) {
                 throw new InternalServerErrorException("Internal Server Error while uploading files!");
+            }
+
+            try {
+                await fs.rm(outputDir, { recursive: true, force: true });
+                console.log(`Temporary HLS folder removed: ${outputDir}`);
+            } catch (err) {
+                console.warn(`Failed to remove temporary folder ${outputDir}:`, err);
             }
 
             const videoToSave = this.videoRepository.create({
@@ -78,7 +92,7 @@ export class VideoService {
         const videoMetadata = await this.videoRepository.findOne({ where: { id: videoId } });
         if (!videoMetadata) throw new NotFoundException('Video not found');
 
-        const stream = await this.storageService.download(videoMetadata.path);
+        const stream = await this.storageService.download(`${videoMetadata.path}/master.m3u8`);
 
         return {
             stream,
@@ -93,6 +107,8 @@ export class VideoService {
 
         const path = `videos/${videoId}/${quality}/index.m3u8`;
         const stream = await this.storageService.download(path);
+
+        console.log(stream, "abcd")
 
         return {
             stream,

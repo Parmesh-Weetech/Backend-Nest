@@ -40,7 +40,7 @@ export class StorageService {
                 .upload(`videos/${videoId}${relative}`, fs.createReadStream(file));
         }
 
-        return `videos/${videoId}/master.m3u8`;
+        return `videos/${videoId}`;
     }
 
     async download(path: string): Promise<Readable> {
