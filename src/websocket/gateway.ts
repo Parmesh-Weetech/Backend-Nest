@@ -78,7 +78,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     const messages = await this.webSocketService.findMessages(conversation.id);
-    const attachments = await this.webSocketService.findAttachments(messages);
+    const attachments = await this.webSocketService.findAttachmentsWithUrls(messages)
 
     client.join(conversation.id);
 
