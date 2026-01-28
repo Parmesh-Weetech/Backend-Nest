@@ -87,15 +87,15 @@ export class WebsocketService {
             const attachmentEntities: MessageAttachment[] = [];
 
             for (let index = 0; index < sendMessageDto.attachments.length; index++) {
-                const mediaId = sendMessageDto.attachments[index];
+                const media = sendMessageDto.attachments[index];
 
-                const file = await this.fileService.getFileById(mediaId);
+                const file = await this.fileService.getFileById(media.id);
 
                 if (!file) {
                     throw new Error('File not found');
                 }
 
-                const url = await this.fileService.getSignedUrl(mediaId);
+                const url = await this.fileService.getSignedUrl(media.id);
                 console.log(url);
 
                 const attachment = this.messageAttachmentRepository.create({
@@ -112,9 +112,6 @@ export class WebsocketService {
 
             const savedAttachments =
                 await this.messageAttachmentRepository.save(attachmentEntities);
-
-            console.log(savedAttachments);
-            console.log(attachmentEntities)
 
             savedMessage.attachments = savedAttachments;
         }
