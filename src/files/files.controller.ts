@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -31,6 +31,39 @@ export class FilesController {
         };
     }
 
+    @Post('upload/signed-url')
+    async getUploadSignedUrl(
+        @Body() fileData: { filename: string, type: string },
+        @CurrentUser() user: User
+    ): Promise<Response> {
+        const data = await this.fileService.getUploadSignedUrl(
+            fileData.filename,
+            fileData.type,
+            user
+        );
+
+        return {
+            success: true,
+            message: 'Upload signed URL generated',
+            data,
+            expired: false,
+            statusCode: 200,
+        };
+    }
+
+    @Post(":fileId/confirm")
+    async confirmFileUpload(@Param("fileId") fileId: string): Promise<Response> {
+        const data = await this.fileService.confirmFileUpload(fileId);
+
+        return {
+            success: data.confirm,
+            data: null,
+            expired: false,
+            message: data.message,
+            statusCode: data.status
+        }
+    }
+
     @Get('list')
     async listFiles(@CurrentUser() user: User) {
         const files = await this.fileService.listFiles(user);
@@ -40,10 +73,9 @@ export class FilesController {
     @Get('download/:fileId')
     async downloadFile(
         @Param('fileId') fileId: string,
-        @CurrentUser() user: User,
         @Res({ passthrough: true }) res: response
     ) {
-        const { stream, filename, contentType } = await this.fileService.downloadFile(fileId, user);
+        const { stream, filename, contentType } = await this.fileService.downloadFile(fileId);
 
         res.set({
             'Content-Disposition': `attachment; filename="${filename}"`,
@@ -53,9 +85,9 @@ export class FilesController {
         return new StreamableFile(stream);
     }
 
-    @Get(':id/signed-url')
-    async getSignedUrl(@Param('id') id: string, @CurrentUser() user: User): Promise<Response> {
-        const url = await this.fileService.getSignedUrl(id, user);
+    @Get(':fileId/signed-url')
+    async getSignedUrl(@Param('fileId') fileId: string): Promise<Response> {
+        const url = await this.fileService.getSignedUrl(fileId);
 
         return {
             success: true,
