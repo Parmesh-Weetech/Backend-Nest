@@ -6,6 +6,7 @@ import { In, Repository } from 'typeorm';
 import { SendMessageDto } from './dtos/sendMessage.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { MessageAttachment } from './entities/MessageAttachment.entity.js';
+import { FilesService } from '../files/files.service.js';
 
 @Injectable()
 export class WebsocketService {
@@ -17,7 +18,8 @@ export class WebsocketService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         @InjectRepository(MessageAttachment)
-        private readonly messageAttachmentRepository: Repository<MessageAttachment>
+        private readonly messageAttachmentRepository: Repository<MessageAttachment>,
+        private readonly fileService: FilesService
     ) { }
     async findOrCreateConversation(userId: string, otherUserId: string) {
         const conversation = await this.conversationRepository
@@ -81,22 +83,44 @@ export class WebsocketService {
         const savedMessage = await this.messageRepository.save(message);
 
         if (sendMessageDto.attachments?.length) {
-            const attachments = sendMessageDto.attachments.map((mediaId, index) =>
-                this.messageAttachmentRepository.create({
+
+            const attachmentEntities: MessageAttachment[] = [];
+
+            for (let index = 0; index < sendMessageDto.attachments.length; index++) {
+                const mediaId = sendMessageDto.attachments[index];
+
+                const file = await this.fileService.getFileById(mediaId);
+
+                if (!file) {
+                    throw new Error('File not found');
+                }
+
+                const url = await this.fileService.getSignedUrl(mediaId);
+                console.log(url);
+
+                const attachment = this.messageAttachmentRepository.create({
                     message: savedMessage,
-                    mimeType: sendMessageDto.type,
-                    media: { id: mediaId },
+                    mimeType: file.mimeType,
+                    media: file,
                     order: index,
-                }),
-            );
+                });
+
+                attachment.url = url;
+
+                attachmentEntities.push(attachment);
+            }
 
             const savedAttachments =
-                await this.messageAttachmentRepository.save(attachments);
+                await this.messageAttachmentRepository.save(attachmentEntities);
+
+            console.log(savedAttachments);
+            console.log(attachmentEntities)
 
             savedMessage.attachments = savedAttachments;
         }
 
-        return savedMessage;
+        console.log(savedMessage)
+        return savedMessage
     }
 
     async findAttachments(messages: Message[]) {

@@ -1,12 +1,16 @@
-import { Expose } from "class-transformer";
 import { User } from "../../user/entities/user.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-@Entity("files")
-export class Files {
+@Entity("videos")
+export class Video {
     @PrimaryGeneratedColumn('uuid')
-    @Expose()
-    id: string;
+    id: string
+
+    @Column()
+    path: string
+
+    @Column()
+    bucket: string
 
     @ManyToOne(() => User, user => user.files, {
         nullable: true,
@@ -17,20 +21,8 @@ export class Files {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
-    path: string
-
-    @Column()
-    bucket: string
-
-    @Column({ default: "default.png" })
-    originalFileName: string
-
-    @Column({ default: "image/png" })
-    mimeType: string
-
-    @Column({ default: "PENDING" })
-    status: "PENDING" | "ACTIVE" | "ORPHAN"
+    @Column({ nullable: false, default: 'DRAFT' })
+    status: string
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

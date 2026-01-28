@@ -178,6 +178,8 @@
       // RECEIVE MESSAGE
       // -----------------------------
       socket.on('receive_message', async (msg) => {
+        console.log(msg);
+        debugger;
         const isMe = msg.sender.id === currentUserId;
 
         if (msg.type === 'text') {
@@ -196,7 +198,6 @@
       // -----------------------------
       async function downloadAndRenderImage(fileId, isMe) {
         try {
-          console.log(fileId)
           const res = await fetch(
             `http://localhost:3000/files/download/${fileId}`,
             {
@@ -211,13 +212,6 @@
             console.error('Failed to download file');
             return;
           }
-
-          // Browser consumes stream → Blob
-          const blob = await res.blob();
-          console.log(blob);
-
-          // Create URL from Blob
-          const imageUrl = URL.createObjectURL(blob);
 
           addImage(imageUrl, isMe);
         } catch (err) {

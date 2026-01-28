@@ -9,11 +9,12 @@ import { User } from '../user/entities/user.entity.js';
 import { UserModule } from '../user/user.module.js';
 import { Gateway } from './gateway.js';
 import { MessageAttachment } from './entities/MessageAttachment.entity.js';
+import { FilesModule } from '../files/files.module.js';
 
 @Module({
   controllers: [WebsocketController],
   providers: [WebsocketService, Gateway],
-  imports: [TypeOrmModule.forFeature([Conversation, Message, User, MessageAttachment]), AuthModule, UserModule],
+  imports: [TypeOrmModule.forFeature([Conversation, Message, User, MessageAttachment]), AuthModule, UserModule, FilesModule],
   exports: [WebsocketService]
 })
 export class WebsocketModule { }

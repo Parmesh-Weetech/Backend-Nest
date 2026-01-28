@@ -17,6 +17,8 @@ import { ProductModule } from './product/product.module.js';
 import { WebsocketModule } from './websocket/websocket.module.js';
 import { FilesModule } from './files/files.module.js';
 import { StorageModule } from './storage/storage.module';
+import { VideoModule } from './video/video.module';
+import { FfmpegModule } from './ffmpeg/ffmpeg.module';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { StorageModule } from './storage/storage.module';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, FilesModule, StorageModule],
+    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, FilesModule, StorageModule, VideoModule, FfmpegModule],
   controllers: [AppController],
   providers: [AppService],
 })
