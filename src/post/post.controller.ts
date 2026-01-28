@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard.js';
-import { PostEntity } from './entities/post.entity.js';
 import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { User } from '../user/entities/user.entity.js';
 import { CreatePostDTO } from './dtos/create-post.dto.js';
@@ -11,6 +10,8 @@ import { Permission } from '../common/decorators/permission.decorator.js';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
 import type { Response } from 'express';
+import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
+import { UserService } from '../user/user.service.js';
 
 @Controller('post')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -33,6 +34,7 @@ export class PostController {
     }
 
     @Post()
+    @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.CREATE)
     async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User, @Res({ passthrough: true }) res: Response): Promise<void> {
         const response = await this.postService.create(createPostDTO, user);

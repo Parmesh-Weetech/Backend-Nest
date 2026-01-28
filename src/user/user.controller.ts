@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { User } from './entities/user.entity.js';
@@ -11,6 +11,7 @@ import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
 import type { Response } from 'express';
 import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
+import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
 
 @Controller('user')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -18,6 +19,7 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Get()
+    @UseInterceptors(CurrentUserInterceptor)
     async findAll(@Res() res: Response, @CurrentUser() user: User): Promise<void> {
         const response = await this.userService.findAll(user);
         res.setHeader('Cache-Control', 'no-store');

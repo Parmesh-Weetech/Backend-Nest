@@ -12,13 +12,13 @@ import AppConfig from './config/app.config.js';
 import DatabaseConfig from './config/database.config.js';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
 import { OrganizationModule } from './organization/organization.module.js';
-import { HCaptchaModule } from './h-captcha/h-captcha.module.js';
-import { ProductModule } from './product/product.module.js';
-import { WebsocketModule } from './websocket/websocket.module.js';
-import { FilesModule } from './files/files.module.js';
-import { StorageModule } from './storage/storage.module';
-import { VideoModule } from './video/video.module';
-import { FfmpegModule } from './ffmpeg/ffmpeg.module';
+import { HCaptchaModule } from './h-captcha/h-captcha.module';
+import { ProductModule } from './product/product.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { CacheModule } from './cache/cache.module.js';
+import { NotificationModule } from './notification/notification.module';
+import { QueueModule } from './queue/queue.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -33,7 +33,15 @@ import { FfmpegModule } from './ffmpeg/ffmpeg.module';
         ...configService.get('database'),
       }),
       inject: [ConfigService],
-    }), UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, FilesModule, StorageModule, VideoModule, FfmpegModule],
+    }),
+    BullModule.forRoot({
+      connection: {
+        url: "redis://localhost:6379",
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule],
   controllers: [AppController],
   providers: [AppService],
 })

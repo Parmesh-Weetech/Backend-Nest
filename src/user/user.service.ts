@@ -7,17 +7,23 @@ import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { Response } from '../common/response/response.dto.js';
+import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         private readonly roleService: RoleService,
-        private readonly organizationService: OrganizationService
+        private readonly organizationService: OrganizationService,
+        private readonly cacheService: CacheService
     ) { }
 
+    private userKey(id: string) {
+        return `user:${id}`;
+    }
+
     async findAll(currentUser: User): Promise<Response> {
-        const users = await this.userRepository.find({where: { id: Not(currentUser.id) }, relations: [ 'roles' ]});
+        const users = await this.userRepository.find({ where: { id: Not(currentUser.id) }, relations: ['roles'] });
 
         if (!users || users.length === 0) {
             return {
@@ -69,9 +75,26 @@ export class UserService {
     }
 
     async findOne(id: string): Promise<Response> {
-        const user = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
-        
-        if (!user) return {
+        const cacheKey = this.userKey(id);
+        let cachedUser = await this.cacheService.get(cacheKey);
+
+        if (!cachedUser) {
+            const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
+
+            if (!fetchedUser) return {
+                success: false,
+                data: null,
+                expired: false,
+                message: "User not found.",
+                statusCode: 404
+            }
+
+            cachedUser = fetchedUser;
+            // TTL in seconds (600 = 10 minutes)
+            await this.cacheService.set(cacheKey, fetchedUser, 600);
+        }
+
+        if (!cachedUser) return {
             success: false,
             data: null,
             expired: false,
@@ -81,7 +104,7 @@ export class UserService {
 
         return {
             success: true,
-            data: user,
+            data: cachedUser,
             expired: false,
             message: "User fetched successfully.",
             statusCode: 200
@@ -99,14 +122,14 @@ export class UserService {
 
         const organization = await this.organizationService.findOne(orgId);
 
-        if(!organization) return {
+        if (!organization) return {
             success: false,
             data: null,
             expired: false,
             message: "Organization not found.",
             statusCode: 404
         }
-        
+
         try {
             const newUser = await this.userRepository.create({
                 name: createUserDTO.name,
@@ -181,7 +204,7 @@ export class UserService {
         try {
             const affectedRows = await this.userRepository.softDelete(user.data.id);
 
-            if((affectedRows.affected === null || affectedRows.affected === undefined) && affectedRows.affected === 0) return {
+            if ((affectedRows.affected === null || affectedRows.affected === undefined) && affectedRows.affected === 0) return {
                 success: false,
                 data: null,
                 expired: false,

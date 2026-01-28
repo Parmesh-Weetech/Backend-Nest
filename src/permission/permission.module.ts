@@ -7,10 +7,11 @@ import { RoleModule } from '../role/role.module.js';
 import { UserModule } from '../user/user.module.js';
 import { OrganizationModule } from '../organization/organization.module.js';
 import { AuthModule } from '../auth/auth.module.js';
+import { PermissionsMiddleware } from '../common/middlewares/permission.middleware.js';
 
 @Module({
   controllers: [PermissionController],
-  providers: [PermissionService],
+  providers: [PermissionService, PermissionsMiddleware],
   imports: [TypeOrmModule.forFeature([Permission]), forwardRef(() => RoleModule), forwardRef(() => UserModule), forwardRef(() => OrganizationModule), forwardRef(() => UserModule), forwardRef(() => AuthModule)],
   exports: [PermissionService]
 })
