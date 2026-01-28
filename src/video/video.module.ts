@@ -5,10 +5,12 @@ import { StorageModule } from '../storage/storage.module';
 import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
 import { Video } from './entities/video.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserModule } from '../user/user.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   providers: [VideoService],
   controllers: [VideoController],
-  imports: [StorageModule, FfmpegModule, TypeOrmModule.forFeature([Video])]
+  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([Video])]
 })
 export class VideoModule {}

@@ -6,6 +6,7 @@ import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 import { Response } from '../common/response/response.dto';
 import type { Response as response } from 'express'
+import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
 
 @Controller('files')
 @UseGuards(AuthGuard)
@@ -15,6 +16,7 @@ export class FilesController {
     ) { }
 
     @Post('upload')
+    @UseInterceptors(CurrentUserInterceptor)
     @UseInterceptors(FileInterceptor('file'))
     async uploadFile(
         @UploadedFile() file: Express.Multer.File,
@@ -32,6 +34,7 @@ export class FilesController {
     }
 
     @Post('upload/signed-url')
+    @UseInterceptors(CurrentUserInterceptor)
     async getUploadSignedUrl(
         @Body() fileData: { filename: string, type: string },
         @CurrentUser() user: User
@@ -65,6 +68,7 @@ export class FilesController {
     }
 
     @Get('list')
+    @UseInterceptors(CurrentUserInterceptor)
     async listFiles(@CurrentUser() user: User) {
         const files = await this.fileService.listFiles(user);
         return { success: true, data: files, message: 'Files listed successfully' };
@@ -99,6 +103,7 @@ export class FilesController {
     }
 
     @Delete(':id')
+    @UseInterceptors(CurrentUserInterceptor)
     async deleteFile(
         @Param('id') fileId: string,
         @CurrentUser() user: User

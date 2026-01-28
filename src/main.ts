@@ -32,7 +32,7 @@ async function bootstrap() {
     // ✅ CREATE ONLY ONE APP — EXPRESS BASED
     const app =
       await NestFactory.create<NestExpressApplication>(AppModule, {
-        logger: ['error', 'log'],
+        logger: ['error'],
       });
 
     const configService = app.get(ConfigService);

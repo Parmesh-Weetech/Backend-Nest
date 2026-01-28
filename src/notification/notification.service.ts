@@ -54,7 +54,6 @@ export class NotificationService {
     }
 
     async findOne(user: User) {
-        console.log(user)
         return await this.notificationRepository.find({ where: { receiverId: user.id }, order: { createdAt: "DESC"} });
     }
 }

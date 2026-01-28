@@ -96,7 +96,6 @@ export class WebsocketService {
                 }
 
                 const url = await this.fileService.getSignedUrl(media.id);
-                console.log(url);
 
                 const attachment = this.messageAttachmentRepository.create({
                     message: savedMessage,
@@ -116,7 +115,6 @@ export class WebsocketService {
             savedMessage.attachments = savedAttachments;
         }
 
-        console.log(savedMessage)
         return savedMessage
     }
 

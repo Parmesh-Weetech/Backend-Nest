@@ -39,7 +39,6 @@ export class VideoService {
             try {
                 await this.ffmpegService.generateHls("assets/video/30902-383991325_small.mp4", outputDir);
             } catch (error) {
-                console.log(error)
                 throw new InternalServerErrorException(error.message);
             }
 
@@ -107,8 +106,6 @@ export class VideoService {
 
         const path = `videos/${videoId}/${quality}/index.m3u8`;
         const stream = await this.storageService.download(path);
-
-        console.log(stream, "abcd")
 
         return {
             stream,
