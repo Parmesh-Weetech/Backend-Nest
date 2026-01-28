@@ -19,6 +19,7 @@ import { CacheModule } from './cache/cache.module.js';
 import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
 import { BullModule } from '@nestjs/bullmq';
+import { VideoModule } from './video/video.module.js';
 
 @Module({
   imports: [
@@ -41,7 +42,7 @@ import { BullModule } from '@nestjs/bullmq';
         port: 6379,
       },
     }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule],
   controllers: [AppController],
   providers: [AppService],
 })
