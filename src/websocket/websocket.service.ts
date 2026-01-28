@@ -47,8 +47,32 @@ export class WebsocketService {
         const messages = await this.messageRepository.find({
             where: { conversation: { id: conversationId } },
             order: { createdAt: 'ASC' },
-            relations: ['sender', 'conversation']
+            relations: {
+                sender: true,
+                conversation: true,
+                attachments: {
+                    media: true,
+                },
+            },
         });
+
+        for (const message of messages) {
+            if (!message.attachments?.length) continue;
+
+            for (const attachment of message.attachments) {
+                const file = await this.fileService.getFileById(
+                    attachment.media.id
+                );
+
+                if (!file) {
+                    attachment.url = "";
+                } else {
+                    attachment.url = await this.fileService.getSignedUrl(
+                        attachment.media.id
+                    );
+                }
+            }
+        }
 
         return messages;
     }
