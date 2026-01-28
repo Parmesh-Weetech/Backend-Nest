@@ -198,7 +198,6 @@
       // -----------------------------
       async function downloadAndRenderImage(fileId, isMe) {
         try {
-          console.log(fileId)
           const res = await fetch(
             `http://localhost:3000/files/download/${fileId}`,
             {
@@ -213,12 +212,6 @@
             console.error('Failed to download file');
             return;
           }
-
-          // Browser consumes stream → Blob
-          const blob = await res.blob();
-
-          // Create URL from Blob
-          const imageUrl = URL.createObjectURL(blob);
 
           addImage(imageUrl, isMe);
         } catch (err) {
