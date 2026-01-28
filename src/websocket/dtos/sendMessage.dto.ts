@@ -16,5 +16,5 @@ export class SendMessageDto {
 
     @IsOptional()
     @IsUUID("all", { each: true })
-    attachments?: string[];
+    attachments?: { id: string, url: string }[];
 }
