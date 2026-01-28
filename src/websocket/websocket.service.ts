@@ -123,11 +123,12 @@ export class WebsocketService {
         return savedMessage
     }
 
-    async findAttachments(messages: Message[]) {
+    async findAttachmentsWithUrls(messages: Message[]): Promise<MessageAttachment[]> {
         if (!messages.length) return [];
 
         const messageIds = messages.map(m => m.id);
 
+        // Fetch attachments with relations
         const attachments = await this.messageAttachmentRepository.find({
             where: {
                 message: {
@@ -141,6 +142,18 @@ export class WebsocketService {
                 },
             },
         });
+
+        // Add URLs to attachments
+        for (const attachment of attachments) {
+            const file = attachment.media;
+            const existsFile = await this.fileService.getFileById(file.id);
+
+            if (!existsFile) {
+                attachment.url = ""; // set url to empty string
+            } else {
+                attachment.url = await this.fileService.getSignedUrl(file.id); // set url to signed URL
+            }
+        }
 
         return attachments;
     }
