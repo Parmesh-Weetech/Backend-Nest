@@ -37,7 +37,7 @@ export class StorageService {
             const relative = file.replace(dir, '');
             await this.client.storage
                 .from(this.bucket)
-                .upload(`videos/${videoId}${relative}`, fs.createReadStream(file));
+                .upload(`videos/${videoId}${relative}`, fs.createReadStream(file), { upsert: true });
         }
 
         return `videos/${videoId}`;

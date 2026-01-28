@@ -1,20 +1,37 @@
-import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, Res, Sse, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VideoService } from './video.service';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 import type { Response } from 'express';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
+import { Observable, Subject } from 'rxjs';
 
 @Controller('video')
 export class VideoController {
 
     constructor(private readonly videoService: VideoService) {}
+
+    private videoEvents = new Subject<MessageEvent>();
+
+    @Sse('events')
+    sse() {
+        return this.videoEvents.asObservable();
+    }
+
+    sendSuccess(videoId: string) {
+        this.videoEvents.next(<MessageEvent>{ data: { videoId, status: 'success' } });
+    }
+
+    sendError(videoId: string, error: string) {
+        this.videoEvents.next(<MessageEvent>{ data: { videoId, status: 'error', error } });
+    }
+
     @Post("upload")
     @UseInterceptors(FileInterceptor("file"))
     @UseInterceptors(CurrentUserInterceptor)
     async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User) {
-        return this.videoService.processVideo(file, user)
+        return this.videoService.enqueue(file, user)
     }
 
     @Get(":videoId/master.m3u8")

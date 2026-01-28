@@ -21,8 +21,8 @@ export class Video {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({ nullable: false, default: 'DRAFT' })
-    status: string
+    @Column({ nullable: false, default: 'PENDING' })
+    status: "PENDING" | "PROCESSING" | "ACTIVE" | "FAILED"
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

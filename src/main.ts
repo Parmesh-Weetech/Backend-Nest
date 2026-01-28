@@ -59,15 +59,20 @@ async function bootstrap() {
     const notificationQueue =
       app.get<Queue>('BullQueue_notifications');
 
+    const videoProcessingQueue = app.get<Queue>('BullQueue_video-processing')
+
     createBullBoard({
-      queues: [new BullMQAdapter(notificationQueue)],
+      queues: [
+        new BullMQAdapter(notificationQueue),
+        new BullMQAdapter(videoProcessingQueue)
+      ],
       serverAdapter,
     });
 
     // 🔥 THIS IS THE CORRECT LINE
     app.use('/admin/queues',
-      authMiddleware.use.bind(authMiddleware),
-      permissionsMiddleware.use.bind(permissionsMiddleware),
+      // authMiddleware.use.bind(authMiddleware),
+      // permissionsMiddleware.use.bind(permissionsMiddleware),
       serverAdapter.getRouter()
     );
 

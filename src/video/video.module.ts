@@ -7,10 +7,17 @@ import { Video } from './entities/video.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
+import { BullModule } from '@nestjs/bullmq';
+import { VideoSseController } from './videoSSE.controller';
 
 @Module({
   providers: [VideoService],
-  controllers: [VideoController],
-  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([Video])]
+  controllers: [VideoController, VideoSseController],
+  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([Video]), BullModule.registerQueue({
+    name: 'video-processing',
+    connection: {
+      url: "redis://localhost:6379"
+    }
+  }),]
 })
-export class VideoModule {}
+export class VideoModule { }

@@ -10,6 +10,9 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Response } from '../common/response/response.dto';
 import { promises as fs } from 'fs';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import { VideoSseController } from './videoSSE.controller';
 
 @Injectable()
 export class VideoService {
@@ -18,15 +21,19 @@ export class VideoService {
         private readonly ffmpegService: FfmpegService,
         @InjectRepository(Video)
         private readonly videoRepository: Repository<Video>,
-        private readonly configService: ConfigService
+        private readonly videoSseController: VideoSseController,
+        private readonly configService: ConfigService,
+
+        @InjectQueue('video-processing')
+        private readonly videoQueue: Queue,
     ) { }
+
     async processVideo(file: Express.Multer.File, user: User): Promise<Response> {
         try {
             const videoId = randomUUID();
 
             const ext = file.originalname.split('.').pop();
             const originalFilePath = `videos/${videoId}/original.${ext}`;
-            const segmentFilePath = `videos/${videoId}/**/*`;
 
             const fileStream = Readable.from(file.buffer);
 
@@ -58,7 +65,7 @@ export class VideoService {
             const videoToSave = this.videoRepository.create({
                 bucket: this.configService.get<string>("SUPABASE_BUCKET"),
                 path: masterFileUrl,
-                status: "READY",
+                status: "ACTIVE",
                 user: user,
                 id: videoId
             })
@@ -85,6 +92,72 @@ export class VideoService {
                 statusCode: error.status
             }
         }
+    }
+
+    async enqueue(file: Express.Multer.File, user: User): Promise<Response> {
+        const videoId = randomUUID();
+
+        const videoMetadata = this.videoRepository.create({
+            id: videoId,
+            path: `videos/${videoId}`,
+            status: "PENDING",
+            user: user,
+            bucket: this.configService.get<string>("SUPABASE_BUCKET")
+        })
+
+        const video = await this.videoRepository.save(videoMetadata);
+
+        if (!video) return {
+            success: false,
+            expired: false,
+            data: null,
+            message: "Internal Server Error while adding video in db!",
+            statusCode: 500
+        }
+
+        const job = await this.videoQueue.add(
+            'process',
+            {
+                videoId,
+                userId: user.id,
+                file: {
+                    buffer: file.buffer,
+                    mimetype: file.mimetype,
+                    originalname: file.originalname,
+                },
+            },
+            {
+                attempts: 3,
+                backoff: { type: 'exponential', delay: 5000 },
+                removeOnFail: {
+                    age: 24 * 60 * 60,
+                    count: 1000
+                },
+                removeOnComplete: {
+                    age: 60 * 60,
+                    count: 10
+                },
+
+            },
+        );
+
+        if (!job.isFailed()) {
+            this.videoSseController.sendSuccess(videoId);
+        } else {
+            this.videoSseController.sendError(videoId, 'Job failed'); // Pass an error message
+        }
+
+
+        return {
+            success: true,
+            data: {
+                id: videoId,
+                status: "PENDING"
+            },
+            expired: false,
+            message: "Video Uploaded Successfully",
+            statusCode: 201,
+        };
     }
 
     async findMasterFile(videoId: string) {
@@ -121,7 +194,7 @@ export class VideoService {
         const video = await this.videoRepository.findOne({ where: { id: videoId } });
         if (!video) throw new NotFoundException('Video not found');
 
-        if(segment.includes(".ts")) {
+        if (segment.includes(".ts")) {
             const path = `videos/${videoId}/${quality}/${segment}`;
             const stream = await this.storageService.download(path);
 
