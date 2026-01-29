@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { spawn } from 'child_process';
 import fs from 'fs';
+import { promisify } from 'util';
 
 @Injectable()
 export class FfmpegService {
-
+    // A promisified version of exec to allow better error handling
     async generateHls(inputFilePath: string, outputDir: string): Promise<any> {
+        // Ensure the output directory exists
         await fs.promises.mkdir(outputDir, { recursive: true });
 
+        // Return a Promise that wraps the FFmpeg process
         return new Promise((resolve, reject) => {
-
+            // Spawn the FFmpeg process
             const ffmpeg = spawn('ffmpeg', [
                 '-y',
                 '-i', inputFilePath,
@@ -19,16 +22,20 @@ export class FfmpegService {
                 '[v1]scale=640:360[v1out];' +
                 '[v2]scale=854:480[v2out];' +
                 '[v3]scale=1280:720[v3out];' +
-                '[v4]scale=1920:1080[v4out]',
+                '[v4]scale=1920:1080[v4out];' +
+                '[0:a]asplit=4[a1][a2][a3][a4]',
 
-                // Map video renditions
+                // video
                 '-map', '[v1out]',
                 '-map', '[v2out]',
                 '-map', '[v3out]',
                 '-map', '[v4out]',
 
-                // 🔑 OPTIONAL AUDIO (won’t crash if missing)
-                '-map', '0:a?',
+                // audio (distinct streams)
+                '-map', '[a1]',
+                '-map', '[a2]',
+                '-map', '[a3]',
+                '-map', '[a4]',
 
                 '-c:v', 'libx264',
                 '-preset', 'fast',
@@ -42,34 +49,41 @@ export class FfmpegService {
                 '-hls_time', '6',
                 '-hls_playlist_type', 'vod',
 
-                // 🔑 Single audio stream reused by all variants
                 '-var_stream_map',
-                'v:0,name:360 v:1,name:480 v:2,name:720 v:3,name:1080 a:0,agroup:audio',
+                'v:0,a:0,name:360 ' +
+                'v:1,a:1,name:480 ' +
+                'v:2,a:2,name:720 ' +
+                'v:3,a:3,name:1080',
 
                 '-master_pl_name', 'master.m3u8',
-
                 '-hls_segment_filename',
                 `${outputDir}/%v/seg_%03d.ts`,
-
                 `${outputDir}/%v/index.m3u8`,
             ]);
 
+
+            // Stream ffmpeg's stderr to the console for debugging
             ffmpeg.stderr.on('data', (data) => {
                 console.error(`FFmpeg stderr: ${data.toString()}`);
             });
 
-            ffmpeg.stdout.on('data', (data) => {
-                console.log(`FFmpeg stdout: ${data.toString()}`);
-            });
-
+            // When FFmpeg finishes, handle the exit
             ffmpeg.on('close', (code) => {
                 if (code === 0) {
+                    // Success: resolve the Promise
                     resolve({ success: true });
                 } else {
+                    // Failure: reject with the error
                     reject(new Error(`FFmpeg exited with code ${code}`));
                 }
             });
 
+            // Optional: capture stdout (to see the progress, if needed)
+            ffmpeg.stdout.on('data', (data) => {
+                console.log(`FFmpeg stdout: ${data.toString()}`);
+            });
+
+            // Optional: handling for child process errors
             ffmpeg.on('error', (err) => {
                 reject(new Error(`FFmpeg process error: ${err.message}`));
             });
