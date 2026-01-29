@@ -25,17 +25,12 @@ export class VideoController {
         const result = await this.videoService.enqueue(file, user);
 
         if(result.success) {
-            this.videoSseService.sendSuccess(result.data.id, "ACTIVE");
+            this.videoSseService.sendSuccess(result.data.id, "ACTIVE", "");
         } else {
             this.videoSseService.sendError(result.data.id, "Job Failed", "FAILED");
         }
 
         return result;
-    }
-
-    @Post('ack')
-    ack(@Body() body: { videoId: string, status: string }) {
-        console.log('[SSE ACK] Video received on FE:', body.videoId, body.status);
     }
 
     @Get(":videoId/master.m3u8")

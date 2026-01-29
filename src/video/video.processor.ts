@@ -99,7 +99,9 @@ export class VideoProcessor extends WorkerHost {
                 status: 'ACTIVE',
             });
 
-            this.videoSseService.sendSuccess(videoId, "ACTIVE")
+            const url = await this.storage.getSignedUrl(originalFilePath)
+
+            this.videoSseService.sendSuccess(videoId, "ACTIVE", url)
 
             return { success: true, videoId, masterPath }; // return JSON-safe info
         } catch (error: any) {

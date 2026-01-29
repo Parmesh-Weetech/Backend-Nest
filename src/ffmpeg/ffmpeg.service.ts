@@ -63,9 +63,9 @@ export class FfmpegService {
 
 
             // Stream ffmpeg's stderr to the console for debugging
-            ffmpeg.stderr.on('data', (data) => {
-                console.error(`FFmpeg stderr: ${data.toString()}`);
-            });
+            // ffmpeg.stderr.on('data', (data) => {
+            //     console.error(`FFmpeg stderr: ${data.toString()}`);
+            // });
 
             // When FFmpeg finishes, handle the exit
             ffmpeg.on('close', (code) => {
@@ -79,9 +79,9 @@ export class FfmpegService {
             });
 
             // Optional: capture stdout (to see the progress, if needed)
-            ffmpeg.stdout.on('data', (data) => {
-                console.log(`FFmpeg stdout: ${data.toString()}`);
-            });
+            // ffmpeg.stdout.on('data', (data) => {
+            //     console.log(`FFmpeg stdout: ${data.toString()}`);
+            // });
 
             // Optional: handling for child process errors
             ffmpeg.on('error', (err) => {

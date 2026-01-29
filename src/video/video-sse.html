@@ -61,6 +61,7 @@
           div.innerHTML = `
           <div><strong>Video ID:</strong> ${data.videoId}</div>
           <div><strong>Status:</strong> ${data.status}</div>
+          <div><strong>url:</strong> ${data.url}</div>
           ${data.error ? `<div><strong>Error:</strong> ${data.error}</div>` : ''}
           <div class="log">${new Date().toLocaleTimeString()}</div>
         `;
