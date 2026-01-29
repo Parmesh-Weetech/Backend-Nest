@@ -25,6 +25,7 @@ import { AuthMiddleware } from './common/middlewares/auth.middleware.js';
 import { PermissionsMiddleware } from './common/middlewares/permission.middleware.js';
 import compression from 'compression';
 import 'multer'
+import helmet from 'helmet';
 
 async function bootstrap() {
   try {
@@ -67,6 +68,8 @@ async function bootstrap() {
       ],
       serverAdapter,
     });
+
+    app.use(helmet());
 
     // 🔥 THIS IS THE CORRECT LINE
     app.use('/admin/queues',
