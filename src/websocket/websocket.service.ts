@@ -51,7 +51,7 @@ export class WebsocketService {
     }
 
     async findMessages(conversationId: string, skip: number, take: number): Promise<Message[]> {
-        const messageKey = this.getMessageKey(conversationId, skip, take); // include skip/take in key
+        const messageKey = this.getMessageKey(conversationId, skip, take);
         let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
 
         if (!cachedMessages) {
@@ -66,10 +66,14 @@ export class WebsocketService {
                     },
                 },
                 skip,
-                take
+                take,
             });
 
-            for (const message of messages) {
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+
+                (message as any).serialNumber = skip + i + 1;
+
                 if (!message.attachments?.length) continue;
 
                 for (const attachment of message.attachments) {

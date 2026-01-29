@@ -38,8 +38,8 @@ export class WebsocketController {
     async findMessages(
         @Param('conversationId') conversationId: string,
         @Headers("Authorization") authorization: string,
-        @Query('_start') start = '0',
-        @Query('_limit') limit = '10',
+        @Query('_start') start = '1',
+        @Query('_limit') limit = '15',
         @Res({ passthrough: true }) res: Response
     ) {
         const skip = Math.max(parseInt(start, 10), 0);

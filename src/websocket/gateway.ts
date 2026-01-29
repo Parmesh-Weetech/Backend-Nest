@@ -77,7 +77,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     const userId = client.data.userId;
 
     if(!data._start || !data._limit) {
-      data._limit = 10
+      data._limit = 15
       data._start = 1
     }
 
