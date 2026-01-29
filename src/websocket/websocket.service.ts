@@ -123,6 +123,7 @@ export class WebsocketService {
 
                 const attachment = this.messageAttachmentRepository.create({
                     message: savedMessage,
+                    mediaType: media.mediaType,
                     mimeType: file.mimeType,
                     media: file,
                     order: index,

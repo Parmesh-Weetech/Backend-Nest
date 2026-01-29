@@ -3,6 +3,13 @@ import { Message } from "./message.entity.js";
 import { Files } from "../../files/entities/File.entity.js";
 import { Expose } from "class-transformer";
 
+export enum MediaType {
+    IMAGE = 'image',
+    VIDEO = 'video',
+    AUDIO = 'audio',
+    APPLICATION = 'application'
+}
+
 @Entity('message_attachments')
 export class MessageAttachment {
     @PrimaryGeneratedColumn('uuid')
@@ -20,6 +27,14 @@ export class MessageAttachment {
     })
     @JoinColumn({ name: 'mediaId' })
     media: Files;
+
+    @Column({ 
+        type: 'enum', 
+        default: MediaType.IMAGE, 
+        enum: MediaType,
+        enumName: 'message_attachment_media_type_enum',
+    })
+    mediaType: MediaType
 
     @Column() 
     mimeType: string;

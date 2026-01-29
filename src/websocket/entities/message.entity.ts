@@ -5,10 +5,7 @@ import { MessageAttachment } from "./MessageAttachment.entity.js";
 
 export enum MessageType {
     TEXT = 'text',
-    IMAGE = 'image',
-    VIDEO = 'video',
-    EMOJI = 'emoji',
-    FILE = 'file'
+    MEDIA = 'media'
 }
 
 @Entity('messages')
@@ -19,7 +16,7 @@ export class Message {
     @Column({ type: "text", nullable: true })
     content: string | null;
 
-    @Column({ type: 'enum', enum: MessageType })
+    @Column({ type: 'enum', default: MessageType.TEXT, enum: MessageType })
     type: MessageType;
 
     @OneToMany(() => MessageAttachment, attachment => attachment.message)

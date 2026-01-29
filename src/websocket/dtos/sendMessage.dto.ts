@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { MessageType } from "../entities/message.entity.js";
+import { MediaType } from "../entities/MessageAttachment.entity.js";
 
 export class SendMessageDto {
     @IsString()
@@ -16,5 +17,5 @@ export class SendMessageDto {
 
     @IsOptional()
     @IsUUID("all", { each: true })
-    attachments?: { id: string, url: string, type: string }[];
+    attachments?: { id: string, url: string, mimeType: string, mediaType: MediaType }[];
 }
