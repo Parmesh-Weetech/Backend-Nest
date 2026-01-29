@@ -23,8 +23,7 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { Queue } from 'bullmq';
 import { AuthMiddleware } from './common/middlewares/auth.middleware.js';
 import { PermissionsMiddleware } from './common/middlewares/permission.middleware.js';
-import { JwtService } from '@nestjs/jwt';
-import { Auth } from './common/util/auth.js';
+import compression from 'compression';
 import 'multer'
 
 async function bootstrap() {
@@ -75,6 +74,8 @@ async function bootstrap() {
       // permissionsMiddleware.use.bind(permissionsMiddleware),
       serverAdapter.getRouter()
     );
+
+    app.use(compression());
 
     /* -------------------- GLOBAL SETUP -------------------- */
     app.useGlobalPipes(

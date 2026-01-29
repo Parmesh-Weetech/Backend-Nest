@@ -22,10 +22,31 @@ export class UserService {
         return `user:${id}`;
     }
 
-    async findAll(currentUser: User): Promise<Response> {
-        const users = await this.userRepository.find({ where: { id: Not(currentUser.id) }, relations: ['roles'] });
+    private usersKey(userId: string) {
+        return `users:${userId}`
+    }
 
-        if (!users || users.length === 0) {
+    async findAll(currentUser: User): Promise<Response> {
+        const usersKey = this.usersKey(currentUser.id);
+        let cachedUsers = await this.cacheService.get<User[]>(usersKey);
+
+        if(!cachedUsers) {
+            const users = await this.userRepository.find({ where: { id: Not(currentUser.id) }, relations: ['roles'] });
+            
+            if (!users || users.length === 0) return {
+                success: false,
+                data: null,
+                expired: false,
+                message: "User not found.",
+                statusCode: 404
+            }
+
+            cachedUsers = users;
+
+            await this.cacheService.set(usersKey, users, 600);
+        }
+
+        if (!cachedUsers || cachedUsers.length === 0) {
             return {
                 success: false,
                 data: null,
@@ -35,7 +56,7 @@ export class UserService {
             };
         }
 
-        const user = users.map((user) => {
+        const user = cachedUsers.map((user) => {
             return {
                 id: user.id,
                 name: user.name,

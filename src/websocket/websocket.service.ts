@@ -7,6 +7,7 @@ import { SendMessageDto } from './dtos/sendMessage.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 import { FilesService } from '../files/files.service.js';
+import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
 export class WebsocketService {
@@ -19,8 +20,14 @@ export class WebsocketService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(MessageAttachment)
         private readonly messageAttachmentRepository: Repository<MessageAttachment>,
-        private readonly fileService: FilesService
+        private readonly fileService: FilesService,
+        private readonly cacheService: CacheService
     ) { }
+
+    private getMessageKey(conversationId: string) {
+        return `messages:${conversationId}`;
+    }
+
     async findOrCreateConversation(userId: string, otherUserId: string) {
         const conversation = await this.conversationRepository
             .createQueryBuilder('conversation')
@@ -44,37 +51,45 @@ export class WebsocketService {
     }
 
     async findMessages(conversationId: string): Promise<Message[]> {
-        const messages = await this.messageRepository.find({
-            where: { conversation: { id: conversationId } },
-            order: { createdAt: 'ASC' },
-            relations: {
-                sender: true,
-                conversation: true,
-                attachments: {
-                    media: true,
+        const messageKey = this.getMessageKey(conversationId)
+        let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
+
+        if(!cachedMessages) {
+            const messages = await this.messageRepository.find({
+                where: { conversation: { id: conversationId } },
+                order: { createdAt: 'ASC' },
+                relations: {
+                    sender: true,
+                    conversation: true,
+                    attachments: {
+                        media: true,
+                    },
                 },
-            },
-        });
+            });
 
-        for (const message of messages) {
-            if (!message.attachments?.length) continue;
+            for (const message of messages) {
+                if (!message.attachments?.length) continue;
 
-            for (const attachment of message.attachments) {
-                const file = await this.fileService.getFileById(
-                    attachment.media.id
-                );
-
-                if (!file) {
-                    attachment.url = "";
-                } else {
-                    attachment.url = await this.fileService.getSignedUrl(
+                for (const attachment of message.attachments) {
+                    const file = await this.fileService.getFileById(
                         attachment.media.id
                     );
+
+                    if (!file) {
+                        attachment.url = "";
+                    } else {
+                        attachment.url = await this.fileService.getSignedUrl(
+                            attachment.media.id
+                        );
+                    }
                 }
             }
+
+            cachedMessages = messages;
+            await this.cacheService.set(this.getMessageKey(conversationId), messages, 600);
         }
 
-        return messages;
+        return cachedMessages;
     }
 
     async sendMessage(
