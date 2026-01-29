@@ -20,6 +20,7 @@ import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
 import { BullModule } from '@nestjs/bullmq';
 import { VideoModule } from './video/video.module.js';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -41,6 +42,14 @@ import { VideoModule } from './video/video.module.js';
         host: 'localhost',
         port: 6379,
       },
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 20,
+        },
+      ],
     }),
     UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule],
   controllers: [AppController],

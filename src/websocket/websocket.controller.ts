@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Param, Res } from '@nestjs/common';
+import { Controller, Get, Headers, Param, Query, Res } from '@nestjs/common';
 import { WebsocketService } from './websocket.service.js';
 import type { Response } from 'express';
 import { Auth } from '../common/util/auth.js';
@@ -38,8 +38,13 @@ export class WebsocketController {
     async findMessages(
         @Param('conversationId') conversationId: string,
         @Headers("Authorization") authorization: string,
+        @Query('_start') start = '0',
+        @Query('_limit') limit = '10',
         @Res({ passthrough: true }) res: Response
     ) {
+        const skip = Math.max(parseInt(start, 10), 0);
+        const take = Math.min(parseInt(limit, 10), 100);
+
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -53,6 +58,6 @@ export class WebsocketController {
             res.status(400).json({ success: false, expired: true, message: "Token expired!" });
         }
 
-        return await this.websocketService.findMessages(conversationId);
+        return await this.websocketService.findMessages(conversationId, skip, take);
     }
 }
