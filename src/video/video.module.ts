@@ -8,16 +8,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
 import { BullModule } from '@nestjs/bullmq';
-import { VideoSseController } from './videoSSE.controller';
+import { VideoSseService } from './videoSse.service';
+import { VideoSseController } from './videoSse.controller';
 
 @Module({
-  providers: [VideoService],
+  providers: [VideoService, VideoSseService],
   controllers: [VideoController, VideoSseController],
   imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([Video]), BullModule.registerQueue({
     name: 'video-processing',
     connection: {
       url: "redis://localhost:6379"
     }
-  }),]
+  })],
+  exports: [VideoSseService]
 })
 export class VideoModule { }

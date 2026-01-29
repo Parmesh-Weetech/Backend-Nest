@@ -9,6 +9,7 @@ import { VideoProcessor } from 'src/video/video.processor';
 import { Video } from '../video/entities/video.entity';
 import { FfmpegModule } from 'src/ffmpeg/ffmpeg.module';
 import { StorageModule } from 'src/storage/storage.module';
+import { VideoModule } from '../video/video.module';
 
 @Module({
     imports: [
@@ -16,7 +17,8 @@ import { StorageModule } from 'src/storage/storage.module';
         BullModule.registerQueue({ name: 'notifications' }, { name: 'video-processing' }),
         NotificationModule,
         FfmpegModule,
-        StorageModule
+        StorageModule,
+        VideoModule
     ],
     providers: [NotificationService, NotificationProcessor, VideoProcessor],
 })

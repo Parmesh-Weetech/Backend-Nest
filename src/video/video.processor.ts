@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { VideoSseService } from './videoSse.service';
 
 @Processor('video-processing')
 export class VideoProcessor extends WorkerHost {
@@ -20,6 +21,7 @@ export class VideoProcessor extends WorkerHost {
         private readonly ffmpeg: FfmpegService,
         private readonly storage: StorageService,
         private readonly config: ConfigService,
+        private readonly videoSseService: VideoSseService
     ) {
         super();
     }
@@ -97,12 +99,15 @@ export class VideoProcessor extends WorkerHost {
                 status: 'ACTIVE',
             });
 
+            this.videoSseService.sendSuccess(videoId, "ACTIVE")
+
             return { success: true, videoId, masterPath }; // return JSON-safe info
         } catch (error: any) {
             console.error('Video processing failed:', error);
             await this.videoRepo.update(videoId, {
                 status: "FAILED"
             });
+            this.videoSseService.sendError(videoId, error, "FAILED");
             return { success: false, error: error.message }; // return JSON-safe error
         } finally {
             await this.cache.del(lockKey);

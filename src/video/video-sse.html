@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Video SSE Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      .event {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        background: #1e293b;
+      }
+      .success {
+        border-left: 4px solid #22c55e;
+      }
+      .error {
+        border-left: 4px solid #ef4444;
+      }
+      .log {
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>📡 Video SSE Listener</h2>
+    <p>Status: <span id="status">Connecting…</span></p>
+
+    <div id="events"></div>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const eventsEl = document.getElementById('events');
+
+      // 👇 Change this to your actual SSE endpoint
+      const SSE_URL = 'http://localhost:3000/video/events';
+
+      const eventSource = new EventSource(SSE_URL);
+
+      eventSource.onopen = () => {
+        statusEl.textContent = 'Connected';
+        statusEl.style.color = '#22c55e';
+        console.log('[SSE] Connected');
+      };
+
+      eventSource.onmessage = (event) => {
+        console.log('[SSE] Raw event:', event.data);
+
+        try {
+          const data = JSON.parse(event.data);
+
+          const div = document.createElement('div');
+          div.className = `event ${data.status === 'error' ? 'error' : 'success'}`;
+
+          div.innerHTML = `
+          <div><strong>Video ID:</strong> ${data.videoId}</div>
+          <div><strong>Status:</strong> ${data.status}</div>
+          ${data.error ? `<div><strong>Error:</strong> ${data.error}</div>` : ''}
+          <div class="log">${new Date().toLocaleTimeString()}</div>
+        `;
+
+          eventsEl.prepend(div);
+        } catch (err) {
+          console.error('[SSE] Failed to parse event', err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error('[SSE] Error', err);
+        statusEl.textContent = 'Disconnected (retrying…)';
+        statusEl.style.color = '#f59e0b';
+        // Browser will auto-reconnect
+      };
+
+      // Optional: clean up when leaving page
+      window.addEventListener('beforeunload', () => {
+        eventSource.close();
+      });
+    </script>
+  </body>
+</html>

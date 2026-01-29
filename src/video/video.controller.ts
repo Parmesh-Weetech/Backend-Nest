@@ -1,37 +1,41 @@
-import { Controller, Get, Param, Post, Res, Sse, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, Sse, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VideoService } from './video.service';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 import type { Response } from 'express';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
+import { VideoSseService } from './videoSse.service';
 
 @Controller('video')
 export class VideoController {
 
-    constructor(private readonly videoService: VideoService) {}
+    constructor(
+        private readonly videoService: VideoService,
+        private readonly videoSseService: VideoSseService
+    ) {}
 
     private videoEvents = new Subject<MessageEvent>();
-
-    @Sse('events')
-    sse() {
-        return this.videoEvents.asObservable();
-    }
-
-    sendSuccess(videoId: string) {
-        this.videoEvents.next(<MessageEvent>{ data: { videoId, status: 'success' } });
-    }
-
-    sendError(videoId: string, error: string) {
-        this.videoEvents.next(<MessageEvent>{ data: { videoId, status: 'error', error } });
-    }
 
     @Post("upload")
     @UseInterceptors(FileInterceptor("file"))
     @UseInterceptors(CurrentUserInterceptor)
     async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User) {
-        return this.videoService.enqueue(file, user)
+        const result = await this.videoService.enqueue(file, user);
+
+        if(result.success) {
+            this.videoSseService.sendSuccess(result.data.id, "ACTIVE");
+        } else {
+            this.videoSseService.sendError(result.data.id, "Job Failed", "FAILED");
+        }
+
+        return result;
+    }
+
+    @Post('ack')
+    ack(@Body() body: { videoId: string, status: string }) {
+        console.log('[SSE ACK] Video received on FE:', body.videoId, body.status);
     }
 
     @Get(":videoId/master.m3u8")
