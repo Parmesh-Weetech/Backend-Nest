@@ -24,8 +24,8 @@ export class WebsocketService {
         private readonly cacheService: CacheService
     ) { }
 
-    private getMessageKey(conversationId: string) {
-        return `messages:${conversationId}`;
+    getMessageKey(conversationId: string, skip: number, take: number) {
+        return `conversation:${conversationId}:messages:skip${skip}:take${take}`;
     }
 
     async findOrCreateConversation(userId: string, otherUserId: string) {
@@ -50,11 +50,11 @@ export class WebsocketService {
         return await this.conversationRepository.save(newConversation);
     }
 
-    async findMessages(conversationId: string): Promise<Message[]> {
-        const messageKey = this.getMessageKey(conversationId)
+    async findMessages(conversationId: string, skip: number, take: number): Promise<Message[]> {
+        const messageKey = this.getMessageKey(conversationId, skip, take); // include skip/take in key
         let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
 
-        if(!cachedMessages) {
+        if (!cachedMessages) {
             const messages = await this.messageRepository.find({
                 where: { conversation: { id: conversationId } },
                 order: { createdAt: 'ASC' },
@@ -65,28 +65,21 @@ export class WebsocketService {
                         media: true,
                     },
                 },
+                skip,
+                take
             });
 
             for (const message of messages) {
                 if (!message.attachments?.length) continue;
 
                 for (const attachment of message.attachments) {
-                    const file = await this.fileService.getFileById(
-                        attachment.media.id
-                    );
-
-                    if (!file) {
-                        attachment.url = "";
-                    } else {
-                        attachment.url = await this.fileService.getSignedUrl(
-                            attachment.media.id
-                        );
-                    }
+                    const file = await this.fileService.getFileById(attachment.media.id);
+                    attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
                 }
             }
 
             cachedMessages = messages;
-            await this.cacheService.set(this.getMessageKey(conversationId), messages, 600);
+            await this.cacheService.set(messageKey, messages, 600);
         }
 
         return cachedMessages;

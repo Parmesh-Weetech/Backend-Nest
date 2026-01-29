@@ -71,13 +71,21 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
   @SubscribeMessage('join_conversation')
   async handleJoinConversation(
-    @MessageBody() data: { anotherUserId: string },
+    @MessageBody() data: { anotherUserId: string, _start?: number, _limit?: number },
     @ConnectedSocket() client: Socket
   ) {
     const userId = client.data.userId;
 
+    if(!data._start || !data._limit) {
+      data._limit = 10
+      data._start = 1
+    }
+
+    const skip = Math.max(parseInt(data._start.toString(), 10), 0);
+    const take = Math.min(parseInt(data._limit.toString(), 10), 100);
+
     const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
-    const messages = await this.webSocketService.findMessages(conversation.id);
+    const messages = await this.webSocketService.findMessages(conversation.id, skip, take);
 
     client.join(conversation.id);
 
@@ -109,19 +117,5 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
       })),
       createdAt: newMessage.createdAt,
     });
-  }
-
-  @SubscribeMessage("get_history")
-  async handleGetHistory(
-    @MessageBody() data: { conversationId: string },
-    @ConnectedSocket() client: Socket
-  ) {
-    console.log(`History request received from ${client.id} for conversation ${data.conversationId}`);
-
-    const messages = await this.webSocketService.findMessages(data.conversationId);
-
-    client.emit('history', messages);
-
-    return { status: 'History fetched', messages: messages };
   }
 }
