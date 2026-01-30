@@ -126,69 +126,63 @@ export class WebsocketService {
             sender
         });
 
-        try {
-            const savedMessage = await this.messageRepository.save(message);
+        const savedMessage = await this.messageRepository.save(message);
 
-            if (sendMessageDto.attachments?.length) {
+        if (sendMessageDto.attachments?.length) {
 
-                const attachmentEntities: MessageAttachment[] = [];
+            const attachmentEntities: MessageAttachment[] = [];
 
-                for (let index = 0; index < sendMessageDto.attachments.length; index++) {
-                    const media = sendMessageDto.attachments[index];
-                    let attachment: MessageAttachment
+            for (let index = 0; index < sendMessageDto.attachments.length; index++) {
+                const media = sendMessageDto.attachments[index];
+                let attachment: MessageAttachment
 
-                    if (media.mediaType === "video") {
-                        const video = await this.videoService.getVideoById(media.id);
+                if (media.mediaType === "video") {
+                    const video = await this.videoService.getVideoById(media.id);
 
-                        if (!video) {
-                            throw new Error('Video not found');
-                        }
-
-                        const url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName) : "";
-
-                        attachment = this.messageAttachmentRepository.create({
-                            message: savedMessage,
-                            mediaType: media.mediaType,
-                            mimeType: video.mimeType,
-                            media: video,
-                            order: index,
-                        });
-
-                        attachment.url = url;
-                    } else {
-                        const file = await this.fileService.getFileById(media.id);
-
-                        if (!file) {
-                            throw new Error('File not found');
-                        }
-
-                        const url = file ? await this.fileService.getSignedUrl(media.id) : "";
-
-                        attachment = this.messageAttachmentRepository.create({
-                            message: savedMessage,
-                            mediaType: media.mediaType,
-                            mimeType: file.mimeType,
-                            media: file,
-                            order: index,
-                        });
-
-                        attachment.url = url;
+                    if (!video) {
+                        throw new Error('Video not found');
                     }
 
-                    attachmentEntities.push(attachment);
+                    const url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName) : "";
+
+                    attachment = this.messageAttachmentRepository.create({
+                        message: savedMessage,
+                        mediaType: media.mediaType,
+                        mimeType: video.mimeType,
+                        media: video,
+                        order: index,
+                    });
+
+                    attachment.url = url;
+                } else {
+                    const file = await this.fileService.getFileById(media.id);
+
+                    if (!file) {
+                        throw new Error('File not found');
+                    }
+
+                    const url = file ? await this.fileService.getSignedUrl(media.id) : "";
+
+                    attachment = this.messageAttachmentRepository.create({
+                        message: savedMessage,
+                        mediaType: media.mediaType,
+                        mimeType: file.mimeType,
+                        media: file,
+                        order: index,
+                    });
+
+                    attachment.url = url;
                 }
 
-                const savedAttachments =
-                    await this.messageAttachmentRepository.save(attachmentEntities);
-
-                savedMessage.attachments = savedAttachments;
+                attachmentEntities.push(attachment);
             }
 
-            return savedMessage
-        } catch (error) {
-            console.log(error)
+            const savedAttachments =
+                await this.messageAttachmentRepository.save(attachmentEntities);
 
-            throw new Error(error);
+            savedMessage.attachments = savedAttachments;
         }
+
+        return savedMessage
     }
 }
