@@ -4,7 +4,9 @@ import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { Job } from 'bullmq';
 
-@Processor('notifications')
+@Processor('notifications', {
+    concurrency: 10
+})
 export class NotificationProcessor extends WorkerHost {
     constructor(
         @InjectRepository(Notification)

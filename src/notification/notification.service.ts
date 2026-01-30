@@ -5,6 +5,7 @@ import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { User } from '../user/entities/user.entity';
+import { DateTime } from "luxon";
 
 @Injectable()
 export class NotificationService {
@@ -20,7 +21,22 @@ export class NotificationService {
         senderId: string,
         receiverId: string,
         message: string,
+        date: string,
+        time: string,
+        timezone: string
     ) {
+        // ✅ Convert user time → UTC
+        const scheduledAtUtc = DateTime
+            .fromISO(`${date}T${time}`, { zone: timezone })
+            .toUTC();
+
+        // ✅ Calculate delay for BullMQ
+        const delay = scheduledAtUtc.diffNow().as('milliseconds');
+
+        if (delay <= 0) {
+            throw new Error('Scheduled time must be in the future');
+        }
+
         const notification = await this.notificationRepository.save({
             senderId,
             receiverId,
