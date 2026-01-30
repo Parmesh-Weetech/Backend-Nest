@@ -3,11 +3,11 @@ import { MessageEvent } from '@nestjs/common';
 import { NotificationSseService } from './notificationSse.service';
 import { Observable } from 'rxjs';
 
-@Controller('video')
+@Controller('notification')
 export class NotificationSseController {
     constructor(private readonly notificationSseService: NotificationSseService) { }
 
-    @Sse('events')
+    @Sse('send')
     events(): Observable<MessageEvent> {
         return this.notificationSseService.asObservable();
     }

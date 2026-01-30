@@ -24,7 +24,7 @@ export class Notification {
     @JoinColumn({ name: 'senderId' })
     sender: User;
 
-    @ManyToOne(() => Conversation, { nullable: true, onDelete: 'CASCADE' })
+    @ManyToOne(() => Conversation, { nullable: true, onDelete: 'CASCADE', onUpdate: "CASCADE" })
     @JoinColumn({ name: 'conversationId' })
     conversation: Conversation;
 
