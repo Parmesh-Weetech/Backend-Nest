@@ -186,8 +186,8 @@ export class WebsocketService {
         }
 
         await this.notificationService.create(
-            sender,
-            conversation,
+            sender.id,
+            conversation.id,
             `New Message from ${sender.name}`,
             getTodayDate(),
             getCurrentTimePlusSeconds(0),

@@ -19,8 +19,8 @@ export class NotificationService {
     ) { }
 
     async create(
-        sender: User,
-        conversation: Conversation,
+        senderId: string,
+        conversationId: string,
         message: string,
         date: string,
         time: string,
@@ -39,8 +39,8 @@ export class NotificationService {
         }
 
         const notificationObject = this.notificationRepository.create({
-            sender: sender,
-            conversation: conversation,
+            sender: { id: senderId },
+            conversation: { id: conversationId },
             message: message,
             scheduledAt: scheduledAtUtc.toJSDate(),
             sentAt: null,

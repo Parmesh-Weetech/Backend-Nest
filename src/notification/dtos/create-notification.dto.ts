@@ -9,16 +9,14 @@ import {
 import { User } from 'src/user/entities/user.entity';
 import { Conversation } from 'src/websocket/entities/conversation.entity';
 
-export class CreateNotificationDto {
-    @ValidateNested()
-    @Type(() => User)
-    @IsNotEmpty({ message: 'Sender is required' })
-    sender: User;
+export class NotificationDto {
+    @IsString({ message: 'senderId must be a string' })
+    @IsNotEmpty({ message: 'senderId cannot be empty' })
+    senderId: string;
 
-    @ValidateNested()
-    @Type(() => Conversation)
-    @IsNotEmpty({ message: 'Conversation is required' })
-    conversation: Conversation;
+    @IsString({ message: 'conversationId must be a string' })
+    @IsNotEmpty({ message: 'conversationId cannot be empty' })
+    conversationId: string;
 
     @IsString({ message: 'Message must be a string' })
     @IsNotEmpty({ message: 'Message cannot be empty' })
