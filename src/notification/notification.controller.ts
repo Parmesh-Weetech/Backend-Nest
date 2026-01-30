@@ -14,18 +14,12 @@ export class NotificationController {
     @Post()
     send(@Body() body: CreateNotificationDto) {
         return this.notificationService.create(
-            body.senderId,
-            body.receiverId,
+            body.sender,
+            body.conversation,
             body.message,
             body.date,
             body.time,
             body.timezone
         );
-    }
-
-    @Get()
-    @UseInterceptors(CurrentUserInterceptor)
-    async findOne(@CurrentUser() user: User) {
-        return await this.notificationService.findOne(user);
     }
 }

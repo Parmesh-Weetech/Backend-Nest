@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { User } from '../user/entities/user.entity';
 import { DateTime } from "luxon";
+import { Conversation } from 'src/websocket/entities/conversation.entity';
 
 @Injectable()
 export class NotificationService {
@@ -18,8 +19,8 @@ export class NotificationService {
     ) { }
 
     async create(
-        senderId: string,
-        receiverId: string,
+        sender: User,
+        conversation: Conversation,
         message: string,
         date: string,
         time: string,
@@ -37,15 +38,17 @@ export class NotificationService {
             throw new Error('Scheduled time must be in the future');
         }
 
-        const notification = await this.notificationRepository.save({
-            senderId,
-            receiverId,
-            message,
+        const notificationObject = this.notificationRepository.create({
+            sender: sender,
+            conversation: conversation,
+            message: message,
             scheduledAt: scheduledAtUtc.toJSDate(),
-            timezone: timezone,
             sentAt: null,
-            status: 'PENDING',
-        });
+            status: "PENDING",
+            timezone: timezone,
+        })
+
+        const notification = await this.notificationRepository.save(notificationObject);
 
         await this.queue.add(
             'send-notification',
@@ -70,9 +73,5 @@ export class NotificationService {
             notificationId: notification.id,
             status: 'PENDING',
         };
-    }
-
-    async findOne(user: User) {
-        return await this.notificationRepository.find({ where: { receiverId: user.id }, order: { createdAt: "DESC"} });
     }
 }

@@ -9,7 +9,8 @@ import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 import { FilesService } from '../files/files.service.js';
 import { CacheService } from '../cache/cache.service.js';
 import { VideoService } from '../video/video.service.js';
-import { NotificationService } from 'src/notification/notification.service.js';
+import { NotificationService } from '../notification/notification.service.js';
+import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util.js';
 
 @Injectable()
 export class WebsocketService {
@@ -55,47 +56,49 @@ export class WebsocketService {
     }
 
     async findMessages(conversationId: string, skip: number, take: number): Promise<Message[]> {
-        const messageKey = this.getMessageKey(conversationId, skip, take);
-        let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
+        // const messageKey = this.getMessageKey(conversationId, skip, take);
+        // let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
 
-        if (!cachedMessages) {
-            const messages = await this.messageRepository.find({
-                where: { conversation: { id: conversationId } },
-                order: { createdAt: 'ASC' },
-                relations: {
-                    sender: true,
-                    conversation: true,
-                    attachments: {
-                        media: true,
-                    },
+        // if (!cachedMessages) {
+            
+        //     await this.cacheService.set(messageKey, messages, 600);
+        // }
+
+        const messages = await this.messageRepository.find({
+            where: { conversation: { id: conversationId } },
+            order: { createdAt: 'DESC' },
+            relations: {
+                sender: true,
+                conversation: true,
+                attachments: {
+                    media: true,
                 },
-                skip,
-                take,
-            });
+            },
+            skip,
+            take,
+        });
 
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
+        for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
 
-                (message as any).serialNumber = skip + i + 1;
+            (message as any).serialNumber = i + 1;
 
-                if (!message.attachments?.length) continue;
+            if (!message.attachments?.length) continue;
 
-                for (const attachment of message.attachments) {
-                    if (attachment.mediaType === "video") {
-                        const video = await this.videoService.getVideoById(attachment.media.id);
-                        attachment.url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName) : '';
-                    } else {
-                        const file = await this.fileService.getFileById(attachment.media.id);
-                        attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
-                    }
+            for (const attachment of message.attachments) {
+                if (attachment.mediaType === "video") {
+                    const video = await this.videoService.getVideoById(attachment.media.id);
+                    attachment.url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName) : '';
+                } else {
+                    const file = await this.fileService.getFileById(attachment.media.id);
+                    attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
                 }
             }
-
-            cachedMessages = messages;
-            await this.cacheService.set(messageKey, messages, 600);
         }
 
-        return cachedMessages;
+        // cachedMessages = messages;
+
+        return messages
     }
 
     async sendMessage(
@@ -181,6 +184,15 @@ export class WebsocketService {
 
             savedMessage.attachments = savedAttachments;
         }
+
+        await this.notificationService.create(
+            sender,
+            conversation,
+            `New Message from ${sender.name}`,
+            getTodayDate(),
+            getCurrentTimePlusSeconds(0),
+            'UTC'
+        )
 
         return savedMessage
     }
