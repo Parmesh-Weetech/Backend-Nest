@@ -41,6 +41,8 @@ export class NotificationService {
             senderId,
             receiverId,
             message,
+            scheduledAt: scheduledAtUtc.toJSDate(),
+            timezone: timezone,
             sentAt: null,
             status: 'PENDING',
         });
@@ -49,6 +51,7 @@ export class NotificationService {
             'send-notification',
             { notificationId: notification.id },
             {
+                delay: delay,
                 attempts: 5,
                 backoff: { type: 'exponential', delay: 2000 },
                 removeOnComplete: {
