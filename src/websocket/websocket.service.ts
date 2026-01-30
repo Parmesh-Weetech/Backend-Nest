@@ -64,7 +64,7 @@ export class WebsocketService {
 
         const messages = await this.messageRepository.find({
             where: { conversation: { id: conversationId } },
-            order: { createdAt: 'ASC' },
+            order: { createdAt: 'DESC' },
             relations: {
                 sender: true,
                 conversation: true,
@@ -79,7 +79,7 @@ export class WebsocketService {
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
 
-            (message as any).serialNumber = skip + i + 1;
+            (message as any).serialNumber = i + 1;
 
             if (!message.attachments?.length) continue;
 
