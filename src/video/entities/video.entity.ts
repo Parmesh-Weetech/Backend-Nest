@@ -12,6 +12,12 @@ export class Video {
     @Column()
     bucket: string
 
+    @Column({ default: "default.mp4" })
+    originalVideoName: string
+
+    @Column({ default: "video/mp4" })
+    mimeType: string
+
     @ManyToOne(() => User, user => user.files, {
         nullable: true,
         cascade: true,

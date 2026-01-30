@@ -19,8 +19,3 @@ export class SendMessageDto {
     @IsUUID("all", { each: true })
     attachments?: { id: string, url?: string, mimeType: string, mediaType: MediaType }[];
 }
-
-export class chatPagination {
-    cursor?: string
-    limit: number
-}

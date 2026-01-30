@@ -139,4 +139,12 @@ export class VideoService {
             };
         }
     }
+
+    async getVideoById(videoId: string) {
+        return await this.videoRepository.findOne({ where: { id: videoId } });
+    }
+    
+    async getSignedUrl(videoPath: string, originalVideoName: string) {
+        return this.storageService.getSignedUrl(`${videoPath}/${originalVideoName}`);
+    }
 }

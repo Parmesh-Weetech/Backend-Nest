@@ -8,6 +8,8 @@ import { User } from '../user/entities/user.entity.js';
 import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 import { FilesService } from '../files/files.service.js';
 import { CacheService } from '../cache/cache.service.js';
+import { VideoService } from '../video/video.service.js';
+import { Video } from '../video/entities/video.entity.js';
 
 @Injectable()
 export class WebsocketService {
@@ -21,7 +23,8 @@ export class WebsocketService {
         @InjectRepository(MessageAttachment)
         private readonly messageAttachmentRepository: Repository<MessageAttachment>,
         private readonly fileService: FilesService,
-        private readonly cacheService: CacheService
+        private readonly cacheService: CacheService,
+        private readonly videoService: VideoService
     ) { }
 
     getMessageKey(conversationId: string, skip: number, take: number) {
@@ -77,8 +80,13 @@ export class WebsocketService {
                 if (!message.attachments?.length) continue;
 
                 for (const attachment of message.attachments) {
-                    const file = await this.fileService.getFileById(attachment.media.id);
-                    attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
+                    if (attachment.mediaType === "video") {
+                        const video = await this.videoService.getVideoById(attachment.media.id);
+                        attachment.url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName) : '';
+                    } else {
+                        const file = await this.fileService.getFileById(attachment.media.id);
+                        attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
+                    }
                 }
             }
 
@@ -124,24 +132,45 @@ export class WebsocketService {
 
             for (let index = 0; index < sendMessageDto.attachments.length; index++) {
                 const media = sendMessageDto.attachments[index];
+                let attachment: MessageAttachment
 
-                const file = await this.fileService.getFileById(media.id);
+                if(media.mediaType === "video") {
+                    const video = await this.videoService.getVideoById(media.id);
 
-                if (!file) {
-                    throw new Error('File not found');
+                    if (!video) {
+                        throw new Error('Video not found');
+                    }
+
+                    const url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName): "";
+
+                    attachment = this.messageAttachmentRepository.create({
+                        message: savedMessage,
+                        mediaType: media.mediaType,
+                        mimeType: video.mimeType,
+                        media: video,
+                        order: index,
+                    });
+
+                    attachment.url = url;
+                } else {
+                    const file = await this.fileService.getFileById(media.id);
+                    
+                    if (!file) {
+                        throw new Error('File not found');
+                    }
+
+                    const url = file ? await this.fileService.getSignedUrl(media.id) : "";
+
+                    attachment = this.messageAttachmentRepository.create({
+                        message: savedMessage,
+                        mediaType: media.mediaType,
+                        mimeType: file.mimeType,
+                        media: file,
+                        order: index,
+                    });
+
+                    attachment.url = url;
                 }
-
-                const url = await this.fileService.getSignedUrl(media.id);
-
-                const attachment = this.messageAttachmentRepository.create({
-                    message: savedMessage,
-                    mediaType: media.mediaType,
-                    mimeType: file.mimeType,
-                    media: file,
-                    order: index,
-                });
-
-                attachment.url = url;
 
                 attachmentEntities.push(attachment);
             }
@@ -153,40 +182,5 @@ export class WebsocketService {
         }
 
         return savedMessage
-    }
-
-    async findAttachmentsWithUrls(messages: Message[]): Promise<MessageAttachment[]> {
-        if (!messages.length) return [];
-
-        const messageIds = messages.map(m => m.id);
-
-        // Fetch attachments with relations
-        const attachments = await this.messageAttachmentRepository.find({
-            where: {
-                message: {
-                    id: In(messageIds),
-                },
-            },
-            relations: {
-                media: true,
-                message: {
-                    sender: true,
-                },
-            },
-        });
-
-        // Add URLs to attachments
-        for (const attachment of attachments) {
-            const file = attachment.media;
-            const existsFile = await this.fileService.getFileById(file.id);
-
-            if (!existsFile) {
-                attachment.url = ""; // set url to empty string
-            } else {
-                attachment.url = await this.fileService.getSignedUrl(file.id); // set url to signed URL
-            }
-        }
-
-        return attachments;
     }
 }

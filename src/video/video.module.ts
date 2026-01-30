@@ -20,6 +20,6 @@ import { VideoSseController } from './videoSse.controller';
       url: "redis://localhost:6379"
     }
   })],
-  exports: [VideoSseService]
+  exports: [VideoSseService, VideoService]
 })
 export class VideoModule { }

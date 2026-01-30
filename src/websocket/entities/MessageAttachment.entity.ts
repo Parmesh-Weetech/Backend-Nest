@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { Message } from "./message.entity.js";
 import { Files } from "../../files/entities/File.entity.js";
 import { Expose } from "class-transformer";
+import { Video } from "../../video/entities/video.entity.js";
 
 export enum MediaType {
     IMAGE = 'image',
@@ -20,13 +21,13 @@ export class MessageAttachment {
     message: Message;
 
     @ManyToOne(() => Files, {
-        nullable: false,
+        nullable: true,
         cascade: true,
         onUpdate: "CASCADE",
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'mediaId' })
-    media: Files;
+    media: Files | Video;
 
     @Column({ 
         type: 'enum', 

@@ -22,15 +22,7 @@ export class VideoController {
     @UseInterceptors(FileInterceptor("file"))
     @UseInterceptors(CurrentUserInterceptor)
     async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User) {
-        const result = await this.videoService.enqueue(file, user);
-
-        if(result.success) {
-            this.videoSseService.sendSuccess(result.data.id, "ACTIVE", "");
-        } else {
-            this.videoSseService.sendError(result.data.id, "Job Failed", "FAILED");
-        }
-
-        return result;
+        return await this.videoService.enqueue(file, user);
     }
 
     @Get(":videoId/master.m3u8")
