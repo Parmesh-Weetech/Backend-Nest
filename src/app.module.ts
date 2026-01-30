@@ -21,6 +21,7 @@ import { QueueModule } from './queue/queue.module';
 import { BullModule } from '@nestjs/bullmq';
 import { VideoModule } from './video/video.module.js';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { LoggingModule } from './logging/logging.module';
 
 @Module({
   imports: [
@@ -51,7 +52,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
         },
       ],
     }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, LoggingModule],
   controllers: [AppController],
   providers: [AppService],
 })
