@@ -40,7 +40,7 @@ export class VideoProcessor extends WorkerHost {
             const existing = await this.videoRepo.findOne({ where: { id: videoId } });
 
             if(!existing) throw new Error("video not found");
-            
+
             if (existing.status === 'ACTIVE') return { alreadyProcessed: true };
 
             // 2. Prepare file paths
@@ -91,9 +91,7 @@ export class VideoProcessor extends WorkerHost {
                 status: 'ACTIVE',
             });
 
-            const url = await this.storage.getSignedUrl(originalFilePath)
-
-            this.videoSseService.sendSuccess(videoId, "ACTIVE", url)
+            this.videoSseService.sendSuccess(videoId, "ACTIVE")
 
             return { success: true, videoId, masterPath }; // return JSON-safe info
         } catch (error: any) {

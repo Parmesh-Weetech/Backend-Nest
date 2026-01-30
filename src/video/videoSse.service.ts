@@ -10,8 +10,8 @@ export class VideoSseService {
         return this.videoEvents.asObservable();
     }
 
-    sendSuccess(videoId: string, status: string, url: string) {
-        this.videoEvents.next(<MessageEvent>{ data: { videoId, status, url } });
+    sendSuccess(videoId: string, status: string) {
+        this.videoEvents.next(<MessageEvent>{ data: { videoId, status } });
     }
 
     sendError(videoId: string, error: string, status: string) {

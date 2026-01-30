@@ -108,7 +108,9 @@
         conversationId = data.conversationId;
         currentUserId = data.userId;
         loadMessages(data.messages);
-        loadAttachments(data.attachments);
+        if(data.messages.attachments !== null && data.messages.attachments !== undefined) {
+          loadAttachments(data.messages.attachments);
+        }
       });
 
       // -----------------------------
