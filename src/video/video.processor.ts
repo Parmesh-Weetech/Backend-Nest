@@ -38,20 +38,12 @@ export class VideoProcessor extends WorkerHost {
         try {
             // 1. Check existing video
             const existing = await this.videoRepo.findOne({ where: { id: videoId } });
-            if (existing?.status === 'ACTIVE') return { alreadyProcessed: true };
 
-            // 2. Create db entry if not exists
-            if (!existing) {
-                await this.videoRepo.save({
-                    id: videoId,
-                    user: { id: userId } as any,
-                    status: 'PROCESSING',
-                    bucket: this.config.get("SUPABASE_BUCKET"),
-                    path: `videos/${videoId}`,
-                });
-            }
+            if(!existing) throw new Error("video not found");
+            
+            if (existing.status === 'ACTIVE') return { alreadyProcessed: true };
 
-            // 3. Prepare file paths
+            // 2. Prepare file paths
             const ext = file.originalname.split('.').pop();
             const originalFilePath = `videos/${videoId}/original.${ext}`;
 
@@ -60,10 +52,10 @@ export class VideoProcessor extends WorkerHost {
                 ? file.buffer
                 : Buffer.from(file.buffer.data);
 
-            // 4. Upload original file
+            // 3. Upload original file
             await this.storage.upload(originalFilePath, Readable.from(bufferData), file.mimetype);
 
-            // 5. Save to assets folder (only JSON-safe operations)
+            // 4. Save to assets folder (only JSON-safe operations)
             const rootFolder = '/home/parmesh/Desktop/Backend-Nest/NestJs/project';
             const assetsVideoDir = path.join(rootFolder, 'assets', 'video');
             const savedFilePath = path.join(assetsVideoDir, file.originalname);

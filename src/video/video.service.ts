@@ -35,6 +35,7 @@ export class VideoService {
             path: `videos/${videoId}`,
             status: "PENDING",
             user: user,
+            originalVideoName: file.originalname,
             bucket: this.configService.get<string>("SUPABASE_BUCKET")
         })
 

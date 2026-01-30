@@ -178,8 +178,6 @@
       // RECEIVE MESSAGE
       // -----------------------------
       socket.on('receive_message', async (msg) => {
-        console.log(msg);
-        debugger;
         const isMe = msg.sender.id === currentUserId;
 
         if (msg.type === 'text') {
