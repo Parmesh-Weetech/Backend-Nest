@@ -9,7 +9,7 @@ import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 import { FilesService } from '../files/files.service.js';
 import { CacheService } from '../cache/cache.service.js';
 import { VideoService } from '../video/video.service.js';
-import { Video } from '../video/entities/video.entity.js';
+import { NotificationService } from 'src/notification/notification.service.js';
 
 @Injectable()
 export class WebsocketService {
@@ -24,7 +24,8 @@ export class WebsocketService {
         private readonly messageAttachmentRepository: Repository<MessageAttachment>,
         private readonly fileService: FilesService,
         private readonly cacheService: CacheService,
-        private readonly videoService: VideoService
+        private readonly videoService: VideoService,
+        private readonly notificationService: NotificationService
     ) { }
 
     getMessageKey(conversationId: string, skip: number, take: number) {
