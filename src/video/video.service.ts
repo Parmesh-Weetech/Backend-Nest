@@ -146,6 +146,7 @@ export class VideoService {
     }
     
     async getSignedUrl(videoPath: string, originalVideoName: string) {
-        return this.storageService.getSignedUrl(`${videoPath}/${originalVideoName}`);
+        const ext = originalVideoName.split('.').pop();
+        return this.storageService.getSignedUrl(`${videoPath}/original.${ext}`);
     }
 }
