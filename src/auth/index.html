@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 40px;
+      }
+      input {
+        display: block;
+        margin-bottom: 12px;
+        padding: 8px;
+        width: 300px;
+      }
+      button {
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+      pre {
+        margin-top: 20px;
+        background: #f4f4f4;
+        padding: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Login</h2>
+
+    <input
+      type="email"
+      id="email"
+      placeholder="Email"
+      value="parmeshb123@gmail.com"
+    />
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Password"
+      value="P27m_09@B"
+    />
+
+    <input
+      type="text"
+      id="hcaptchaToken"
+      placeholder="hCaptcha Token"
+      value="10000000-aaaa-bbbb-cccc-000000000001"
+    />
+
+    <button onclick="login()">Submit</button>
+
+    <pre id="response"></pre>
+
+    <script>
+      async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const hcaptchaToken = document.getElementById('hcaptchaToken').value;
+
+        try {
+          const res = await fetch('http://localhost:3000/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-client-request': 'true', // for client logging
+            },
+            body: JSON.stringify({ email, password, hcaptchaToken }),
+          });
+
+          let data;
+          const text = await res.text(); // read as text first
+
+          try {
+            data = JSON.parse(text); // try parsing JSON
+          } catch {
+            data = text; // fallback to plain text
+          }
+
+          document.getElementById('response').textContent = JSON.stringify(
+            data,
+            null,
+            2,
+          );
+        } catch (err) {
+          document.getElementById('response').textContent =
+            'Error: ' + err.message;
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,6 +1,7 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
+import { clientLogger } from '../../common/util/client-log';
 import { Request, Response } from 'express';
-import { apiLogger } from '../util/logs.js';
+import { apiLogger } from '../util/logs';
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
@@ -9,28 +10,32 @@ export class HttpErrorFilter implements ExceptionFilter {
         const req = ctx.getRequest<Request>();
         const res = ctx.getResponse<Response>();
 
-        const method = req.method;
-        const url = req.url;
         const startTime = (req as any).startTime || Date.now();
         const duration = `${Date.now() - startTime}ms`;
 
         const status = exception instanceof HttpException ? exception.getStatus() : 500;
-        const response = exception instanceof HttpException ? exception.getResponse() : {
-            message: exception.message || 'Internal server error',
+        const response = exception instanceof HttpException
+            ? exception.getResponse()
+            : { message: exception.message || 'Internal server error' };
+
+        const logPayload = {
+            message: (response as any).message,
+            method: req.method,
+            url: req.url,
             statusCode: status,
-            timestamp: new Date().toISOString(),
-            path: req.url
+            duration,
+            ip: req.ip,
+            userAgent: req.headers['user-agent'],
         };
 
-        // Log every error
-        apiLogger.log({
-            level: 'error',
-            message: (response as any).message || 'Error occurred',
-            context: `${method} ${url} ${status}`,
-            duration,
-        });
+        // 🔴 SERVER ERROR LOG
+        apiLogger.error(logPayload);
 
-        // Send JSON response to frontend
+        // 🔴 CLIENT ERROR LOG
+        if (req.headers['x-client-request'] === 'true') {
+            clientLogger.error(logPayload);
+        }
+
         res.status(status).json(response);
     }
 }

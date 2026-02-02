@@ -1,5 +1,10 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateIf } from 'class-validator';
-import { LogType } from '../entities/log.entity';
+
+export enum LogType {
+    ANALYTICS = "analytics",
+    ERROR = 'error',
+    SECURITY = 'security',
+}
 
 export class CreateLogDto {
     @IsString()
