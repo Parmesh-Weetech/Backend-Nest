@@ -58,4 +58,3 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 docker-compose.yml
 schema.sql
 db/migration
-redis.md
