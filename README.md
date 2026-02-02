@@ -144,11 +144,11 @@ The backend is designed to support features such as real-time text chat, image a
 
 - The application is divided into feature-centric modules, making it easy to maintain, test, and extend.
 
-## Real-Time & Streaming
+### Real-Time & Streaming
 
 - Designed to efficiently support real-time interactions, live messaging, and adaptive video streaming using industry-standard protocols like WebSockets and HLS.
 
-## Scalability
+### Scalability
 
 - With Redis caching, BullMQ queueing, and modular event pipelines, the project is built for scalability and high throughput.
 
