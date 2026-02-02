@@ -15,7 +15,7 @@ The backend is designed to support features such as real-time text chat, image a
 
 - Integrated with TypeORM for database modeling, migrations, and entity relationships.
 
-- Supports relational databases (e.g., PostgreSQL, MySQL).
+- Supports relational databases (e.g., PostgreSQL).
 
 ### Real-Time Functionality
 
@@ -41,13 +41,11 @@ The backend is designed to support features such as real-time text chat, image a
 
 - Redis caching to improve response performance and scalability.
 
-- Used in API caching, session cache, rate-limit counters, and real-time optimization.
-
 ### Queueing & Background Jobs
 
 - BullMQ for high-performance job queues and background processing.
 
-- Manages tasks such as media processing, notifications, and deferred jobs.
+- Manages tasks such as media processing, notifications.
 
 ### Logging
 
@@ -55,7 +53,7 @@ The backend is designed to support features such as real-time text chat, image a
 
 ### Third-Party Integrations
 
-- Supabase integration for storage, database, and authentication extensions.
+- Supabase integration for storage.
 
 - Extensible for future integrations and microservices.
 
@@ -84,9 +82,7 @@ The backend is designed to support features such as real-time text chat, image a
 
 ### Caching with Redis
 
-- API endpoints, frequently accessed queries, and session data are cached in Redis.
-
-- Enables multi-node cache sharing.
+- API endpoints, frequently accessed queries, cached in Redis.
 
 - Reduces database load and increases throughput.
 
@@ -105,9 +101,9 @@ The backend is designed to support features such as real-time text chat, image a
 
 - Relational database support with TypeORM.
 
-- Entities and repositories for core resources such as users, chats, messages, videos, and sessions.
+- Entities and repositories for core resources such as users, chats, messages, and videos.
 
-- Supports migrations and database versioning.
+- Supports migrations.
 
 ### Authentication & Access Control
 
@@ -141,74 +137,157 @@ The backend is designed to support features such as real-time text chat, image a
 
 ### Supabase Integration
 
-- Utilizes Supabase services for extended database access, storage, authentication, and API extensions.
-
-- Improves frontend-backend interaction.
+- Utilizes Supabase services for file storage.
 
 ## Architectural Highlights
-Modular Design
+### Modular Design
 
-The application is divided into feature-centric modules, making it easy to maintain, test, and extend.
+- The application is divided into feature-centric modules, making it easy to maintain, test, and extend.
 
-Real-Time & Streaming
+## Real-Time & Streaming
 
-Designed to efficiently support real-time interactions, live messaging, and adaptive video streaming using industry-standard protocols like WebSockets and HLS.
+- Designed to efficiently support real-time interactions, live messaging, and adaptive video streaming using industry-standard protocols like WebSockets and HLS.
 
-Scalability
+## Scalability
 
-With Redis caching, BullMQ queueing, and modular event pipelines, the project is built for scalability and high throughput.
+- With Redis caching, BullMQ queueing, and modular event pipelines, the project is built for scalability and high throughput.
 
-Topics Covered (Detailed Overview)
+## 🧱 Tech Stack
 
-Server-Sent Events (SSE)
-Real-time, unidirectional streams from the server to clients, ideal for push notifications.
+- **Node.js** / **TypeScript**
+- **NestJS** – Application framework
+- **TypeORM** – Database ORM
+- **PostgreSQL** - Primary Database
+- **FFmpeg** – Video processing
+- **WebSockets** – Real-time communication
+- **BullMQ** – Background jobs & async processing
+- **hCaptcha** – Bot protection
+- **Redis** – Caching
 
-WebSockets (Socket.IO)
-Full-duplex communication enabling real-time chat, presence tracking, and event dispatch.
+## 📁 Project Structure
 
-HLS Integration
-Adaptive media streaming for video delivery through HLS playlists and segment serving.
+```text
+db/
+├── factories/
+├── migrations/
+├── seeders/
+├── seed.ts
+├── seeder.config.ts
+├── typeorm.config.ts
 
-Image and Video Uploads
-Chat and media endpoints support file uploads, integrated with Supabase and background processors.
+dist/
 
-Token-Based Authentication
-Secure login and token refresh mechanism with access control.
+logs/
+├── server
+├── client
 
-Rate Limiting
-API protection to prevent brute-force and flood requests.
-
-h-captcha Integration
-Human verification for forms and endpoints.
-
-Caching with Redis
-Improved performance and reduced latency through Redis caches.
-
-Background Jobs with BullMQ
-Asynchronous processing for heavy tasks like media processing.
-
-Winston Logging
-Structured, level-based logging for operational monitoring.
-
-Supabase Integration
-Enhances storage, authentication, and real-time capabilities with an external platform.
-
-Project Structure (Conceptual)
-modules/
+src/
 ├── auth/
-├── users/
-├── chat/
-├── streaming/
-├── media/
-├── notifications/
+├── user/
+├── ffmpeg/
+├── files/
+├── h-captcha/
+├── organization/
+├── permission/
+├── post/
+├── product/
 ├── queue/
+├── role/
+├── storage/
+├── video/
+├── websocket/
+├── notification/
 ├── cache/
-├── logs/
-common/
-services/
-events/
-config/
-database/
+├── common/
+├── config/
+├── app.controller.ts
+├── app.module.ts
+├── app.service.ts
+├── main.ts
+├── test/
 
+package.json
+package-lock.json
+tsconfig.json
+README.md
 
-Each module encapsulates a domain of responsibility with services, controllers, and providers.
+- Each module encapsulates a domain of responsibility with services, controllers, and providers.
+```
+
+## ⚙️ Installation
+
+### Clone the Repository
+```bash
+git clone <repository-url>
+cd <project-directory>
+```
+
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn
+- PostgreSQL
+- Redis (optional, for cache & queues)
+- FFmpeg (for video processing)
+
+### Install Dependencies
+```bash
+npm install
+```
+
+## Environment Configuration
+### Create a .env file in the project root:
+
+```bash
+NODE_ENV=development
+PORT=3000
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=your-db-username
+DB_PASSWORD=your-db-password
+DB_NAME=your-db-name
+
+# Authentication
+JWT_SECRET=your-jwt-secret
+
+# hCaptcha
+HCAPTCHA_SECRET=your-hcaptcha-secret
+
+# Redis (optional)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+## Database Migrations
+### Run database migrations to create tables and schemas:
+
+```bash
+npm run typeorm migration:run
+```
+
+### Revert Last Migration (if needed)
+```bash
+npm run typeorm migration:revert
+```
+
+## Start the Application
+### Development Mode
+
+```bash
+npm run start:dev
+```
+
+The server will start at:
+```bash
+http://localhost:3000
+```
+
+## Build Output
+- Compiled files are generated in the dist/ directory
+
+- Logs are written to:
+
+    - logs/server
+
+    - logs/client
