@@ -57,7 +57,7 @@ The backend is designed to support features such as real-time text chat, image a
 
 - Extensible for future integrations and microservices.
 
-## Modules and Capabilities
+## Modules
 
 ### Real-Time Communication
 
