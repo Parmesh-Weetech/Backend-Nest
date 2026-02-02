@@ -1,0 +1,22 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  signoz:
+    endpoint: http://localhost:4317
+    insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [signoz]
+    metrics:
+      receivers: [otlp]
+      exporters: [signoz]
+    logs:
+      receivers: [otlp]
+      exporters: [signoz]

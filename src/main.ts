@@ -1,3 +1,4 @@
+import './otel.js';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import {

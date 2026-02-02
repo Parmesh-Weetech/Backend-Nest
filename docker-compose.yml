@@ -1,11 +1,17 @@
-version: "3.8"
+version: '3.7'
 services:
-  postgres:
-    image: "postgres:14.5"
+  grafana:
+    image: grafana/grafana:latest
     ports:
-      - "5440:5432"
-    restart: unless-stopped
+      - "3001:3000"
     environment:
-      POSTGRES_USER: "div"
-      POSTGRES_PASSWORD: "divpassword"
-      POSTGRES_DB: "divdata"
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:latest
+    ports:
+      - "3200:3200"  # OTLP HTTP
+      - "4317:4317"  # OTLP gRPC

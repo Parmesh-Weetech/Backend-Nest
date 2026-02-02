@@ -12,5 +12,4 @@ export class AddedAuthRoleMapping1766993813352 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "auth" DROP CONSTRAINT "FK_b368cb67ee97687c9fdc9a04153"`);
         await queryRunner.query(`ALTER TABLE "auth" DROP COLUMN "roleId"`);
     }
-
 }
