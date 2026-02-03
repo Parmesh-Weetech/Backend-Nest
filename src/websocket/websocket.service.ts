@@ -184,7 +184,7 @@ export class WebsocketService {
             conversation.id,
             `New Message from ${sender.name}`,
             getTodayDate(),
-            getCurrentTimePlusSeconds(0),
+            getCurrentTimePlusSeconds(120),
             'UTC'
         )
 
