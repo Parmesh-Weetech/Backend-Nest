@@ -1,13 +1,8 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
-import { clientLogger } from '../../common/util/client-log';
 import { Request, Response } from 'express';
+import * as winston from 'winston';
+import { getClientLogFilePath } from '../../common/util/client-log'; // Ensure this function is imported
 import { apiLogger } from '../util/logs';
-import { Meter, metrics } from "@opentelemetry/api"
-
-const meter: Meter = metrics.getMeter('nestjs-backend-meter');
-const errorCounter = meter.createCounter('http_server_errors', {
-    description: 'Counts of HTTP server errors',
-});
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
@@ -34,15 +29,47 @@ export class HttpErrorFilter implements ExceptionFilter {
             userAgent: req.headers['user-agent'],
         };
 
+        // Dynamically determine the log file path based on user-agent
+        const userAgent = req.headers['user-agent'] || '';
+        const logFilePath = getClientLogFilePath(userAgent); // This should map to correct client directory
+
+        // Create a dynamic client logger for error logs based on the user-agent
+        const dynamicClientLogger = winston.createLogger({
+            transports: [
+                new winston.transports.DailyRotateFile({
+                    filename: `logs/client/${logFilePath}/%DATE%.log`, // Dynamically assigned log folder
+                    datePattern: 'DD-MM-YYYY-HH',
+                    zippedArchive: true,
+                    maxFiles: '90d',
+                    format: winston.format.combine(
+                        winston.format.timestamp(),
+                        winston.format.json(),
+                    ),
+                }),
+                new winston.transports.Console({
+                    format: winston.format.combine(
+                        winston.format.cli(),
+                        winston.format.splat(),
+                        winston.format.timestamp(),
+                        winston.format.printf(info => `${info.timestamp} ${info.level} [${info.source || 'Unknown'}]: ${info.message}`)
+                    )
+                }),
+            ],
+        });
+
         // 🔴 SERVER ERROR LOG
-        apiLogger.error(logPayload);
+        apiLogger.error({
+            source: "Server",
+            ...logPayload
+        });
 
-        // 🔴 CLIENT ERROR LOG
-        if (req.headers['x-client-request'] === 'true') {
-            clientLogger.error(logPayload);
+        // 🔴 CLIENT ERROR LOG (only real client calls)
+        if (req.headers['x-client-request'] == 'true') {
+            dynamicClientLogger.error({
+                source: "Client",
+                ...logPayload
+            });
         }
-
-        errorCounter.add(1, { message: (response as any).message, ip: req.ip, userAgent: req.headers['user-agent'], duration, url: req.url, method: req.method, status_code: String(status) });
 
         res.status(status).json(response);
     }
