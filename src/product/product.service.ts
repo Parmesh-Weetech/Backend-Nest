@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
 import { Response } from '../common/response/response.dto';
+import { TraceSpan } from 'src/common/decorators/trace.span.decorator';
 
 @Injectable()
 export class ProductService {
@@ -125,6 +126,7 @@ export class ProductService {
         }
     }
 
+    @TraceSpan()
     async create(product: CreateProductDTO, authorization: string): Promise<Response> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;

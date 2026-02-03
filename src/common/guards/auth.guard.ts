@@ -1,6 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Auth } from '../util/auth';
+import { TraceSpan } from '../decorators/trace.span.decorator';
+import type { ExecutionContext } from "@nestjs/common";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -9,6 +11,7 @@ export class AuthGuard implements CanActivate {
         private readonly auth: Auth
     ) { }
 
+    @TraceSpan()
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const publicRoute = this.reflector.get<boolean>(
             'IS_PUBLIC_KEY',
