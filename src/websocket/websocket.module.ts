@@ -12,11 +12,12 @@ import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 import { FilesModule } from '../files/files.module.js';
 import { CacheModule } from '../cache/cache.module.js';
 import { VideoModule } from '../video/video.module.js';
+import { NotificationModule } from '../notification/notification.module.js';
 
 @Module({
   controllers: [WebsocketController],
   providers: [WebsocketService, Gateway],
-  imports: [TypeOrmModule.forFeature([Conversation, Message, User, MessageAttachment]), AuthModule, UserModule, FilesModule, CacheModule, VideoModule],
+  imports: [TypeOrmModule.forFeature([Conversation, Message, User, MessageAttachment]), AuthModule, UserModule, FilesModule, CacheModule, VideoModule, NotificationModule],
   exports: [WebsocketService]
 })
 export class WebsocketModule { }

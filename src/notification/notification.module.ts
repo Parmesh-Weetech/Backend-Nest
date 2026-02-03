@@ -7,11 +7,13 @@ import { Notification } from './entities/notification.entity';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
+import { NotificationSseService } from './notificationSse.service';
+import { NotificationSseController } from './notificationSse.controller';
 
 @Module({
-  providers: [NotificationService, CurrentUserInterceptor],
-  controllers: [NotificationController],
-  exports: [NotificationService],
+  providers: [NotificationService, CurrentUserInterceptor, NotificationSseService],
+  controllers: [NotificationController, NotificationSseController],
+  exports: [NotificationService, NotificationSseService],
   imports: [
     TypeOrmModule.forFeature([Notification]),
     UserModule,

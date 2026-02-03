@@ -6,6 +6,8 @@ import { Organization } from "../../organization/entities/organization.entity.js
 import { Refresh_token } from "./refresh_token.entity.js";
 import { Product } from "../../product/entities/product.entity.js";
 import { Files } from "../../files/entities/File.entity.js";
+import { Video } from "../../video/entities/video.entity.js";
+import { Notification } from "../../notification/entities/notification.entity.js";
 
 @Entity("user")
 export class User {
@@ -27,6 +29,12 @@ export class User {
 
     @OneToMany(() => Files, file => file.user)
     files: Files[];
+
+    @OneToMany(() => Video, video => video.user)
+    videos: Video[];
+
+    @OneToMany(() => Notification, notification => notification.sender)
+    notifications: Notification[];
 
     @ManyToOne(() => Organization, org => org.users, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
     @JoinColumn()

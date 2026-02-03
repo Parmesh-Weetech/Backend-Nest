@@ -9,7 +9,8 @@ import { MessageAttachment } from './entities/MessageAttachment.entity.js';
 import { FilesService } from '../files/files.service.js';
 import { CacheService } from '../cache/cache.service.js';
 import { VideoService } from '../video/video.service.js';
-import { Video } from '../video/entities/video.entity.js';
+import { NotificationService } from '../notification/notification.service.js';
+import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util.js';
 
 @Injectable()
 export class WebsocketService {
@@ -24,7 +25,8 @@ export class WebsocketService {
         private readonly messageAttachmentRepository: Repository<MessageAttachment>,
         private readonly fileService: FilesService,
         private readonly cacheService: CacheService,
-        private readonly videoService: VideoService
+        private readonly videoService: VideoService,
+        private readonly notificationService: NotificationService
     ) { }
 
     getMessageKey(conversationId: string, skip: number, take: number) {
@@ -58,7 +60,7 @@ export class WebsocketService {
         // let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
 
         // if (!cachedMessages) {
-
+            
         //     await this.cacheService.set(messageKey, messages, 600);
         // }
 
@@ -176,6 +178,15 @@ export class WebsocketService {
 
             savedMessage.attachments = savedAttachments;
         }
+
+        await this.notificationService.create(
+            sender.id,
+            conversation.id,
+            `New Message from ${sender.name}`,
+            getTodayDate(),
+            getCurrentTimePlusSeconds(0),
+            'UTC'
+        )
 
         return savedMessage
     }

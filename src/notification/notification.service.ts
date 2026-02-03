@@ -5,6 +5,8 @@ import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { User } from '../user/entities/user.entity';
+import { DateTime } from "luxon";
+import { Conversation } from 'src/websocket/entities/conversation.entity';
 
 @Injectable()
 export class NotificationService {
@@ -18,21 +20,41 @@ export class NotificationService {
 
     async create(
         senderId: string,
-        receiverId: string,
+        conversationId: string,
         message: string,
+        date: string,
+        time: string,
+        timezone: string
     ) {
-        const notification = await this.notificationRepository.save({
-            senderId,
-            receiverId,
-            message,
+        // ✅ Convert user time → UTC
+        const scheduledAtUtc = DateTime
+            .fromISO(`${date}T${time}`, { zone: timezone })
+            .toUTC();
+
+        // ✅ Calculate delay for BullMQ
+        const delay = scheduledAtUtc.diffNow().as('milliseconds');
+
+        if (delay <= 0) {
+            throw new Error('Scheduled time must be in the future');
+        }
+
+        const notificationObject = this.notificationRepository.create({
+            sender: { id: senderId },
+            conversation: { id: conversationId },
+            message: message,
+            scheduledAt: scheduledAtUtc.toJSDate(),
             sentAt: null,
-            status: 'PENDING',
-        });
+            status: "PENDING",
+            timezone: timezone,
+        })
+
+        const notification = await this.notificationRepository.save(notificationObject);
 
         await this.queue.add(
             'send-notification',
             { notificationId: notification.id },
             {
+                delay: delay,
                 attempts: 5,
                 backoff: { type: 'exponential', delay: 2000 },
                 removeOnComplete: {
@@ -51,9 +73,5 @@ export class NotificationService {
             notificationId: notification.id,
             status: 'PENDING',
         };
-    }
-
-    async findOne(user: User) {
-        return await this.notificationRepository.find({ where: { receiverId: user.id }, order: { createdAt: "DESC"} });
     }
 }
