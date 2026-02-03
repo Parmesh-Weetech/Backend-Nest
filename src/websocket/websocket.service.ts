@@ -86,10 +86,7 @@ export class WebsocketService {
             if (!message.attachments?.length) continue;
 
             for (const attachment of message.attachments) {
-                if (attachment.mediaType === "video") {
-                    const video = await this.videoService.getVideoById(attachment.media.id);
-                    attachment.url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName) : '';
-                } else {
+                if (attachment.mediaType !== "video") {
                     const file = await this.fileService.getFileById(attachment.media.id);
                     attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
                 }
@@ -125,7 +122,7 @@ export class WebsocketService {
             content: sendMessageDto.content ?? null,
             type: sendMessageDto.type,
             conversation,
-            sender,
+            sender
         });
 
         const savedMessage = await this.messageRepository.save(message);
@@ -138,14 +135,12 @@ export class WebsocketService {
                 const media = sendMessageDto.attachments[index];
                 let attachment: MessageAttachment
 
-                if(media.mediaType === "video") {
-                    const video = await this.videoService.getVideoById(media.id);
+                if (media.mediaType === "video") {
+                    const video = await this.videoService.getVideoById(media.mediaId);
 
                     if (!video) {
                         throw new Error('Video not found');
                     }
-
-                    const url = video ? await this.videoService.getSignedUrl(video.path, video.originalVideoName): "";
 
                     attachment = this.messageAttachmentRepository.create({
                         message: savedMessage,
@@ -155,15 +150,14 @@ export class WebsocketService {
                         order: index,
                     });
 
-                    attachment.url = url;
                 } else {
-                    const file = await this.fileService.getFileById(media.id);
-                    
+                    const file = await this.fileService.getFileById(media.mediaId);
+
                     if (!file) {
                         throw new Error('File not found');
                     }
 
-                    const url = file ? await this.fileService.getSignedUrl(media.id) : "";
+                    const url = file ? await this.fileService.getSignedUrl(media.mediaId) : "";
 
                     attachment = this.messageAttachmentRepository.create({
                         message: savedMessage,

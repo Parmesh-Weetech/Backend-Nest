@@ -101,7 +101,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   ) {
     const userId = client.data.userId;
 
-    const newMessage = await this.webSocketService.sendMessage(data, userId); 
+    const newMessage = await this.webSocketService.sendMessage(data, userId);
 
     this.server.to(data.conversationId).emit('receive_message', {
       id: newMessage.id,
@@ -110,8 +110,9 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
       conversation: newMessage.conversation,
       sender: newMessage.sender,
       attachments: newMessage.attachments?.map(data => ({
-        id: data.media.id,
-        url: data.url,
+        id: data.id,
+        mediaId: data.media.id,
+        url: data.url ? data.url : null,
         mimeType: data.mimeType,
         mediaType: data.mediaType
       })),
