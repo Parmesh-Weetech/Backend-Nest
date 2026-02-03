@@ -72,6 +72,7 @@ export class NotificationService {
         return {
             notificationId: notification.id,
             status: 'PENDING',
+            message: "Notification Created Successfully."
         };
     }
 }
