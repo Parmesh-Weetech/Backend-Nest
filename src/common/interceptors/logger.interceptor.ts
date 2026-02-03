@@ -38,6 +38,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
             // 🔹 SERVER LOG
             apiLogger.log({
+                source: "Server",
                 level: this.getLogLevel(statusCode),
                 ...logPayload,
             });
@@ -45,6 +46,7 @@ export class LoggingInterceptor implements NestInterceptor {
             // 🔹 CLIENT LOG (only real client calls)
             if (req.headers['x-client-request'] === 'true') {
                 clientLogger.log({
+                    source: "Client",
                     level: this.getLogLevel(statusCode),
                     ...logPayload,
                 });

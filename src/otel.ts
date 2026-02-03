@@ -18,7 +18,7 @@ const metricReader = new PeriodicExportingMetricReader({
     exporter: new OTLPMetricExporter({
         url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
     }),
-    exportIntervalMillis: 60000, // 1 min
+    exportIntervalMillis: 60000,
 });
 
 const sdk = new NodeSDK({

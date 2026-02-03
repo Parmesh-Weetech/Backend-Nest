@@ -22,7 +22,9 @@ export const apiLogger = WinstonModule.createLogger({
                 winston.format.cli(),
                 winston.format.splat(),
                 winston.format.timestamp(),
-                winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+                winston.format.printf(info => {
+                    return `${info.timestamp} ${info.level} [${info.source || "Unknown"}]: ${info.message}`;
+                })
             )
         }),
     ],
