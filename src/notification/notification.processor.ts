@@ -51,7 +51,7 @@ export class NotificationProcessor extends WorkerHost {
 
             if (result.affected !== undefined && result.affected !== null && result.affected > 0) {
                 this.notificationSseService.sendSuccess(
-                    notificationId, notification.message, notification.sender.name, notification.createdAt, notification.conversation.id, "SENT"
+                    notificationId, notification.message, notification.sender.id, notification.createdAt, notification.conversation.id, "SENT"
                 );
             }
 
