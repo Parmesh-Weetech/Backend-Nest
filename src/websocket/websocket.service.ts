@@ -136,7 +136,7 @@ export class WebsocketService {
                 let attachment: MessageAttachment
 
                 if (media.mediaType === "video") {
-                    const video = await this.videoService.getVideoById(media.mediaId);
+                    const video = await this.videoService.getVideoById(media.media.id);
 
                     if (!video) {
                         throw new Error('Video not found');
@@ -151,13 +151,13 @@ export class WebsocketService {
                     });
 
                 } else {
-                    const file = await this.fileService.getFileById(media.mediaId);
+                    const file = await this.fileService.getFileById(media.media.id);
 
                     if (!file) {
                         throw new Error('File not found');
                     }
 
-                    const url = file ? await this.fileService.getSignedUrl(media.mediaId) : "";
+                    const url = file ? await this.fileService.getSignedUrl(media.media.id) : "";
 
                     attachment = this.messageAttachmentRepository.create({
                         message: savedMessage,
