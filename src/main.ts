@@ -27,6 +27,7 @@ import { PermissionsMiddleware } from './common/middlewares/permission.middlewar
 import compression from 'compression';
 import 'multer'
 import helmet from 'helmet';
+import { sdk } from './otel.js'; 
 
 async function bootstrap() {
   try {
@@ -113,9 +114,22 @@ async function bootstrap() {
     SwaggerModule.setup('api', app, document);
 
     /* -------------------- START SERVER -------------------- */
-    await app.listen(configService.get('PORT') ?? 3000, '0.0.0.0');
+    await app.listen(configService.get('PORT') || 3000, '0.0.0.0');
 
     console.log('🚀 Server started successfully');
+
+    if (process.env.NODE_ENV === 'development') {
+      process.on('SIGINT', async () => {
+        await app.close();
+        await sdk.shutdown();
+        process.exit(0);
+      });
+      process.on('SIGTERM', async () => {
+        await app.close();
+        await sdk.shutdown();
+        process.exit(0);
+      });
+    }
   } catch (error: any) {
     console.error('Error starting server:', error);
     throw new HttpException(
