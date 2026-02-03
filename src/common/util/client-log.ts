@@ -4,8 +4,8 @@ import 'winston-daily-rotate-file';
 // Base format for the logs
 const baseFormat = winston.format.combine(
     winston.format.timestamp(),
-    winston.format.json(),
-);
+    winston.format.json()
+)
 
 // Function to categorize user-agent into client types
 export function getClientType(userAgent: string): string {

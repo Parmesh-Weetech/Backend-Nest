@@ -15,6 +15,7 @@ import {
 } from '@opentelemetry/sdk-logs';
 import { propagation } from '@opentelemetry/api';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
+import { logs } from '@opentelemetry/api-logs';
 
 propagation.setGlobalPropagator(
     new W3CTraceContextPropagator()
@@ -38,6 +39,8 @@ const logsExporter = new OTLPLogExporter({
 const loggerProvider = new LoggerProvider({
     processors: [new BatchLogRecordProcessor(logsExporter)]
 });
+
+logs.setGlobalLoggerProvider(loggerProvider);
 
 export const sdk = new NodeSDK({
     resource: resourceFromAttributes({

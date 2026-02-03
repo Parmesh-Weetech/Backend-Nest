@@ -4,7 +4,7 @@ import 'winston-daily-rotate-file';
 
 export const apiLogger = WinstonModule.createLogger({
     transports: [
-        // Rotating file transport
+        // 📦 File + SigNoz (structured)
         new winston.transports.DailyRotateFile({
             filename: 'logs/server/%DATE%.log',
             datePattern: 'DD-MM-YYYY-HH',
@@ -16,15 +16,14 @@ export const apiLogger = WinstonModule.createLogger({
             ),
         }),
 
-        // Console logging
+        // 🖥 Console (human-readable ONLY)
         new winston.transports.Console({
             format: winston.format.combine(
-                winston.format.cli(),
-                winston.format.splat(),
+                winston.format.colorize(),
                 winston.format.timestamp(),
-                winston.format.printf(info => {
-                    return `${info.timestamp} ${info.level} [${info.source || "Unknown"}]: ${info.message}`;
-                })
+                winston.format.printf(
+                    info => `${info.timestamp} ${info.level} [${info.source}]: ${info.message}`
+                )
             )
         }),
     ],

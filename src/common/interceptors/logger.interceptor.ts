@@ -1,5 +1,4 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { clientLogger } from '../../common/util/client-log'; // Import the already configured clientLogger
 import { Observable, tap } from 'rxjs';
 import { Request, Response } from 'express';
 import { apiLogger } from '../util/logs';
