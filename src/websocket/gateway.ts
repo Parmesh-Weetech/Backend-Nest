@@ -111,7 +111,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
       sender: newMessage.sender,
       attachments: newMessage.attachments?.map(data => ({
         id: data.id,
-        mediaId: data.media.id,
+        media: { id: data.media.id },
         url: data.url ? data.url : null,
         mimeType: data.mimeType,
         mediaType: data.mediaType
