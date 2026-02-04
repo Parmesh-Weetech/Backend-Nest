@@ -1,6 +1,16 @@
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import { Expose } from "class-transformer";
+
 import { User } from "../../user/entities/user.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("files")
 export class Files {
@@ -8,12 +18,13 @@ export class Files {
     @Expose()
     id: string;
 
-    @ManyToOne(() => User, user => user.files, {
-        nullable: true,
-        cascade: true,
-        onDelete: 'CASCADE',
-        onUpdate: "CASCADE"
-    })
+    @ManyToOne(() => User, user => user.files,
+        {
+            nullable: true,
+            cascade: true,
+            onDelete: 'CASCADE',
+            onUpdate: "CASCADE"
+        })
     @JoinColumn({ name: 'user_id' })
     user: User;
 

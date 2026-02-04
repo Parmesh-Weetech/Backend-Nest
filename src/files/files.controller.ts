@@ -1,36 +1,41 @@
-import { Body, Controller, Delete, Get, Param, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { FilesService } from './files.service';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Res,
+    StreamableFile,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthGuard } from '../common/guards/auth.guard';
-import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
-import { User } from '../user/entities/user.entity';
-import { APIResponse } from '../common/response/response.dto';
 import type { Response as response } from 'express'
-import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
 
-@Controller('files')
+import { AuthGuard } from '../common/guards/auth.guard';
+import { APIResponse } from '../common/response/response.dto';
+import { CurrentUser } from '../common/decorators/currentUser.decorator';
+import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
+import { User } from '../user/entities/user.entity';
+
+import { FilesService } from './files.service';
+
 @UseGuards(AuthGuard)
+@Controller('files')
 export class FilesController {
     constructor(
         private readonly fileService: FilesService
     ) { }
 
+    @UseInterceptors(FileInterceptor('file') , CurrentUserInterceptor)
     @Post('upload')
-    @UseInterceptors(CurrentUserInterceptor)
-    @UseInterceptors(FileInterceptor('file'))
     async uploadFile(
         @UploadedFile() file: Express.Multer.File,
         @CurrentUser() user: User
     ): Promise<APIResponse> {
-        const fileId = await this.fileService.uploadFile(file, user);
-
-        return {
-            success: true,
-            message: 'File uploaded successfully',
-            data: fileId,
-            expired: false,
-            statusCode: 201
-        };
+        return await this.fileService.uploadFile(file, user);
     }
 
     @Post('upload/signed-url')

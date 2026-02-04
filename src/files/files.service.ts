@@ -1,12 +1,21 @@
-import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Files } from './entities/File.entity';
-import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
-import { randomUUID } from 'crypto';
-import { StorageService } from '../storage/storage.service';
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
+
+import { APIResponse } from '../common/response/response.dto';
+import { User } from '../user/entities/user.entity';
+import { StorageService } from '../storage/storage.service';
+
+import { Files } from './entities/File.entity';
 
 @Injectable()
 export class FilesService {
@@ -17,7 +26,7 @@ export class FilesService {
         private readonly configService: ConfigService
     ) { }
 
-    async uploadFile(file: Express.Multer.File, user: User): Promise<string> {
+    async uploadFile(file: Express.Multer.File, user: User): Promise<APIResponse> {
         if (!file) throw new BadRequestException('File missing');
 
         if (file.size > 10 * 1024 * 1024) throw new BadRequestException("File size is too large.");
@@ -39,7 +48,19 @@ export class FilesService {
                 bucket: this.configService.get<string>('SUPABASE_BUCKET'),
             });
 
-            return savedFile.id;
+            return {
+                data: {
+                    id: savedFile.id,
+                    name: savedFile.originalFileName,
+                    mimeType: savedFile.mimeType,
+                    bucket: savedFile.bucket,
+                    status: savedFile.status
+                },
+                success: true,
+                expired: false,
+                message: "File Uploaded Successfully.",
+                statusCode: 201
+            }
         } catch (error) {
             await this.storageService.deleteFile(path);
             throw new InternalServerErrorException('Failed to save file record');
@@ -78,7 +99,7 @@ export class FilesService {
     }
 
     async getFileById(fileId: string) {
-        return await this.fileRepository.findOne({ where: { id: fileId }});
+        return await this.fileRepository.findOne({ where: { id: fileId } });
     }
 
     async getUploadSignedUrl(
