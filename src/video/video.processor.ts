@@ -56,7 +56,7 @@ export class VideoProcessor extends WorkerHost {
             await this.storage.upload(originalFilePath, Readable.from(bufferData), file.mimetype);
 
             // 4. Save to assets folder (only JSON-safe operations)
-            const rootFolder = '/home/parmesh/Desktop/Backend-Nest/NestJs/project';
+            const rootFolder = this.config.get("ROOT_DIRECTORY");
             const assetsVideoDir = path.join(rootFolder, 'assets', 'video');
             const savedFilePath = path.join(assetsVideoDir, file.originalname);
             await fs.mkdir(assetsVideoDir, { recursive: true });
@@ -71,7 +71,7 @@ export class VideoProcessor extends WorkerHost {
             }
 
             // 7. Generate HLS
-            const outputDir = `/home/parmesh/Desktop/Backend-Nest/NestJs/tmp/hls/${videoId}`;
+            const outputDir = `${this.config.get("OUTPUT_DIRECTORY")}/${videoId}`;
             await this.ffmpeg.generateHls(savedFilePath, outputDir);
 
             // 8. Upload HLS master playlist
