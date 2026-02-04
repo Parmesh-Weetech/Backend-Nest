@@ -7,7 +7,7 @@ import { UpdateRoleDTO } from './dtos/update-role.dto.js';
 import { OrganizationService } from '../organization/organization.service.js';
 import { PermissionService } from '../permission/permission.service.js';
 import { RoleCreationFailedError, RoleDeletionFailedError, RoleUpdationFailedError } from './errors/errors.js';
-import { Response } from '../common/response/response.dto.js';
+import { APIResponse } from '../common/response/response.dto.js';
 
 @Injectable()
 export class RoleService {
@@ -19,7 +19,7 @@ export class RoleService {
         private readonly permissionService: PermissionService
     ) { }
 
-    async findAll(): Promise<Response> {
+    async findAll(): Promise<APIResponse> {
         const roles = await this.roleRepository.find({ relations: ['permissions'] });
 
         if (!roles) return {
@@ -39,7 +39,7 @@ export class RoleService {
         };
     }
 
-    async findOne(id: string): Promise<Response> {
+    async findOne(id: string): Promise<APIResponse> {
         const role = await this.roleRepository.findOne({ where: { id }, relations: ['organization', 'permissions'] });
 
         if (!role) return {
@@ -59,7 +59,7 @@ export class RoleService {
         };
     }
 
-    async create(dto: CreateRoleDTO, orgId: string): Promise<Response> {
+    async create(dto: CreateRoleDTO, orgId: string): Promise<APIResponse> {
         const organization = await this.organizationService.findOne(orgId);
 
         if(!organization.success) return organization;
@@ -123,7 +123,7 @@ export class RoleService {
         }
     }
 
-    async update(dto: UpdateRoleDTO): Promise<Response> {
+    async update(dto: UpdateRoleDTO): Promise<APIResponse> {
         const roleResponse = await this.findOne(dto.id);
 
         if (!roleResponse.success) return roleResponse;
@@ -173,7 +173,7 @@ export class RoleService {
         }
     }
 
-    async remove(id: string): Promise<Response> {
+    async remove(id: string): Promise<APIResponse> {
         const role = await this.findOne(id);
 
         if(!role.success) return role;
@@ -209,7 +209,7 @@ export class RoleService {
         }
     }
 
-    async findRoleByOrganization(key: string): Promise<Response> {
+    async findRoleByOrganizationName(key: string): Promise<APIResponse> {
         const role = await this.roleRepository.findOne({ where: { key: key, organization: IsNull() }, relations: ['permissions'] });
 
         if (!role) return {

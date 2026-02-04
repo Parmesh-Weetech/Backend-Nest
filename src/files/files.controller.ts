@@ -4,7 +4,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
-import { Response } from '../common/response/response.dto';
+import { APIResponse } from '../common/response/response.dto';
 import type { Response as response } from 'express'
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
 
@@ -21,7 +21,7 @@ export class FilesController {
     async uploadFile(
         @UploadedFile() file: Express.Multer.File,
         @CurrentUser() user: User
-    ): Promise<Response> {
+    ): Promise<APIResponse> {
         const fileId = await this.fileService.uploadFile(file, user);
 
         return {
@@ -38,7 +38,7 @@ export class FilesController {
     async getUploadSignedUrl(
         @Body() fileData: { filename: string, type: string },
         @CurrentUser() user: User
-    ): Promise<Response> {
+    ): Promise<APIResponse> {
         const data = await this.fileService.getUploadSignedUrl(
             fileData.filename,
             fileData.type,
@@ -55,7 +55,7 @@ export class FilesController {
     }
 
     @Post(":fileId/confirm")
-    async confirmFileUpload(@Param("fileId") fileId: string): Promise<Response> {
+    async confirmFileUpload(@Param("fileId") fileId: string): Promise<APIResponse> {
         const data = await this.fileService.confirmFileUpload(fileId);
 
         return {
@@ -90,7 +90,7 @@ export class FilesController {
     }
 
     @Get(':fileId/signed-url')
-    async getSignedUrl(@Param('fileId') fileId: string): Promise<Response> {
+    async getSignedUrl(@Param('fileId') fileId: string): Promise<APIResponse> {
         const url = await this.fileService.getSignedUrl(fileId);
 
         return {
@@ -107,7 +107,7 @@ export class FilesController {
     async deleteFile(
         @Param('id') fileId: string,
         @CurrentUser() user: User
-    ): Promise<Response> {
+    ): Promise<APIResponse> {
         await this.fileService.deleteFile(fileId, user);
 
         return {

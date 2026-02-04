@@ -4,7 +4,7 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity.js';
 import { Repository } from 'typeorm';
-import { Response } from '../common/response/response.dto.js';
+import { APIResponse } from '../common/response/response.dto.js';
 import { Auth } from '../common/util/auth.js';
 import { UserService } from '../user/user.service.js';
 
@@ -16,7 +16,7 @@ export class OrganizationService {
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService
   ) { }
-  async findAll(): Promise<Response> {
+  async findAll(): Promise<APIResponse> {
     const organizations = await this.organizationRepository.find();
 
     if (!organizations) return {
@@ -36,7 +36,7 @@ export class OrganizationService {
     };
   }
 
-  async findOne(id: string): Promise<Response> {
+  async findOne(id: string): Promise<APIResponse> {
     const organization = await this.organizationRepository.findOne({ where: { id: id } });
 
     if (!organization) return {
@@ -56,7 +56,7 @@ export class OrganizationService {
     };
   }
 
-  async create(createOrganizationDto: CreateOrganizationDto): Promise<Response> {
+  async create(createOrganizationDto: CreateOrganizationDto): Promise<APIResponse> {
     try {
       const newOrganization = await this.organizationRepository.create(createOrganizationDto);
 
@@ -80,7 +80,7 @@ export class OrganizationService {
     }
   }
 
-  async update(updateOrganizationDto: UpdateOrganizationDto): Promise<Response> {
+  async update(updateOrganizationDto: UpdateOrganizationDto): Promise<APIResponse> {
     const existingOrganization = await this.findOne(updateOrganizationDto.id);
 
     if (existingOrganization.data.name) existingOrganization.data.name = updateOrganizationDto.name;
@@ -106,7 +106,7 @@ export class OrganizationService {
     }
   }
 
-  async remove(id: string): Promise<Response> {
+  async remove(id: string): Promise<APIResponse> {
     try {
       const organization = await this.findOne(id);
 

@@ -1,10 +1,4 @@
-export class AuthResponse {
-    success: false
-    expired: true
-    message: string
-}
-
-export class Response {
+export class APIResponse {
     success: boolean
     message: string
     data: any

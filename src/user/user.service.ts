@@ -6,7 +6,7 @@ import { CreateUserDTO } from './dtos/create-user.dto.js';
 import { updateUserDTO } from './dtos/update-user.dto.js';
 import { RoleService } from '../role/role.service.js';
 import { OrganizationService } from '../organization/organization.service.js';
-import { Response } from '../common/response/response.dto.js';
+import { APIResponse } from '../common/response/response.dto.js';
 import { CacheService } from '../cache/cache.service.js';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class UserService {
         return `users:${userId}`
     }
 
-    async findAll(currentUser: User): Promise<Response> {
+    async findAll(currentUser: User): Promise<APIResponse> {
         const usersKey = this.usersKey(currentUser.id);
         let cachedUsers = await this.cacheService.get<User[]>(usersKey);
 
@@ -73,7 +73,7 @@ export class UserService {
         };
     }
 
-    async findAllUser(currentUser: User): Promise<Response> {
+    async findAllUser(currentUser: User): Promise<APIResponse> {
         const users = await this.userRepository.find({ where: { id: Not(currentUser.id) }, relations: ['roles'] });
 
         if (!users || users.length === 0) {
@@ -95,7 +95,7 @@ export class UserService {
         };
     }
 
-    async findOne(id: string): Promise<Response> {
+    async findOne(id: string): Promise<APIResponse> {
         const cacheKey = this.userKey(id);
         let cachedUser = await this.cacheService.get(cacheKey);
 
@@ -132,7 +132,7 @@ export class UserService {
         };
     }
 
-    async create(createUserDTO: CreateUserDTO, orgId: string): Promise<Response> {
+    async create(createUserDTO: CreateUserDTO, orgId: string): Promise<APIResponse> {
         const roles = await Promise.all(
             createUserDTO.roleIds.map(roleId =>
                 this.roleService.findOne(roleId),
@@ -180,7 +180,7 @@ export class UserService {
         }
     }
 
-    async update(updateUserDTO: updateUserDTO): Promise<Response> {
+    async update(updateUserDTO: updateUserDTO): Promise<APIResponse> {
         const user = await this.findOne(updateUserDTO.id);
 
         if (updateUserDTO.roleIds) {
@@ -219,7 +219,7 @@ export class UserService {
         }
     }
 
-    async remove(id: string): Promise<Response> {
+    async remove(id: string): Promise<APIResponse> {
         const user = await this.findOne(id);
 
         try {
@@ -251,7 +251,7 @@ export class UserService {
         }
     }
 
-    async findOneByEmail(email: string): Promise<Response> {
+    async findOneByEmail(email: string): Promise<APIResponse> {
         const user = await this.userRepository.findOne({ where: { email: email }, relations: ['roles'] });
 
         if (!user) return {
@@ -271,7 +271,7 @@ export class UserService {
         };
     }
 
-    async findOneWithRolesAndPermissions(userId: string): Promise<Response> {
+    async findOneWithRolesAndPermissions(userId: string): Promise<APIResponse> {
         const user = await this.userRepository.findOne({
             where: { id: userId },
             relations: {

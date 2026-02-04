@@ -194,3 +194,17 @@ Just tell me.
 
 ## Redis key design
 {domain}:{entity}:{id}:{field}
+
+
+import follow
+Node.js / external libraries (npm modules)
+
+Absolute imports from your app (shared modules, common libraries)
+
+Relative imports (local files)
+
+CSS / assets / other resources (not relevant here)
+
+Relative import: starts with ./ or ../ — file path is relative to the current file.
+
+Absolute import: starts from project root or a module alias (like @app/...) — does not start with ./ or ../.

@@ -5,7 +5,7 @@ import { Permission } from './entities/permission.entity.js';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
 import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { OrganizationService } from '../organization/organization.service.js';
-import { Response } from '../common/response/response.dto.js';
+import { APIResponse } from '../common/response/response.dto.js';
 import { Auth } from '../common/util/auth.js';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class PermissionService {
         private readonly organizationService: OrganizationService
     ) { }
 
-    async findAll(): Promise<Response> {
+    async findAll(): Promise<APIResponse> {
         const permissions = await this.permissionRepository.find({ relations: ['roles'] });
 
         if (!permissions) return {
@@ -36,7 +36,7 @@ export class PermissionService {
         };
     }
 
-    async findOne(id: string): Promise<Response> {
+    async findOne(id: string): Promise<APIResponse> {
         const perm = await this.permissionRepository.findOne({ where: { id }, relations: ['roles'] });
 
         if (!perm) return {
@@ -56,7 +56,7 @@ export class PermissionService {
         };;
     }
 
-    async create(dto: CreatePermissionDTO, orgId: string): Promise<Response> {
+    async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
         const organization = await this.organizationService.findOne(orgId);
 
         const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: organization.data } });
@@ -93,7 +93,7 @@ export class PermissionService {
         }
     }
 
-    async update(dto: UpdatePermissionDTO): Promise<Response> {
+    async update(dto: UpdatePermissionDTO): Promise<APIResponse> {
         const perm = await this.findOne(dto.id);
 
         if (dto.key) perm.data.key = dto.key;
@@ -133,7 +133,7 @@ export class PermissionService {
         }
     }
 
-    async remove(id: string): Promise<Response> {
+    async remove(id: string): Promise<APIResponse> {
         const perm = await this.findOne(id);
 
         if (!perm.data) return perm;
@@ -163,7 +163,7 @@ export class PermissionService {
         }
     }
 
-    async findByRoleId(roleId: string): Promise<Response> {
+    async findByRoleId(roleId: string): Promise<APIResponse> {
         const permissions = await this.permissionRepository
             .createQueryBuilder('permission')
             .innerJoin('permission.roles', 'role')

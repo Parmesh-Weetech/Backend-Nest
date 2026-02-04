@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Video } from './entities/video.entity';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Response } from '../common/response/response.dto';
+import { APIResponse } from '../common/response/response.dto';
 import { promises as fs } from 'fs';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -27,7 +27,7 @@ export class VideoService {
         @InjectQueue('video-processing')
         private readonly videoQueue: Queue,
     ) { }
-    async enqueue(file: Express.Multer.File, user: User): Promise<Response> {
+    async enqueue(file: Express.Multer.File, user: User): Promise<APIResponse> {
         const videoId = randomUUID();
 
         const videoMetadata = this.videoRepository.create({

@@ -1,12 +1,23 @@
-import { Body, Controller, Headers, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
-import { Serialize } from './interceptors/serialize.interceptor.js';
-import { AuthService } from './auth.service.js';
-import { LoginDTO } from './dtos/login.dto.js';
-import { SignupDTO } from './dtos/signup.dto.js';
-import { User } from '../user/entities/user.entity.js';
-import { Public } from '../common/decorators/public.decorator.js';
-import { HcaptchaGuard } from '../common/guards/h-captcha.guard.js';
+import {
+    Body,
+    Controller,
+    Headers,
+    Post,
+    Res,
+    UseGuards
+} from '@nestjs/common';
 import type { Response } from 'express';
+
+import { Public } from '../common/decorators/public.decorator';
+import { HcaptchaGuard } from '../common/guards/h-captcha.guard';
+import { APIResponse } from '../common/response/response.dto';
+import { AuthGuard } from '../common/guards/auth.guard';
+
+import { User } from '../user/entities/user.entity';
+import { Serialize } from './interceptors/serialize.interceptor';
+import { AuthService } from './auth.service';
+import { LoginDTO } from './dtos/login.dto';
+import { SignupDTO } from './dtos/signup.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,43 +28,37 @@ export class AuthController {
     @Public()
     @Serialize(User)
     @Post("/signup")
-    async signup(@Body() signupDTO: SignupDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.authService.signup(signupDTO);
-
-        res.status(response.statusCode).send(response);
+    async signup(@Body() signupDTO: SignupDTO): Promise<APIResponse> {
+        return await this.authService.signup(signupDTO);
     }
 
     @Public()
-    @Post('/login')
-    @HttpCode(HttpStatus.OK)
     @UseGuards(HcaptchaGuard)
-    async login(@Body() loginDTO: LoginDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
+    @Post('/login')
+    async login(@Body() loginDTO: LoginDTO): Promise<APIResponse> {
         const response = await this.authService.login(loginDTO);
 
-        res.status(response.statusCode).send(response);
-    }
-
-    @Public()
-    @Post("/logout")
-    @HttpCode(HttpStatus.OK)
-    async logout(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const token = authorization?.split(' ')[1];
-
-        if (!token) {
-            res.status(400).json({ success: false, message: "You must be logged in!" });
-            return;
+        return {
+            success: response.success,
+            message: response.message,
+            statusCode: response.statusCode,
+            data: {
+                access_token: response.access_token,
+                refresh_token: response.refresh_token
+            },
+            expired: false
         }
-
-        const response = await this.authService.logout(token)
-
-        res.status(response.statusCode).send(response);
     }
 
-    @Public()
-    @Post("/refresh-token")
-    async refreshAccessToken(@Body('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.authService.refreshAccessToken(refreshToken);
+    @UseGuards(AuthGuard)
+    @Post("/logout")  
+    async logout(@Headers('Authorization') authorization: string): Promise<APIResponse> {
+        return await this.authService.logout(authorization)
+    }
 
-        res.status(response.statusCode).send(response);
+    @UseGuards(AuthGuard)
+    @Post("/refresh-token")
+    async refreshAccessToken(@Body('refreshToken') refreshToken: string): Promise<APIResponse> {
+        return await this.authService.refreshAccessToken(refreshToken);
     }
 }

@@ -6,7 +6,7 @@ import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
-import { Response } from '../common/response/response.dto';
+import { APIResponse } from '../common/response/response.dto';
 
 @Injectable()
 export class ProductService {
@@ -16,7 +16,7 @@ export class ProductService {
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    async findAll(authorization: string, skip: number, take: number): Promise<Response> {
+    async findAll(authorization: string, skip: number, take: number): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -72,7 +72,7 @@ export class ProductService {
     }
 
 
-    async findOne(id: string, authorization: string): Promise<Response> {
+    async findOne(id: string, authorization: string): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -125,7 +125,7 @@ export class ProductService {
         }
     }
 
-    async create(product: CreateProductDTO, authorization: string): Promise<Response> {
+    async create(product: CreateProductDTO, authorization: string): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -190,7 +190,7 @@ export class ProductService {
         }
     }
 
-    async insertBulk(products: CreateProductDTO[], authorization: string): Promise<Response> {
+    async insertBulk(products: CreateProductDTO[], authorization: string): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -254,7 +254,7 @@ export class ProductService {
         }
     }
 
-    async update(product: UpdateProductDTO, authorization: string): Promise<Response> {
+    async update(product: UpdateProductDTO, authorization: string): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -318,7 +318,7 @@ export class ProductService {
         }
     }
 
-    async deleteAll(authorization: string): Promise<Response> {
+    async deleteAll(authorization: string): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 
@@ -381,7 +381,7 @@ export class ProductService {
         }
     }
 
-    async deleteById(id: string, authorization: string): Promise<Response> {
+    async deleteById(id: string, authorization: string): Promise<APIResponse> {
         const [type, token] = authorization?.split(' ') ?? [];
         const access_token = type === 'Bearer' ? token : undefined;
 

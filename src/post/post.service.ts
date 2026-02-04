@@ -6,13 +6,13 @@ import { CreatePostDTO } from './dtos/create-post.dto.js';
 import { User } from '../user/entities/user.entity.js';
 import { UpdatePostDTO } from './dtos/update-post.dto.js';
 import { PostCreationFailedError, PostDeletionFailedError, PostUpdationFailedError } from './errors/error.js';
-import { Response } from '../common/response/response.dto.js';
+import { APIResponse } from '../common/response/response.dto.js';
 
 @Injectable()
 export class PostService {
     constructor(@InjectRepository(PostEntity) private readonly postRepository: Repository<PostEntity>) { }
 
-    async findAll(): Promise<Response> {
+    async findAll(): Promise<APIResponse> {
         const posts = await this.postRepository.find({ relations: ['user'] });
 
         if (!posts) return {
@@ -32,7 +32,7 @@ export class PostService {
         };
     }
 
-    async findOne(id: string): Promise<Response> {
+    async findOne(id: string): Promise<APIResponse> {
         const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
 
         if (!post) return {
@@ -52,7 +52,7 @@ export class PostService {
         };
     }
 
-    async create(post: CreatePostDTO, user: User): Promise<Response> {
+    async create(post: CreatePostDTO, user: User): Promise<APIResponse> {
         if (!user) {
             return {
                 success: false,
@@ -90,7 +90,7 @@ export class PostService {
         }
     }
 
-    async update(post: UpdatePostDTO): Promise<Response> {
+    async update(post: UpdatePostDTO): Promise<APIResponse> {
         const existingPost = await this.findOne(post.id);
 
         if (post.name) existingPost.data.name = post.name;
@@ -117,7 +117,7 @@ export class PostService {
         }
     }
 
-    async remove(id: string): Promise<Response> {
+    async remove(id: string): Promise<APIResponse> {
         const existingPost = await this.findOne(id);
 
         if(!existingPost) {
