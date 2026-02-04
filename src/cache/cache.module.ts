@@ -1,10 +1,10 @@
-// cache.module.ts
 import { Module, Global } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
-import { CacheService } from './cache.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import KeyvRedis from '@keyv/redis';
 import Keyv from 'keyv';
+
+import { CacheService } from './cache.service';
 
 @Global()
 @Module({
