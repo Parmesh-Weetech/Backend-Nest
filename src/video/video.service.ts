@@ -13,6 +13,7 @@ import { promises as fs } from 'fs';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { VideoSseService } from './videoSse.service';
+import { TraceSpan } from 'src/common/decorators/trace.span.decorator';
 
 @Injectable()
 export class VideoService {
@@ -27,6 +28,8 @@ export class VideoService {
         @InjectQueue('video-processing')
         private readonly videoQueue: Queue,
     ) { }
+    
+    @TraceSpan()
     async enqueue(file: Express.Multer.File, user: User): Promise<Response> {
         const videoId = randomUUID();
 

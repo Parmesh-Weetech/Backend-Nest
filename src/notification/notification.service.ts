@@ -5,6 +5,8 @@ import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { User } from '../user/entities/user.entity';
+import { TraceSpan } from 'src/common/decorators/trace.span.decorator';
+import { DateTime } from "luxon";
 
 @Injectable()
 export class NotificationService {
@@ -16,23 +18,44 @@ export class NotificationService {
         private readonly notificationRepository: Repository<Notification>,
     ) { }
 
+    @TraceSpan()
     async create(
         senderId: string,
-        receiverId: string,
+        conversationId: string,
         message: string,
+        date: string,
+        time: string,
+        timezone: string
     ) {
-        const notification = await this.notificationRepository.save({
-            senderId,
-            receiverId,
-            message,
+        // ✅ Convert user time → UTC
+        const scheduledAtUtc = DateTime
+            .fromISO(`${date}T${time}`, { zone: timezone })
+            .toUTC();
+
+        // ✅ Calculate delay for BullMQ
+        const delay = scheduledAtUtc.diffNow().as('milliseconds');
+
+        if (delay <= 0) {
+            throw new Error('Scheduled time must be in the future');
+        }
+
+        const notificationObject = this.notificationRepository.create({
+            sender: { id: senderId },
+            conversation: { id: conversationId },
+            message: message,
+            scheduledAt: scheduledAtUtc.toJSDate(),
             sentAt: null,
-            status: 'PENDING',
-        });
+            status: "PENDING",
+            timezone: timezone,
+        })
+
+        const notification = await this.notificationRepository.save(notificationObject);
 
         await this.queue.add(
             'send-notification',
             { notificationId: notification.id },
             {
+                delay: delay,
                 attempts: 5,
                 backoff: { type: 'exponential', delay: 2000 },
                 removeOnComplete: {
@@ -43,13 +66,14 @@ export class NotificationService {
                     age: 24 * 60 * 60,
                     count: 1000
                 },
-                
+
             },
         );
 
         return {
             notificationId: notification.id,
             status: 'PENDING',
+            message: "Notification Created Successfully."
         };
     }
 

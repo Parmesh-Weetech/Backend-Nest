@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res, Sse, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, Sse, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VideoService } from './video.service';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
@@ -7,8 +7,10 @@ import type { Response } from 'express';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
 import { Subject } from 'rxjs';
 import { VideoSseService } from './videoSse.service';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Controller('video')
+@UseGuards(AuthGuard)
 export class VideoController {
 
     constructor(

@@ -11,6 +11,7 @@ import { Readable } from 'stream';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { VideoSseService } from './videoSse.service';
+import { TraceSpan } from 'src/common/decorators/trace.span.decorator';
 
 @Processor('video-processing')
 export class VideoProcessor extends WorkerHost {
@@ -26,6 +27,7 @@ export class VideoProcessor extends WorkerHost {
         super();
     }
 
+    @TraceSpan()
     async process(job: Job): Promise<any> {
         const { videoId, userId, file } = job.data;
         const lockKey = `video:lock:${videoId}`;

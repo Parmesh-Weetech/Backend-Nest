@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { Job } from 'bullmq';
+import { TraceSpan } from 'src/common/decorators/trace.span.decorator';
 
 @Processor('notifications')
 export class NotificationProcessor extends WorkerHost {
@@ -13,6 +14,8 @@ export class NotificationProcessor extends WorkerHost {
         super();
     }
 
+
+    @TraceSpan()
     async process(job: Job<{ notificationId: string }>) {
         const { notificationId } = job.data;
 
