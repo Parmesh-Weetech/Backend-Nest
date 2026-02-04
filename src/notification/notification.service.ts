@@ -77,7 +77,7 @@ export class NotificationService {
         };
     }
 
-    async findOne(user: User) {
-        return await this.notificationRepository.find({ where: { receiverId: user.id }, order: { createdAt: "DESC"} });
-    }
+    // async findOne(user: User) {
+    //     return await this.notificationRepository.find({ where: { receiverId: user.id }, order: { createdAt: "DESC"} });
+    // }
 }

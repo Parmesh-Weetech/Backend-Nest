@@ -23,9 +23,9 @@ export class NotificationController {
         );
     }
 
-    @Get()
-    @UseInterceptors(CurrentUserInterceptor)
-    async findOne(@CurrentUser() user: User) {
-        return await this.notificationService.findOne(user);
-    }
+    // @Get()
+    // @UseInterceptors(CurrentUserInterceptor)
+    // async findOne(@CurrentUser() user: User) {
+    //     return await this.notificationService.findOne(user);
+    // }
 }
