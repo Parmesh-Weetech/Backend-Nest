@@ -1,6 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { apiLogger } from '../util/logs.js';
+
+import { apiLogger } from '../util/logs';
 
 export class APIResponse {
     success: boolean;
@@ -22,7 +23,6 @@ export class HttpErrorFilter implements ExceptionFilter {
         const startTime = (req as any).startTime || Date.now();
         const duration = `${Date.now() - startTime}ms`;
 
-        // Default values
         let status = 500;
         let message = 'Internal server error';
         let expired = false;
@@ -43,15 +43,13 @@ export class HttpErrorFilter implements ExceptionFilter {
             message = exception.message;
         }
 
-        // Log every error
         apiLogger.log({
             level: 'error',
             message,
             context: `${method} ${url} ${status}`,
             duration,
         });
-        
-        // Send APIResponse format
+
         const apiResponse: APIResponse = {
             success: false,
             message,

@@ -1,16 +1,15 @@
-import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor, UnauthorizedException } from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Observable, EMPTY } from "rxjs";
-import { UserService } from "../../user/user.service.js";
-import { JwtService } from "@nestjs/jwt";
-import { Auth } from "../util/auth.js";
+import { Observable } from "rxjs";
+
+import { UserService } from "../../user/user.service";
+import { Auth } from "../util/auth";
 
 @Injectable()
 export class CurrentUserInterceptor implements NestInterceptor {
     constructor(
         private reflector: Reflector,
         private readonly userService: UserService,
-        private readonly jwtService: JwtService,
         private readonly auth: Auth
     ) { }
 
@@ -27,48 +26,18 @@ export class CurrentUserInterceptor implements NestInterceptor {
         if (publicRoute) return next.handle();
 
         const authorization = request.headers.authorization;
-
-        if(!authorization) {
-            response.status(401).json({
-                success: false,
-                expired: false,
-                message: "Unauthorized Request!",
-                statusCode: 401,
-                data: null
-            })
-            return EMPTY;
-        }
+        if(!authorization) throw new UnauthorizedException({ message: "Unauthorized request! " });
 
         const token = authorization.split(' ')[1];
 
-        const isValid = await this.auth.verify(token)
+        const isValid = await this.auth.verify(token);
+        if (!isValid) throw new UnauthorizedException({ message: "Token expired!", expired: true });
 
-        if (!isValid) {
-            response.status(400).json({
-                success: false,
-                expired: true,
-                message: "Token is expired!",
-                statusCode: 400,
-                data: null
-            })
-            return EMPTY;
-        } 
-
-        const decodedPayload = await this.auth.decode(token)
+        const decodedPayload = await this.auth.decode(token);
 
         if (decodedPayload.sub) {
             const user = await this.userService.findOne(decodedPayload.sub);
-
-            if (!user) {
-                response.status(404).json({
-                    success: false,
-                    expired: false,
-                    message: "User not found!",
-                    statusCode: 404,
-                    data: null
-                })
-                return EMPTY;
-            }
+            if (!user) throw new NotFoundException({ message: "User not found." });
 
             request.currentUser = user.data;
         }

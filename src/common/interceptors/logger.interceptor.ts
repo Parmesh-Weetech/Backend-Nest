@@ -1,13 +1,15 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { Request, Response } from 'express';
-import { apiLogger } from '../../common/util/logs.js';
+
+import { apiLogger } from '../../common/util/logs';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
         const req: Request = context.switchToHttp().getRequest();
         const res: Response = context.switchToHttp().getResponse();
+
         const method = req.method;
         const url = req.url;
         const startTime = Date.now();
@@ -16,7 +18,6 @@ export class LoggingInterceptor implements NestInterceptor {
             const statusCode = res.statusCode;
             const level = this.getLogLevel(statusCode);
 
-            // Only log successful responses
             if (statusCode >= 400) return;
 
             const duration = Date.now() - startTime;

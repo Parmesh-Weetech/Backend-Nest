@@ -4,7 +4,6 @@ import 'winston-daily-rotate-file';
 
 export const apiLogger = WinstonModule.createLogger({
     transports: [
-        // Rotating file transport
         new winston.transports.DailyRotateFile({
             filename: 'logs/%DATE%.log',
             datePattern: 'DD-MM-YYYY-HH',
@@ -16,7 +15,6 @@ export const apiLogger = WinstonModule.createLogger({
             ),
         }),
 
-        // Console logging
         new winston.transports.Console({
             format: winston.format.combine(
                 winston.format.cli(),

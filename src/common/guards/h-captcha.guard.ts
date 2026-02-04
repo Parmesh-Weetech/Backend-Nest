@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { HCaptchaService } from '../../h-captcha/h-captcha.service.js';
+
+import { HCaptchaService } from '../../h-captcha/h-captcha.service';
 
 @Injectable()
 export class HcaptchaGuard implements CanActivate {
@@ -19,11 +20,9 @@ export class HcaptchaGuard implements CanActivate {
 
     const token = req.body?.hcaptchaToken;
 
-    if (!token) {
-      throw new UnauthorizedException('hCaptcha required');
-    }
+    if (!token) throw new BadRequestException('hCaptcha required');
 
-    const res = await this.hcaptchaService.verify(token, req.ip);
+    await this.hcaptchaService.verify(token, req.ip);
 
     return true;
   }

@@ -1,4 +1,3 @@
-// errors/domain.error.ts
 export abstract class DomainError extends Error {
     abstract readonly statusCode: number;
 
