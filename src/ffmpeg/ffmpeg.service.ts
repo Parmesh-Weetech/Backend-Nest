@@ -1,18 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { spawn } from 'child_process';
 import fs from 'fs';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 
 @Injectable()
 export class FfmpegService {
-    // A promisified version of exec to allow better error handling
     async generateHls(inputFilePath: string, outputDir: string): Promise<any> {
-        // Ensure the output directory exists
         await fs.promises.mkdir(outputDir, { recursive: true });
 
-        // Return a Promise that wraps the FFmpeg process
         return new Promise((resolve, reject) => {
-            // Spawn the FFmpeg process
             const ffmpeg = spawn('ffmpeg', [
                 '-y',
                 '-i', inputFilePath,
