@@ -1,28 +1,30 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { AuthService } from './auth.service.js';
-import { AuthController } from './auth.controller.js';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../user/entities/user.entity.js';
-import { RoleModule } from '../role/role.module.js';
-import { UserModule } from '../user/user.module.js';
-import { OrganizationModule } from '../organization/organization.module.js';
-import { PermissionModule } from '../permission/permission.module.js';
-import { HCaptchaModule } from '../h-captcha/h-captcha.module.js';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Refresh_token } from '../user/entities/refresh_token.entity.js';
-import { Auth } from '../common/util/auth.js';
-import { AuthMiddleware } from '../common/middlewares/auth.middleware.js';
+import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { Auth } from '../common/util/auth';
+import { AuthMiddleware } from '../common/middlewares/auth.middleware';
+import { RoleModule } from '../role/role.module';
+import { PermissionModule } from '../permission/permission.module';
+import { OrganizationModule } from '../organization/organization.module';
+import { HCaptchaModule } from '../h-captcha/h-captcha.module';
+import { User } from '../user/entities/user.entity';
+import { UserModule } from '../user/user.module';
+import { Refresh_token } from '../user/entities/refresh_token.entity';
+
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
 
 @Module({
-  providers: [AuthService, Auth, AuthMiddleware],
+  providers: [AuthService, AuthMiddleware, Auth],
   imports: [
     TypeOrmModule.forFeature([User, Refresh_token]),
     RoleModule,
-    forwardRef(() => UserModule),
-    OrganizationModule,
     PermissionModule,
+    OrganizationModule,
     HCaptchaModule,
+    forwardRef(() => UserModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

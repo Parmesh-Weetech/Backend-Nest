@@ -1,6 +1,5 @@
 import {
     ConflictException,
-    ForbiddenException,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
@@ -11,17 +10,17 @@ import { Repository } from 'typeorm';
 
 import bcrypt from "bcryptjs";
 
-import { Auth } from '../common/util/auth.js';
-import { APIResponse } from '../common/response/response.dto.js';
-import { RoleService } from '../role/role.service.js';
-import { PermissionService } from '../permission/permission.service.js';
-import { OrganizationService } from '../organization/organization.service.js';
-import { User } from '../user/entities/user.entity.js';
-import { Refresh_token } from '../user/entities/refresh_token.entity.js';
+import { Auth } from '../common/util/auth';
+import { APIResponse } from '../common/response/response.dto';
+import { RoleService } from '../role/role.service';
+import { PermissionService } from '../permission/permission.service';
+import { OrganizationService } from '../organization/organization.service';
+import { User } from '../user/entities/user.entity';
+import { Refresh_token } from '../user/entities/refresh_token.entity';
 
-import { SignupDTO } from './dtos/signup.dto.js';
-import { LoginDTO } from './dtos/login.dto.js';
-import { TokenResponse } from './dtos/token-response.dto.js';
+import { SignupDTO } from './dtos/signup.dto';
+import { LoginDTO } from './dtos/login.dto';
+import { TokenResponse } from './dtos/token-response.dto';
 
 @Injectable()
 export class AuthService {

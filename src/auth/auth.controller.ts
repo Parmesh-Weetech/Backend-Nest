@@ -3,10 +3,8 @@ import {
     Controller,
     Headers,
     Post,
-    Res,
     UseGuards
 } from '@nestjs/common';
-import type { Response } from 'express';
 
 import { Public } from '../common/decorators/public.decorator';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard';
