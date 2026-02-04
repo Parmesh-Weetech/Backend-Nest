@@ -30,11 +30,11 @@ export class AuthService {
 
         @InjectRepository(Refresh_token)
         private readonly refresh_tokenRepository: Repository<Refresh_token>,
-        
+
         private readonly roleService: RoleService,
         private readonly permissionService: PermissionService,
         private readonly organizationService: OrganizationService,
-        
+
         private readonly auth: Auth
     ) { }
 
@@ -140,11 +140,18 @@ export class AuthService {
     }
 
     async refreshAccessToken(refreshToken: string): Promise<APIResponse> {
-        const isValid = this.auth.verify(refreshToken);
+        const [type, authorization] = refreshToken.split(" ");
 
-        if (!isValid) throw new UnauthorizedException({ message: "Token expired!" , expired: true });
+        const token = type === "Bearer" ? authorization : undefined
+        if (!token) throw new UnauthorizedException({ message: "Unauthorized access!" });
 
-        const decode = await this.auth.decode(refreshToken);
+        const existingRefreshTokenRecord = await this.refresh_tokenRepository.findOne({ where: { refresh_token: token } });
+        if (!existingRefreshTokenRecord) throw new NotFoundException({ message: "Token not found." });
+
+        const isValid = this.auth.verify(token);
+        if (!isValid) throw new UnauthorizedException({ message: "Token expired!", expired: true });
+
+        const decode = await this.auth.decode(token);
 
         const user = await this.userRepository.findOne({ where: { id: decode.sub } });
         if (!user) throw new NotFoundException({ message: "User not found!" });
@@ -156,6 +163,17 @@ export class AuthService {
             await this.logout(refreshToken)
             throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
         }
+
+        const updateRefreshTokenRecord = await this.refresh_tokenRepository.update(existingRefreshTokenRecord.id, {
+            refresh_token: newRefreshToken,
+            user: user
+        });
+
+        if (
+            updateRefreshTokenRecord.affected === null ||
+            updateRefreshTokenRecord.affected === undefined ||
+            updateRefreshTokenRecord.affected === 0
+        ) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
 
         return {
             success: true,
