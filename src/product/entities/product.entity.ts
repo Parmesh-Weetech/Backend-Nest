@@ -1,5 +1,6 @@
-import { User } from "../../user/entities/user.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+
+import { User } from "../../user/entities/user.entity";
 
 @Entity("product")
 export class Product {

@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
+
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
-import { UserModule } from '../user/user.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { AuthModule } from '../auth/auth.module';
 
 @Module({
   controllers: [ProductController],
