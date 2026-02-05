@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../../user/entities/user.entity.js';
 import { Expose } from 'class-transformer';
+
+import { User } from '../../user/entities/user.entity.js';
 
 @Entity('posts')
 export class PostEntity {

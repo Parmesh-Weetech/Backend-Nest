@@ -1,60 +1,54 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+
 import { AuthGuard } from '../common/guards/auth.guard.js';
-import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
-import { User } from '../user/entities/user.entity.js';
-import { CreatePostDTO } from './dtos/create-post.dto.js';
-import { UpdatePostDTO } from './dtos/update-post.dto.js';
-import { PostService } from './post.service.js';
+import { APIResponse } from '../common/response/response.dto.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
-import { Permission } from '../common/decorators/permission.decorator.js';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
-import type { Response } from 'express';
+import { Permission } from '../common/decorators/permission.decorator.js';
+import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
-import { UserService } from '../user/user.service.js';
+import { User } from '../user/entities/user.entity.js';
+
+import { UpdatePostDTO } from './dtos/update-post.dto.js';
+import { CreatePostDTO } from './dtos/create-post.dto.js';
+import { PostService } from './post.service.js';
 
 @Controller('post')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class PostController {
 
-    constructor(private readonly postService: PostService) { }
+    constructor(
+        private readonly postService: PostService
+    ) { }
 
+    @UseInterceptors(CurrentUserInterceptor)
     @Get()
-    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.findAll();
-
-        res.status(response.statusCode).send(response);
+    async findAll(@CurrentUser() user: User): Promise<APIResponse> {
+        return await this.postService.findAll(user);
     }
 
     @Get(":id")
-    async findOne(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.findOne(id);
-
-        res.status(response.statusCode).send(response);
+    async findOne(@Param("id") id: string): Promise<APIResponse> {
+        return await this.postService.findOne(id);
     }
 
-    @Post()
     @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.CREATE)
-    async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.create(createPostDTO, user);
-
-        res.status(response.statusCode).send(response);
+    @Post()
+    async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.postService.create(createPostDTO, user);
     }
 
-    @Put()
     @Permission(AccessEntityEnum.POST, AccessActionEnum.UPDATE)
-    async update(@Body() updatePostDTO: UpdatePostDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.update(updatePostDTO);
-
-        res.status(response.statusCode).send(response);
+    @Put()
+    async update(@Body() updatePostDTO: UpdatePostDTO): Promise<APIResponse> {
+        return await this.postService.update(updatePostDTO);
     }
 
-    @Delete(":id")
     @Permission(AccessEntityEnum.POST, AccessActionEnum.DELETE)
-    async remove(@Param("id") id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.postService.remove(id);
-
-        res.status(response.statusCode).send(response);
+    @Delete(":id")
+    async remove(@Param("id") id: string): Promise<APIResponse> {
+        return await this.postService.remove(id);
     }
 }

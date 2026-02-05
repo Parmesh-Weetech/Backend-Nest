@@ -1,27 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PostEntity } from './entities/post.entity.js';
 import { Repository } from 'typeorm';
-import { CreatePostDTO } from './dtos/create-post.dto.js';
-import { User } from '../user/entities/user.entity.js';
-import { UpdatePostDTO } from './dtos/update-post.dto.js';
-import { PostCreationFailedError, PostDeletionFailedError, PostUpdationFailedError } from './errors/error.js';
+
 import { APIResponse } from '../common/response/response.dto.js';
+import { User } from '../user/entities/user.entity.js';
+
+import { PostEntity } from './entities/post.entity.js';
+import { CreatePostDTO } from './dtos/create-post.dto.js';
+import { UpdatePostDTO } from './dtos/update-post.dto.js';
 
 @Injectable()
 export class PostService {
-    constructor(@InjectRepository(PostEntity) private readonly postRepository: Repository<PostEntity>) { }
+    constructor(
+        @InjectRepository(PostEntity)
+        private readonly postRepository: Repository<PostEntity>
+    ) { }
 
-    async findAll(): Promise<APIResponse> {
-        const posts = await this.postRepository.find({ relations: ['user'] });
+    async findAll(user: User): Promise<APIResponse> {
+        const posts = await this.postRepository.find({ where: { user: user }, relations: ['user'] });
 
-        if (!posts) return {
-            success: false,
-            message: "Posts not found.",
-            data: null,
-            expired: false,
-            statusCode: 404
-        }
+        if (!posts) throw new NotFoundException('No posts found.');
 
         return {
             success: true,
@@ -34,14 +32,7 @@ export class PostService {
 
     async findOne(id: string): Promise<APIResponse> {
         const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
-
-        if (!post) return {
-            success: false,
-            message: "Post not found.",
-            data: null,
-            expired: false,
-            statusCode: 404
-        }
+        if (!post) throw new NotFoundException('Post not found.');
 
         return {
             success: true,
@@ -53,101 +44,56 @@ export class PostService {
     }
 
     async create(post: CreatePostDTO, user: User): Promise<APIResponse> {
-        if (!user) {
-            return {
-                success: false,
-                expired: false,
-                message: "User not found",
-                data: null,
-                statusCode: 404
-            }
-        }
+        if (!user) throw new BadRequestException('User not found.');
 
-        try {
-            const newPost = await this.postRepository.create({
-                name: post.name,
-                description: post.description,
-                user: user
-            });
+        const newPost = this.postRepository.create({
+            name: post.name,
+            description: post.description,
+            user: user
+        });
 
-            const savePost = await this.postRepository.save(newPost);
+        const savePost = await this.postRepository.save(newPost);
+        if (!savePost) throw new InternalServerErrorException('Failed to create post.');
 
-            return {
-                success: true,
-                message: "Post created successfully.",
-                expired: false,
-                data: savePost,
-                statusCode: 201
-            }
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message,
-                expired: false,
-                data: null,
-                statusCode: 500
-            }
+        return {
+            success: true,
+            message: "Post created successfully.",
+            expired: false,
+            data: savePost,
+            statusCode: 201
         }
     }
 
-    async update(post: UpdatePostDTO): Promise<APIResponse> {
-        const existingPost = await this.findOne(post.id);
+    async update(postDTO: UpdatePostDTO): Promise<APIResponse> {
+        const existingPost = await this.findOne(postDTO.id);
 
-        if (post.name) existingPost.data.name = post.name;
-        if (post.description) existingPost.data.description = post.description;
+        if (postDTO.name) existingPost.data.name = postDTO.name;
+        if (postDTO.description) existingPost.data.description = postDTO.description;
 
-        try {
-            const savePost = await this.postRepository.save(post);
+        const savePost = await this.postRepository.save(postDTO);
+        if (!savePost) throw new InternalServerErrorException('Failed to update post.');
 
-            return {
-                success: true,
-                message: "Post updated successfully.",
-                expired: false,
-                data: savePost,
-                statusCode: 200
-            }
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message,
-                expired: false,
-                data: null,
-                statusCode: 500
-            }
+        return {
+            success: true,
+            message: "Post updated successfully.",
+            expired: false,
+            data: savePost,
+            statusCode: 200
         }
     }
 
     async remove(id: string): Promise<APIResponse> {
-        const existingPost = await this.findOne(id);
+        await this.findOne(id);
 
-        if(!existingPost) {
-            return {
-                success: false,
-                statusCode: 403,
-                message: "Post not found",
-                expired: false,
-                data: null
-            }
-        }
+        const deletePost = await this.postRepository.softDelete(id);
+        if(deletePost.affected === undefined && deletePost.affected === null && deletePost.affected === 0) throw new InternalServerErrorException("Error while deleting post.");
 
-        try {
-            const deletePost = await this.postRepository.softDelete(id);
-            
-            return {
-                success: true,
-                statusCode: 200,
-                message: "Post deleted successfully.",
-                expired: false,
-                data: deletePost.raw
-            }
-        } catch (error) {
-            return {
-                success: false,
-                statusCode: 500,
-                message: error.message,
-                expired: false,
-                data: null
-            }
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Post deleted successfully.",
+            expired: false,
+            data: deletePost.raw
         }
     }
 }
