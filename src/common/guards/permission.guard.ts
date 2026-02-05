@@ -1,8 +1,5 @@
-import { CanActivate, ExecutionContext, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-
-import { UserService } from "../../user/user.service";
-import { Auth } from "../util/auth";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
