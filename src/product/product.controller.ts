@@ -1,7 +1,10 @@
-import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
-import type { Response } from 'express';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
+import { APIResponse } from '../common/response/response.dto';
+import { CurrentUser } from '../common/decorators/currentUser.decorator';
+import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
+import { User } from '../user/entities/user.entity';
 
 import { ProductService } from './product.service';
 import { CreateProductDTO } from './dtos/create-product.dto';
@@ -9,95 +12,52 @@ import { UpdateProductDTO } from './dtos/update-product.dto';
 
 @Controller('product')
 @UseGuards(AuthGuard)
+@UseInterceptors(CurrentUserInterceptor)
 export class ProductController {
     constructor(
         private readonly productService: ProductService
     ) { }
-    
+
     @Get()
     async findAll(
-        @Headers('Authorization') authorization: string,
         @Query('_start') start = '0',
         @Query('_limit') limit = '10',
-        @Res({ passthrough: true }) res: Response
-    ): Promise<void> {
+        @CurrentUser() user: User
+    ): Promise<APIResponse> {
         const skip = Math.max(parseInt(start, 10), 0);
         const take = Math.min(parseInt(limit, 10), 100);
 
-        const response = await this.productService.findAll(authorization, skip, take);
-
-        res.status(response.statusCode).send(response);
+        return await this.productService.findAll(user, skip, take);
     }
 
     @Get(":id")
-    async findOne(@Param("id") id: string, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.findOne(id, authorization)
-
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
-
-        res.status(response.statusCode).send(response);
+    async findOne(@Param("id") id: string, @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.productService.findOne(id, user);
     }
 
+
     @Post("/create")
-    async create(@Body() product: CreateProductDTO, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.create(product, authorization)
-
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
-
-        res.status(response.statusCode).send(response);
+    async create(@Body() product: CreateProductDTO, @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.productService.create(product, user);
     }
 
     @Post("/insert/bulk")
-    async insertBulk(@Body() products: CreateProductDTO[], @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.insertBulk(products, authorization)
-
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
-
-        res.status(response.statusCode).send(response);
+    async insertBulk(@Body() products: CreateProductDTO[], @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.productService.insertBulk(products, user)
     }
 
     @Put("/update")
-    async update(@Body() product: UpdateProductDTO, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.update(product, authorization)
-
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
-
-        res.status(response.statusCode).send(response);
+    async update(@Body() product: UpdateProductDTO, @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.productService.update(product, user)
     }
 
     @Delete()
-    async deleteAll(@Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.deleteAll(authorization);
-
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
-
-        res.status(response.statusCode).send(response);
+    async deleteAll(@CurrentUser() user: User): Promise<APIResponse> {
+        return await this.productService.deleteAll(user);
     }
 
     @Delete(":id")
-    async deleteById(@Param("id") id: string, @Headers('Authorization') authorization: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.productService.deleteById(id, authorization);
-
-        if (!response.success) {
-            res.status(response.statusCode).send(response);
-            return;
-        }
-
-        res.status(response.statusCode).send(response);
+    async deleteById(@Param("id") id: string): Promise<APIResponse> {
+        return await this.productService.deleteById(id);
     }
 }

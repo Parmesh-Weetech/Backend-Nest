@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { APIResponse } from '../common/response/response.dto.js';
@@ -6,14 +6,11 @@ import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
-import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
 import { Permission as PermissionDecorator } from '../common/decorators/permission.decorator.js';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
-import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
 
 import { PermissionService } from './permission.service.js';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
-import { User } from '../user/entities/user.entity.js';
 
 @Controller('permissions')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -22,10 +19,9 @@ export class PermissionController {
         private readonly permissionService: PermissionService
     ) { }
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Get()
-    async findAll(@CurrentUser() user: User): Promise<APIResponse> {
-        return await this.permissionService.findAll(user);
+    async findAll(): Promise<APIResponse> {
+        return await this.permissionService.findAll();
     }
 
     @Get(':id')

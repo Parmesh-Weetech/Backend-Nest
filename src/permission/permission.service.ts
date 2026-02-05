@@ -18,18 +18,9 @@ export class PermissionService {
         private readonly organizationService: OrganizationService
     ) { }
 
-    async findAll(user: User): Promise<APIResponse> {
+    async findAll(): Promise<APIResponse> {
         const permissions = await this.permissionRepository.find({
-            where: {
-                roles: {
-                    users: { id: user.id }
-                }
-            },
-            relations: {
-                roles: {
-                    users: true
-                }
-            }
+            relations: ['roles']
         });
         if (!permissions) throw new NotFoundException('No permissions found.');
 
