@@ -1,12 +1,14 @@
 import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketServer, MessageBody, ConnectedSocket, WsException } from '@nestjs/websockets';
+import { Injectable, Res } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Server, Socket } from 'socket.io';
+import { Repository } from 'typeorm';
+
+import { Auth } from '../common/util/auth';
+import { User } from '../user/entities/user.entity';
+
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
-import { Injectable, Res } from '@nestjs/common';
-import { Auth } from '../common/util/auth';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../user/entities/user.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 @WebSocketGateway({
@@ -84,14 +86,15 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
     const skip = Math.max(parseInt(data._start.toString(), 10), 0);
     const take = Math.min(parseInt(data._limit.toString(), 10), 100);
 
-    const conversation = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
+    const conversationResponse = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
+    const conversation = conversationResponse.data;
     const messages = await this.webSocketService.findMessages(conversation.id, skip, take);
 
     client.join(conversation.id);
 
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
 
-    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.length === 0 ? [] : messages });
+    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.data.length === 0 ? [] : messages });
   }
 
   @SubscribeMessage("send_message")

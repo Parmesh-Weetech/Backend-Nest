@@ -1,16 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Message } from './entities/message.entity.js';
-import { Conversation } from './entities/conversation.entity.js';
-import { In, Repository } from 'typeorm';
-import { SendMessageDto } from './dtos/sendMessage.dto.js';
-import { User } from '../user/entities/user.entity.js';
-import { MessageAttachment } from './entities/MessageAttachment.entity.js';
-import { FilesService } from '../files/files.service.js';
-import { CacheService } from '../cache/cache.service.js';
-import { VideoService } from '../video/video.service.js';
-import { NotificationService } from '../notification/notification.service.js';
-import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util.js';
+import { Repository } from 'typeorm';
+
+import { APIResponse } from '../common/response/response.dto';
+import { User } from '../user/entities/user.entity';
+import { FilesService } from '../files/files.service';
+import { VideoService } from '../video/video.service';
+import { NotificationService } from '../notification/notification.service';
+
+import { Message } from './entities/message.entity';
+import { Conversation } from './entities/conversation.entity';
+import { SendMessageDto } from './dtos/sendMessage.dto';
+import { MessageAttachment } from './entities/MessageAttachment.entity';
+import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util';
 
 @Injectable()
 export class WebsocketService {
@@ -23,8 +25,8 @@ export class WebsocketService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(MessageAttachment)
         private readonly messageAttachmentRepository: Repository<MessageAttachment>,
+
         private readonly fileService: FilesService,
-        private readonly cacheService: CacheService,
         private readonly videoService: VideoService,
         private readonly notificationService: NotificationService
     ) { }
@@ -33,7 +35,7 @@ export class WebsocketService {
         return `conversation:${conversationId}:messages:skip${skip}:take${take}`;
     }
 
-    async findOrCreateConversation(userId: string, otherUserId: string) {
+    async findOrCreateConversation(userId: string, otherUserId: string): Promise<APIResponse> {
         const conversation = await this.conversationRepository
             .createQueryBuilder('conversation')
             .where(
@@ -44,18 +46,35 @@ export class WebsocketService {
 
 
         if (conversation) {
-            return conversation;
+            return {
+                data: conversation,
+                success: true,
+                expired: false,
+                message: "Conversation fetched successfully.",
+                statusCode: 200
+            };
         }
 
-        const newConversation = await this.conversationRepository.create({
+        const newConversationObject = this.conversationRepository.create({
             user1: { id: userId },
             user2: { id: otherUserId },
         });
 
-        return await this.conversationRepository.save(newConversation);
+        const newConversation = await this.conversationRepository.save(newConversationObject);
+        if(!newConversation) {
+            throw new InternalServerErrorException('Failed to create conversation');
+        }
+
+        return {
+            data: newConversation,
+            success: true,
+            expired: false,
+            message: "Conversation created successfully.",
+            statusCode: 201
+        };
     }
 
-    async findMessages(conversationId: string, skip: number, take: number): Promise<Message[]> {
+    async findMessages(conversationId: string, skip: number, take: number): Promise<APIResponse> {
         // const messageKey = this.getMessageKey(conversationId, skip, take);
         // let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
 
@@ -88,14 +107,21 @@ export class WebsocketService {
             for (const attachment of message.attachments) {
                 if (attachment.mediaType !== "video") {
                     const file = await this.fileService.getFileById(attachment.media.id);
-                    attachment.url = file ? await this.fileService.getSignedUrl(file.id) : '';
+                    const signedUrlResponse = file ? await this.fileService.getSignedUrl(file.id) : '';
+                    attachment.url = typeof signedUrlResponse === 'string' ? signedUrlResponse : signedUrlResponse.data;
                 }
             }
         }
 
         // cachedMessages = messages;
 
-        return messages
+        return {
+            data: messages,
+            success: true,
+            expired: false,
+            message: "Messages fetched successfully.",
+            statusCode: 200
+        }
     }
 
     async sendMessage(
@@ -149,7 +175,6 @@ export class WebsocketService {
                         media: video,
                         order: index,
                     });
-
                 } else {
                     const file = await this.fileService.getFileById(media.media.id);
 
@@ -157,7 +182,8 @@ export class WebsocketService {
                         throw new Error('File not found');
                     }
 
-                    const url = file ? await this.fileService.getSignedUrl(media.media.id) : "";
+                    const signedUrlResponse = file ? await this.fileService.getSignedUrl(media.media.id) : "";
+                    const url = typeof signedUrlResponse === 'string' ? signedUrlResponse : signedUrlResponse.data;
 
                     attachment = this.messageAttachmentRepository.create({
                         message: savedMessage,

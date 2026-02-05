@@ -1,5 +1,5 @@
-import { User } from "../../user/entities/user.entity.js";
 import { CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { User } from "../../user/entities/user.entity";
 
 @Entity('conversations')
 @Unique(['user1', 'user2'])

@@ -6,30 +6,27 @@ import {
   HttpStatus,
   ValidationPipe,
 } from '@nestjs/common';
-
-import { AppModule } from './app.module.js';
-import { ConfigService } from '@nestjs/config';
-import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js';
-import { HttpErrorFilter } from './common/exceptions/global.exception.js';
-
-import { DataSource } from 'typeorm';
-import { MainSeeder } from '../db/seeders/main.seed.js';
-
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-
+import { ConfigService } from '@nestjs/config';
 import { ExpressAdapter } from '@bull-board/express';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { Queue } from 'bullmq';
-import { AuthMiddleware } from './common/middlewares/auth.middleware.js';
-import { PermissionsMiddleware } from './common/middlewares/permission.middleware.js';
 import compression from 'compression';
+import { DataSource } from 'typeorm';
 import 'multer'
 import helmet from 'helmet';
 
+import { AppModule } from './app.module';
+import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
+import { HttpErrorFilter } from './common/exceptions/global.exception';
+import { AuthMiddleware } from './common/middlewares/auth.middleware';
+import { PermissionsMiddleware } from './common/middlewares/permission.middleware';
+import { MainSeeder } from '../db/seeders/main.seed';
+
+
 async function bootstrap() {
   try {
-    // ✅ CREATE ONLY ONE APP — EXPRESS BASED
     const app =
       await NestFactory.create<NestExpressApplication>(AppModule, {
         logger: ['error'],
@@ -71,10 +68,9 @@ async function bootstrap() {
 
     app.use(helmet());
 
-    // 🔥 THIS IS THE CORRECT LINE
     app.use('/admin/queues',
-      // authMiddleware.use.bind(authMiddleware),
-      // permissionsMiddleware.use.bind(permissionsMiddleware),
+      authMiddleware.use.bind(authMiddleware),
+      permissionsMiddleware.use.bind(permissionsMiddleware),
       serverAdapter.getRouter()
     );
 

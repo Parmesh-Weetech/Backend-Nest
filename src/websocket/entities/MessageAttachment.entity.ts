@@ -1,8 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Message } from "./message.entity.js";
-import { Files } from "../../files/entities/File.entity.js";
 import { Expose } from "class-transformer";
-import { Video } from "../../video/entities/video.entity.js";
+
+import { Files } from "../../files/entities/File.entity";
+import { Video } from "../../video/entities/video.entity";
+
+import { Message } from "./message.entity";
 
 export enum MediaType {
     IMAGE = 'image',

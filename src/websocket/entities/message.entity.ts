@@ -1,7 +1,9 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Conversation } from "./conversation.entity.js";
-import { User } from "../../user/entities/user.entity.js";
-import { MessageAttachment } from "./MessageAttachment.entity.js";
+
+import { User } from "../../user/entities/user.entity";
+
+import { Conversation } from "./conversation.entity";
+import { MessageAttachment } from "./MessageAttachment.entity";
 
 export enum MessageType {
     TEXT = 'text',

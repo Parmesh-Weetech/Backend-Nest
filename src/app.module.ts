@@ -1,26 +1,27 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
-import { UserModule } from './user/user.module.js';
-import { AuthModule } from './auth/auth.module.js';
-import { RoleModule } from './role/role.module.js';
-import { PermissionModule } from './permission/permission.module.js';
-import { PostModule } from './post/post.module.js';
+import { BullModule } from '@nestjs/bullmq';
+import { ThrottlerModule } from '@nestjs/throttler';
+
+import AppConfig from './config/app.config';
+import DatabaseConfig from './config/database.config';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { RoleModule } from './role/role.module';
+import { PermissionModule } from './permission/permission.module';
+import { PostModule } from './post/post.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import AppConfig from './config/app.config.js';
-import DatabaseConfig from './config/database.config.js';
-import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware.js';
-import { OrganizationModule } from './organization/organization.module.js';
+import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware';
+import { OrganizationModule } from './organization/organization.module';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
 import { ProductModule } from './product/product.module';
 import { WebsocketModule } from './websocket/websocket.module';
-import { CacheModule } from './cache/cache.module.js';
+import { CacheModule } from './cache/cache.module';
 import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
-import { BullModule } from '@nestjs/bullmq';
-import { VideoModule } from './video/video.module.js';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { VideoModule } from './video/video.module';
 
 @Module({
   imports: [

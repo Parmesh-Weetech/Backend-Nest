@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
-import { MessageType } from "../entities/message.entity.js";
-import { MediaType } from "../entities/MessageAttachment.entity.js";
+
+import { MessageType } from "../entities/message.entity";
+import { MediaType } from "../entities/MessageAttachment.entity";
 
 export class SendMessageDto {
     @IsString()
