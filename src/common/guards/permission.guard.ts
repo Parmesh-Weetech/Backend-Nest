@@ -6,13 +6,9 @@ import { Auth } from "../util/auth";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-    constructor(
-        private readonly reflector: Reflector,
-        private readonly userService: UserService,
-        private readonly auth: Auth
-    ) { }
+    constructor(private reflector: Reflector) { }
 
-    async canActivate(context: ExecutionContext): Promise<boolean> {
+    canActivate(context: ExecutionContext): boolean {
         const request = context.switchToHttp().getRequest();
 
         const requiredPermission = this.reflector.get<{
@@ -22,44 +18,30 @@ export class PermissionsGuard implements CanActivate {
 
         if (!requiredPermission) return true;
 
+        const user = request.currentUser;
+        if (!user) throw new UnauthorizedException();
+
         const { entity, action } = requiredPermission;
+        const orgId = user.organization.id;
 
-        const authorization = request.headers.authorization;
-        const token = authorization.split(' ')[1];
-
-        const isValid = await this.auth.verify(token);
-        if (!isValid) throw new UnauthorizedException({ message: 'Token expired!', expired: true });
-
-        const decodedPayload = await this.auth.decode(token);
-
-        const user = await this.userService.findOneWithRolesAndPermissions(decodedPayload.sub);
-        if (!user) throw new NotFoundException('User not found');
-
-        const orgId = user.data.organization.id;
-
-        for (const role of user.data.roles) {
+        for (const role of user.roles) {
             if (role.organization.id !== orgId) continue;
 
-            for (const permission of role.permissions) {
-                if (permission.organization.id !== orgId) continue;
+            if (role.key === 'admin') return true;
 
+            for (const permission of role.permissions) {
                 if (
+                    permission.organization.id === orgId &&
                     permission.entity === entity &&
                     permission.action === action
-                ) {
-                    return true;
-                }
-
-                if (
-                    role.key === 'admin' &&
-                    permission.entity === entity &&
-                    permission.action === 'all'
                 ) {
                     return true;
                 }
             }
         }
 
-        throw new UnauthorizedException(`You are not authorized to ${action} ${entity}`,);
+        throw new UnauthorizedException(
+            `You are not authorized to ${action} ${entity}`,
+        );
     }
 }

@@ -7,29 +7,39 @@ import { Auth } from '../util/auth';
 export class AuthGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
-        private readonly auth: Auth
+        private readonly auth: Auth,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const publicRoute = this.reflector.get<boolean>(
+        const isPublic = this.reflector.get<boolean>(
             'IS_PUBLIC_KEY',
-            context.getHandler()
+            context.getHandler(),
         );
 
-        if (publicRoute) return true;
+        if (isPublic) return true;
 
         const request = context.switchToHttp().getRequest();
 
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        const access_token = type === 'Bearer' ? token : undefined;
+        const authHeader = request.headers.authorization;
+        if (!authHeader) {
+            throw new UnauthorizedException('Authorization header missing');
+        }
 
-        if (!access_token) throw new UnauthorizedException("You must be logged in.");
+        const [type, token] = authHeader.split(' ');
+        if (type !== 'Bearer' || !token) {
+            throw new UnauthorizedException('Invalid token format');
+        }
 
-        const isValid = await this.auth.verify(access_token);
+        const isValid = await this.auth.verify(token);
+        if (!isValid) {
+            throw new UnauthorizedException({ message: 'Token expired', expired: true });
+        }
 
-        if (!isValid) throw new UnauthorizedException({ message: "Token expired.", expired: true });
+        const payload = await this.auth.decode(token);
+
+        // 👇 Attach once, reuse everywhere
+        request.auth = payload;
 
         return true;
-
     }
 }
