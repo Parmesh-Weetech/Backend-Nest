@@ -1,5 +1,5 @@
-import { Transform } from "class-transformer";
 import { IsNotEmpty, IsString, MinLength } from "class-validator";
+import { Transform } from "class-transformer";
 
 export class CreateOrganizationDto {
     @IsString()

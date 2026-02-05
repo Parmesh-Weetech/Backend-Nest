@@ -1,8 +1,9 @@
-import { Expose } from "class-transformer";
-import { User } from "../../user/entities/user.entity.js";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany } from "typeorm";
-import { Role } from "../../role/entities/role.entity.js";
-import { Permission } from "../../permission/entities/permission.entity.js";
+import { Expose } from "class-transformer";
+
+import { User } from "../../user/entities/user.entity";
+import { Role } from "../../role/entities/role.entity";
+import { Permission } from "../../permission/entities/permission.entity";
 
 @Entity("organization")
 export class Organization {
