@@ -1,16 +1,16 @@
 import { Controller, Get, Post, Param, Body, Put, Delete, UseGuards } from '@nestjs/common';
 
-import { AuthGuard } from '../common/guards/auth.guard.js';
-import { APIResponse } from '../common/response/response.dto.js';
-import { PermissionsGuard } from '../common/guards/permission.guard.js';
-import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
-import { AccessActionEnum } from '../common/enums/access-action.enum.js';
-import { Permission } from '../common/decorators/permission.decorator.js';
-import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { APIResponse } from '../common/response/response.dto';
+import { PermissionsGuard } from '../common/guards/permission.guard';
+import { AccessEntityEnum } from '../common/enums/access-entity.enum';
+import { AccessActionEnum } from '../common/enums/access-action.enum';
+import { Permission } from '../common/decorators/permission.decorator';
+import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator';
 
-import { RoleService } from './role.service.js';
-import { CreateRoleDTO } from './dtos/create-role.dto.js';
-import { UpdateRoleDTO } from './dtos/update-role.dto.js';
+import { RoleService } from './role.service';
+import { CreateRoleDTO } from './dtos/create-role.dto';
+import { UpdateRoleDTO } from './dtos/update-role.dto';
 
 @Controller('roles')
 @UseGuards(AuthGuard, PermissionsGuard)

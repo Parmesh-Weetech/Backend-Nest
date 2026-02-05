@@ -2,14 +2,7 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/co
 import { Request, Response } from 'express';
 
 import { apiLogger } from '../util/logs';
-
-export class APIResponse {
-    success: boolean;
-    message: string;
-    data: any;
-    expired: boolean;
-    statusCode: number;
-}
+import { APIResponse } from '../response/response.dto';
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {

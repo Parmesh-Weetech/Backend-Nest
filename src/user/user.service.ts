@@ -1,18 +1,19 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity.js';
+import { User } from './entities/user.entity';
 import { Not, Repository } from 'typeorm';
-import { CreateUserDTO } from './dtos/create-user.dto.js';
-import { updateUserDTO } from './dtos/update-user.dto.js';
-import { RoleService } from '../role/role.service.js';
-import { OrganizationService } from '../organization/organization.service.js';
-import { APIResponse } from '../common/response/response.dto.js';
-import { CacheService } from '../cache/cache.service.js';
+import { CreateUserDTO } from './dtos/create-user.dto';
+import { updateUserDTO } from './dtos/update-user.dto';
+import { RoleService } from '../role/role.service';
+import { OrganizationService } from '../organization/organization.service';
+import { APIResponse } from '../common/response/response.dto';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(User) 
+        private readonly userRepository: Repository<User>,
         private readonly roleService: RoleService,
         private readonly organizationService: OrganizationService,
         private readonly cacheService: CacheService

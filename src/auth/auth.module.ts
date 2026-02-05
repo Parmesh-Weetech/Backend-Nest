@@ -20,13 +20,13 @@ import { AuthController } from './auth.controller';
   providers: [AuthService, AuthMiddleware, Auth],
   imports: [
     TypeOrmModule.forFeature([User, Refresh_token]),
-    RoleModule,
-    PermissionModule,
-    OrganizationModule,
+    forwardRef(() => RoleModule),
+    forwardRef(() => PermissionModule),
+    forwardRef(() => OrganizationModule),
     HCaptchaModule,
     forwardRef(() => UserModule),
     JwtModule.registerAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule.forRoot({ isGlobal: true })],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),

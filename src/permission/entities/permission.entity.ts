@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, ManyToMany, JoinColumn, ManyToOne } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
 
-import { Organization } from '../../organization/entities/organization.entity.js';
-import { Role } from '../../role/entities/role.entity.js';
+import { Organization } from '../../organization/entities/organization.entity';
+import { Role } from '../../role/entities/role.entity';
 
 @Entity('permissions')
 export class Permission {

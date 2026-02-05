@@ -2,12 +2,12 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { APIResponse } from '../common/response/response.dto.js';
-import { User } from '../user/entities/user.entity.js';
+import { APIResponse } from '../common/response/response.dto';
+import { User } from '../user/entities/user.entity';
 
-import { PostEntity } from './entities/post.entity.js';
-import { CreatePostDTO } from './dtos/create-post.dto.js';
-import { UpdatePostDTO } from './dtos/update-post.dto.js';
+import { PostEntity } from './entities/post.entity';
+import { CreatePostDTO } from './dtos/create-post.dto';
+import { UpdatePostDTO } from './dtos/update-post.dto';
 
 @Injectable()
 export class PostService {

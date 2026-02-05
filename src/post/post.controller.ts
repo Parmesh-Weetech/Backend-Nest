@@ -1,19 +1,19 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 
-import { AuthGuard } from '../common/guards/auth.guard.js';
-import { APIResponse } from '../common/response/response.dto.js';
-import { CurrentUserGuard } from '../common/guards/currentUser.guard.js';
-import { PermissionsGuard } from '../common/guards/permission.guard.js';
-import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
-import { AccessActionEnum } from '../common/enums/access-action.enum.js';
-import { Permission } from '../common/decorators/permission.decorator.js';
-import { CurrentUser } from '../common/decorators/currentUser.decorator.js';
-import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor.js';
-import { User } from '../user/entities/user.entity.js';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { APIResponse } from '../common/response/response.dto';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
+import { PermissionsGuard } from '../common/guards/permission.guard';
+import { AccessEntityEnum } from '../common/enums/access-entity.enum';
+import { AccessActionEnum } from '../common/enums/access-action.enum';
+import { Permission } from '../common/decorators/permission.decorator';
+import { CurrentUser } from '../common/decorators/currentUser.decorator';
+import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
+import { User } from '../user/entities/user.entity';
 
-import { UpdatePostDTO } from './dtos/update-post.dto.js';
-import { CreatePostDTO } from './dtos/create-post.dto.js';
-import { PostService } from './post.service.js';
+import { UpdatePostDTO } from './dtos/update-post.dto';
+import { CreatePostDTO } from './dtos/create-post.dto';
+import { PostService } from './post.service';
 
 @Controller('post')
 @UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)

@@ -2,13 +2,12 @@ import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundE
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { APIResponse } from '../common/response/response.dto.js';
-import { User } from '../user/entities/user.entity.js';
-import { OrganizationService } from '../organization/organization.service.js';
+import { APIResponse } from '../common/response/response.dto';
+import { OrganizationService } from '../organization/organization.service';
 
-import { Permission } from './entities/permission.entity.js';
-import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
-import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
+import { Permission } from './entities/permission.entity';
+import { UpdatePermissionDTO } from './dtos/update-permission.dto';
+import { CreatePermissionDTO } from './dtos/create-permission.dto';
 
 @Injectable()
 export class PermissionService {

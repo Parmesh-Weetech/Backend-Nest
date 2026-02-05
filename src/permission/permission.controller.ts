@@ -1,16 +1,16 @@
 import { Controller, Get, Param, Put, Delete, Body, UseGuards, Post } from '@nestjs/common';
 
-import { AuthGuard } from '../common/guards/auth.guard.js';
-import { APIResponse } from '../common/response/response.dto.js';
-import { CreatePermissionDTO } from './dtos/create-permission.dto.js';
-import { PermissionsGuard } from '../common/guards/permission.guard.js';
-import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
-import { AccessActionEnum } from '../common/enums/access-action.enum.js';
-import { Permission as PermissionDecorator } from '../common/decorators/permission.decorator.js';
-import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { APIResponse } from '../common/response/response.dto';
+import { CreatePermissionDTO } from './dtos/create-permission.dto';
+import { PermissionsGuard } from '../common/guards/permission.guard';
+import { AccessEntityEnum } from '../common/enums/access-entity.enum';
+import { AccessActionEnum } from '../common/enums/access-action.enum';
+import { Permission as PermissionDecorator } from '../common/decorators/permission.decorator';
+import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator';
 
-import { PermissionService } from './permission.service.js';
-import { UpdatePermissionDTO } from './dtos/update-permission.dto.js';
+import { PermissionService } from './permission.service';
+import { UpdatePermissionDTO } from './dtos/update-permission.dto';
 
 @Controller('permissions')
 @UseGuards(AuthGuard, PermissionsGuard)

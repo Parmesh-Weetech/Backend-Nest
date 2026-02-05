@@ -2,13 +2,13 @@ import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorE
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 
-import { APIResponse } from '../common/response/response.dto.js';
-import { OrganizationService } from '../organization/organization.service.js';
-import { PermissionService } from '../permission/permission.service.js';
+import { APIResponse } from '../common/response/response.dto';
+import { OrganizationService } from '../organization/organization.service';
+import { PermissionService } from '../permission/permission.service';
 
-import { Role } from './entities/role.entity.js';
-import { CreateRoleDTO } from './dtos/create-role.dto.js';
-import { UpdateRoleDTO } from './dtos/update-role.dto.js';
+import { Role } from './entities/role.entity';
+import { CreateRoleDTO } from './dtos/create-role.dto';
+import { UpdateRoleDTO } from './dtos/update-role.dto';
 
 @Injectable()
 export class RoleService {
@@ -17,7 +17,7 @@ export class RoleService {
         private roleRepository: Repository<Role>,
         @Inject(forwardRef(() => PermissionService))
         private readonly permissionService: PermissionService,
-        
+
         private readonly organizationService: OrganizationService,
     ) { }
 

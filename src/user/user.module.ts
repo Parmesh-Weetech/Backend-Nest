@@ -1,17 +1,17 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { UserService } from './user.service.js';
-import { UserController } from './user.controller.js';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/user.entity.js';
-import { AuthModule } from '../auth/auth.module.js';
-import { RoleModule } from '../role/role.module.js';
-import { PermissionModule } from '../permission/permission.module.js';
-import { OrganizationModule } from '../organization/organization.module.js';
-import { CacheModule } from '../cache/cache.module.js';
+import { User } from './entities/user.entity';
+import { AuthModule } from '../auth/auth.module';
+import { RoleModule } from '../role/role.module';
+import { PermissionModule } from '../permission/permission.module';
+import { OrganizationModule } from '../organization/organization.module';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), RoleModule, forwardRef(() => PermissionModule), forwardRef(() => OrganizationModule), CacheModule],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), forwardRef(() => RoleModule), forwardRef(() => PermissionModule), forwardRef(() => OrganizationModule), CacheModule],
   controllers: [UserController],
   exports: [UserService]
 })

@@ -9,7 +9,9 @@ import { CacheService } from './cache.service';
 @Global()
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     NestCacheModule.registerAsync({
       useFactory: async () => {
         const redisStore = new KeyvRedis('redis://localhost:6379');

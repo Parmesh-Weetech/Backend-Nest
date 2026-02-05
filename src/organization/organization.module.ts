@@ -1,13 +1,13 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthModule } from '../auth/auth.module.js';
-import { UserModule } from '../user/user.module.js';
-import { PermissionModule } from '../permission/permission.module.js';
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
+import { PermissionModule } from '../permission/permission.module';
 
-import { OrganizationService } from './organization.service.js';
-import { OrganizationController } from './organization.controller.js';
-import { Organization } from './entities/organization.entity.js';
+import { OrganizationService } from './organization.service';
+import { OrganizationController } from './organization.controller';
+import { Organization } from './entities/organization.entity';
 
 @Module({
   controllers: [OrganizationController],
