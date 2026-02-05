@@ -1,13 +1,15 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { RoleController } from './role.controller.js';
-import { RoleService } from './role.service.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Role } from './entities/role.entity.js';
+
+import { UserModule } from '../user/user.module.js';
+import { OrganizationModule } from '../organization/organization.module.js';
 import { Permission } from '../permission/entities/permission.entity.js';
 import { PermissionModule } from '../permission/permission.module.js';
-import { UserModule } from '..//user/user.module.js';
-import { OrganizationModule } from '../organization/organization.module.js';
+
 import { AuthModule } from '../auth/auth.module.js';
+import { RoleController } from './role.controller.js';
+import { RoleService } from './role.service.js';
+import { Role } from './entities/role.entity.js';
 
 @Module({
   controllers: [RoleController],

@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, DeleteDateColumn, UpdateDateColumn, ManyToMany, JoinTable, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { Permission } from '../../permission/entities/permission.entity.js';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, DeleteDateColumn, UpdateDateColumn, ManyToMany, JoinTable, ManyToOne, JoinColumn } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
-import { User } from '../../user/entities/user.entity.js';
-import { Organization } from '../../organization/entities/organization.entity.js';
+
+import { Permission } from '../../permission/entities/permission.entity';
+import { User } from '../../user/entities/user.entity';
+import { Organization } from '../../organization/entities/organization.entity';
 
 @Entity('roles')
 export class Role {
@@ -22,7 +23,9 @@ export class Role {
     @Exclude()
     description: string
 
-    @ManyToOne(() => Organization, org => org.roles, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+    @ManyToOne(() => Organization, org => org.roles, {
+        cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE"
+    })
     @JoinColumn()
     organization: Organization;
 

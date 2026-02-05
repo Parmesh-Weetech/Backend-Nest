@@ -1,55 +1,49 @@
-import { Controller, Get, Post, Param, Body, Put, Delete, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put, Delete, UseGuards } from '@nestjs/common';
+
+import { AuthGuard } from '../common/guards/auth.guard.js';
+import { APIResponse } from '../common/response/response.dto.js';
+import { PermissionsGuard } from '../common/guards/permission.guard.js';
+import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
+import { AccessActionEnum } from '../common/enums/access-action.enum.js';
+import { Permission } from '../common/decorators/permission.decorator.js';
+import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
+
 import { RoleService } from './role.service.js';
 import { CreateRoleDTO } from './dtos/create-role.dto.js';
 import { UpdateRoleDTO } from './dtos/update-role.dto.js';
-import { AuthGuard } from '../common/guards/auth.guard.js';
-import { Permission } from '../common/decorators/permission.decorator.js';
-import { PermissionsGuard } from '../common/guards/permission.guard.js';
-import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator.js';
-import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
-import { AccessActionEnum } from '../common/enums/access-action.enum.js';
-import type { Response } from 'express';
 
 @Controller('roles')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class RoleController {
-    constructor(private readonly roleService: RoleService) { }
+    constructor(
+        private readonly roleService: RoleService
+    ) { }
 
     @Get()
-    async findAll(@Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.roleService.findAll();
-
-        res.status(response.statusCode).send(response);
+    async findAll(): Promise<APIResponse> {
+        return await this.roleService.findAll();
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.roleService.findOne(id);
-
-        res.status(response.statusCode).send(response);
+    async findOne(@Param('id') id: string): Promise<APIResponse> {
+        return await this.roleService.findOne(id);
     }
 
-    @Post()
     @Permission(AccessEntityEnum.ROLE, AccessActionEnum.CREATE)
-    async create(@Body() dto: CreateRoleDTO, @CurrentOrganizationId() Id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.roleService.create(dto, Id);
-
-        res.status(response.statusCode).send(response);
+    @Post()
+    async create(@Body() dto: CreateRoleDTO, @CurrentOrganizationId() Id: string): Promise<APIResponse> {
+        return await this.roleService.create(dto, Id);
     }
 
-    @Put()
     @Permission(AccessEntityEnum.ROLE, AccessActionEnum.UPDATE)
-    async update(@Body() dto: UpdateRoleDTO, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.roleService.update(dto);
-
-        res.status(response.statusCode).send(response);
+    @Put()
+    async update(@Body() dto: UpdateRoleDTO): Promise<APIResponse> {
+        return await this.roleService.update(dto);
     }
 
-    @Delete(':id')
     @Permission(AccessEntityEnum.ROLE, AccessActionEnum.DELETE)
-    async remove(@Param('id') id: string, @Res({ passthrough: true }) res: Response): Promise<void> {
-        const response = await this.roleService.remove(id);
-
-        res.status(response.statusCode).send(response);
+    @Delete(':id')
+    async remove(@Param('id') id: string): Promise<APIResponse> {
+        return await this.roleService.remove(id);
     }
 }
