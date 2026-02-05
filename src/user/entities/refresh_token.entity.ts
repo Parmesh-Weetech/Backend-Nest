@@ -6,7 +6,9 @@ export class Refresh_token {
     @PrimaryGeneratedColumn("uuid")
     id: string
 
-    @ManyToOne(() => User, user => user.tokens, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+    @ManyToOne(() => User, user => user.tokens, {
+        cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE"
+    })
     user: User
 
     @Column()

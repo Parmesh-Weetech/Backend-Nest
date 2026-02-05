@@ -1,7 +1,6 @@
 import { IsArray, IsEmail, IsNotEmpty, IsString, IsStrongPassword, IsUUID, MaxLength, MinLength } from "class-validator"
 
 export class CreateUserDTO {
-
     @IsString()
     @IsNotEmpty()
     @MinLength(3)

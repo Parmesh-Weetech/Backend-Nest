@@ -1,13 +1,15 @@
-import { Exclude, Expose } from "class-transformer";
 import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Exclude, Expose } from "class-transformer";
 import bcrypt from "bcryptjs";
-import { Role } from "../../role/entities/role.entity.js";
-import { Organization } from "../../organization/entities/organization.entity.js";
-import { Refresh_token } from "./refresh_token.entity.js";
-import { Product } from "../../product/entities/product.entity.js";
-import { Files } from "../../files/entities/File.entity.js";
-import { Video } from "../../video/entities/video.entity.js";
-import { Notification } from "../../notification/entities/notification.entity.js";
+
+import { Role } from "../../role/entities/role.entity";
+import { Files } from "../../files/entities/File.entity";
+import { Video } from "../../video/entities/video.entity";
+import { Product } from "../../product/entities/product.entity";
+import { Organization } from "../../organization/entities/organization.entity";
+import { Notification } from "../../notification/entities/notification.entity";
+
+import { Refresh_token } from "./refresh_token.entity";
 
 @Entity("user")
 export class User {
@@ -36,7 +38,9 @@ export class User {
     @OneToMany(() => Notification, notification => notification.sender)
     notifications: Notification[];
 
-    @ManyToOne(() => Organization, org => org.users, { cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+    @ManyToOne(() => Organization, org => org.users, {
+        cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE"
+    })
     @JoinColumn()
     organization: Organization;
 
