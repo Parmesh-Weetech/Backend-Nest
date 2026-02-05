@@ -18,7 +18,6 @@ export class PostService {
 
     async findAll(user: User): Promise<APIResponse> {
         const posts = await this.postRepository.find({ where: { user: user }, relations: ['user'] });
-
         if (!posts) throw new NotFoundException('No posts found.');
 
         return {
@@ -64,8 +63,9 @@ export class PostService {
         }
     }
 
-    async update(postDTO: UpdatePostDTO): Promise<APIResponse> {
+    async update(postDTO: UpdatePostDTO, user: User): Promise<APIResponse> {
         const existingPost = await this.findOne(postDTO.id);
+        if(existingPost.data.user.id !== user.id) throw new BadRequestException('You can only update your own posts.');
 
         if (postDTO.name) existingPost.data.name = postDTO.name;
         if (postDTO.description) existingPost.data.description = postDTO.description;
@@ -82,8 +82,9 @@ export class PostService {
         }
     }
 
-    async remove(id: string): Promise<APIResponse> {
-        await this.findOne(id);
+    async remove(id: string, user: User): Promise<APIResponse> {
+        const existingPost = await this.findOne(id);
+        if(existingPost.data.user.id !== user.id) throw new BadRequestException('You can only delete your own posts.');
 
         const deletePost = await this.postRepository.softDelete(id);
         if(deletePost.affected === undefined && deletePost.affected === null && deletePost.affected === 0) throw new InternalServerErrorException("Error while deleting post.");

@@ -40,15 +40,17 @@ export class PostController {
         return await this.postService.create(createPostDTO, user);
     }
 
+    @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.UPDATE)
     @Put()
-    async update(@Body() updatePostDTO: UpdatePostDTO): Promise<APIResponse> {
-        return await this.postService.update(updatePostDTO);
+    async update(@Body() updatePostDTO: UpdatePostDTO, @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.postService.update(updatePostDTO, user);
     }
 
+    @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.DELETE)
     @Delete(":id")
-    async remove(@Param("id") id: string): Promise<APIResponse> {
-        return await this.postService.remove(id);
+    async remove(@Param("id") id: string, @CurrentUser() user: User): Promise<APIResponse> {
+        return await this.postService.remove(id, user);
     }
 }
