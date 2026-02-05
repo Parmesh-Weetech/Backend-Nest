@@ -1,16 +1,17 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { firstValueFrom } from 'rxjs';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class HCaptchaService {
-    constructor(private readonly httpService: HttpService, private readonly configureService: ConfigService) { }
+    constructor(
+        private readonly httpService: HttpService,
+        private readonly configureService: ConfigService
+    ) { }
 
     async verify(token: string, ip?: string): Promise<void> {
-        if (!token) {
-            throw new UnauthorizedException('hCaptcha token missing');
-        }
+        if (!token) throw new BadRequestException('hCaptcha token missing');
 
         const res = await firstValueFrom<{ data: { success: boolean } }>(
             this.httpService.post<{ success: boolean }>(
@@ -29,7 +30,7 @@ export class HCaptchaService {
         );
 
         if (!res.data.success) {
-            throw new UnauthorizedException('hCaptcha verification failed');
+            throw new BadRequestException('hCaptcha verification failed');
         }
     }
 }
