@@ -1,5 +1,5 @@
-import { Transform } from 'class-transformer';
 import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdatePermissionDTO {
     @IsString()
