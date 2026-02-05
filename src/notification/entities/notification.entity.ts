@@ -1,5 +1,3 @@
-import { Conversation } from 'src/websocket/entities/conversation.entity';
-import { User } from '../../user/entities/user.entity';
 import {
     Entity,
     PrimaryGeneratedColumn,
@@ -9,6 +7,9 @@ import {
     JoinColumn,
     ManyToOne,
 } from 'typeorm';
+
+import { Conversation } from '../../websocket/entities/conversation.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('notifications')
 export class Notification {
@@ -24,7 +25,9 @@ export class Notification {
     @JoinColumn({ name: 'senderId' })
     sender: User;
 
-    @ManyToOne(() => Conversation, { nullable: true, onDelete: 'CASCADE', onUpdate: "CASCADE" })
+    @ManyToOne(() => Conversation, {
+        nullable: true, onDelete: 'CASCADE', onUpdate: "CASCADE"
+    })
     @JoinColumn({ name: 'conversationId' })
     conversation: Conversation;
 

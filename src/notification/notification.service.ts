@@ -1,12 +1,13 @@
-import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+
 import { Repository } from 'typeorm';
-import { Notification } from './entities/notification.entity';
-import { User } from '../user/entities/user.entity';
+import { Queue } from 'bullmq';
 import { DateTime } from "luxon";
-import { Conversation } from 'src/websocket/entities/conversation.entity';
+
+import { Notification } from './entities/notification.entity';
+import { APIResponse } from 'src/common/response/response.dto';
 
 @Injectable()
 export class NotificationService {
@@ -25,18 +26,13 @@ export class NotificationService {
         date: string,
         time: string,
         timezone: string
-    ) {
-        // ✅ Convert user time → UTC
+    ): Promise<APIResponse> {
         const scheduledAtUtc = DateTime
             .fromISO(`${date}T${time}`, { zone: timezone })
             .toUTC();
 
-        // ✅ Calculate delay for BullMQ
         const delay = scheduledAtUtc.diffNow().as('milliseconds');
-
-        if (delay <= 0) {
-            throw new Error('Scheduled time must be in the future');
-        }
+        if (delay <= 0) throw new BadRequestException('Scheduled time must be in the future');
 
         const notificationObject = this.notificationRepository.create({
             sender: { id: senderId },
@@ -49,6 +45,8 @@ export class NotificationService {
         })
 
         const notification = await this.notificationRepository.save(notificationObject);
+
+        if(!notification) throw new InternalServerErrorException('Failed to create notification');
 
         await this.queue.add(
             'send-notification',
@@ -70,8 +68,13 @@ export class NotificationService {
         );
 
         return {
-            notificationId: notification.id,
-            status: 'PENDING',
+            data: {
+                notificationId: notification.id,
+                status: 'PENDING'
+            },
+            success: true,
+            expired: false,
+            statusCode: 201,
             message: "Notification Created Successfully."
         };
     }

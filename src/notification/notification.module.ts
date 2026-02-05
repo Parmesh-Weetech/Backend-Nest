@@ -1,23 +1,25 @@
 import { Module } from '@nestjs/common';
-import { NotificationService } from './notification.service';
-import { NotificationController } from './notification.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
-import { Notification } from './entities/notification.entity';
-import { UserModule } from '../user/user.module';
-import { AuthModule } from '../auth/auth.module';
+
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
+
+import { Notification } from './entities/notification.entity';
+import { NotificationService } from './notification.service';
 import { NotificationSseService } from './notificationSse.service';
+import { NotificationController } from './notification.controller';
 import { NotificationSseController } from './notificationSse.controller';
 
 @Module({
-  providers: [NotificationService, CurrentUserInterceptor, NotificationSseService],
+  providers: [NotificationService, NotificationSseService, CurrentUserInterceptor],
   controllers: [NotificationController, NotificationSseController],
   exports: [NotificationService, NotificationSseService],
   imports: [
-    TypeOrmModule.forFeature([Notification]),
-    UserModule,
     AuthModule,
+    UserModule,
+    TypeOrmModule.forFeature([Notification]),
     BullModule.registerQueue({
       name: 'notifications',
       connection: {

@@ -1,9 +1,12 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Notification } from './entities/notification.entity';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+
 import { Repository } from 'typeorm';
 import { Job } from 'bullmq';
+
+import { Notification } from './entities/notification.entity';
 import { NotificationSseService } from './notificationSse.service';
+import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
 @Processor('notifications', {
     concurrency: 10
@@ -22,12 +25,7 @@ export class NotificationProcessor extends WorkerHost {
 
         try {
             const notification = await this.repo.findOne({ where: { id: notificationId }, relations: ['sender', 'conversation'] });
-            if (!notification) return;
-
-            /**
-                * 🔐 IDEMPOTENCY GUARD (ATOMIC)
-                * Only one worker can update sentAt from NULL → Date
-            */
+            if (!notification) throw new NotFoundException('Notification not found');
             
             const result = await this.repo
                 .createQueryBuilder()
@@ -40,7 +38,6 @@ export class NotificationProcessor extends WorkerHost {
                 .andWhere('sentAt IS NULL')
                 .execute();
 
-            // No rows updated → already processed or not found
             if (result.affected === 0) {
                 return;
             }
@@ -55,19 +52,7 @@ export class NotificationProcessor extends WorkerHost {
                 );
             }
 
-            /**
-             * 🔔 Side effects go here
-             * - WebSocket emit
-             * - Email
-             * - Push notification
-             */
-
         } catch (err) {
-            /**
-             * ⚠️ IMPORTANT
-             * sentAt was already set → do NOT retry blindly
-             * mark failed explicitly
-             */
             const updateNotificationStatus = await this.repo.update(notificationId, {
                 status: 'FAILED',
             });
@@ -78,7 +63,7 @@ export class NotificationProcessor extends WorkerHost {
                 );
             }
 
-            throw err; // allow BullMQ retry if configured
+            throw new InternalServerErrorException(err.message || 'Failed to send notification');
         }
     }
 }
