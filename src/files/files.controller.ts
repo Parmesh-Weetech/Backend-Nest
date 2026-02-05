@@ -29,7 +29,7 @@ export class FilesController {
         private readonly fileService: FilesService
     ) { }
 
-    @UseInterceptors(FileInterceptor('file') , CurrentUserInterceptor)
+    @UseInterceptors(FileInterceptor('file'), CurrentUserInterceptor)
     @Post('upload')
     async uploadFile(
         @UploadedFile() file: Express.Multer.File,
@@ -38,45 +38,28 @@ export class FilesController {
         return await this.fileService.uploadFile(file, user);
     }
 
-    @Post('upload/signed-url')
     @UseInterceptors(CurrentUserInterceptor)
-    async getUploadSignedUrl(
+    @Post('upload/signed-url')
+    async createSignedUploadUrl(
         @Body() fileData: { filename: string, type: string },
         @CurrentUser() user: User
     ): Promise<APIResponse> {
-        const data = await this.fileService.getUploadSignedUrl(
+        return await this.fileService.createSignedUploadUrl(
             fileData.filename,
             fileData.type,
             user
         );
-
-        return {
-            success: true,
-            message: 'Upload signed URL generated',
-            data,
-            expired: false,
-            statusCode: 200,
-        };
     }
 
     @Post(":fileId/confirm")
     async confirmFileUpload(@Param("fileId") fileId: string): Promise<APIResponse> {
-        const data = await this.fileService.confirmFileUpload(fileId);
-
-        return {
-            success: data.confirm,
-            data: null,
-            expired: false,
-            message: data.message,
-            statusCode: data.status
-        }
+        return await this.fileService.confirmFileUpload(fileId);
     }
 
-    @Get('list')
     @UseInterceptors(CurrentUserInterceptor)
-    async listFiles(@CurrentUser() user: User) {
-        const files = await this.fileService.listFiles(user);
-        return { success: true, data: files, message: 'Files listed successfully' };
+    @Get('list')
+    async listFiles(@CurrentUser() user: User): Promise<APIResponse> {
+        return await this.fileService.listFiles(user);
     }
 
     @Get('download/:fileId')
@@ -84,43 +67,27 @@ export class FilesController {
         @Param('fileId') fileId: string,
         @Res({ passthrough: true }) res: response
     ) {
-        const { stream, filename, contentType } = await this.fileService.downloadFile(fileId);
+        const response = await this.fileService.downloadFile(fileId);
 
         res.set({
-            'Content-Disposition': `attachment; filename="${filename}"`,
-            'Content-Type': contentType,
+            'Content-Disposition': `attachment; filename="${response.data.filename}"`,
+            'Content-Type': response.data.contentType,
         });
 
-        return new StreamableFile(stream);
+        return new StreamableFile(response.data.stream);
     }
 
     @Get(':fileId/signed-url')
     async getSignedUrl(@Param('fileId') fileId: string): Promise<APIResponse> {
-        const url = await this.fileService.getSignedUrl(fileId);
-
-        return {
-            success: true,
-            message: 'Signed URL generated',
-            data: url,
-            expired: false,
-            statusCode: 200
-        };
+        return await this.fileService.getSignedUrl(fileId);
     }
 
-    @Delete(':id')
     @UseInterceptors(CurrentUserInterceptor)
+    @Delete(':id')
     async deleteFile(
         @Param('id') fileId: string,
         @CurrentUser() user: User
     ): Promise<APIResponse> {
-        await this.fileService.deleteFile(fileId, user);
-
-        return {
-            success: true,
-            message: 'File deleted successfully',
-            data: null,
-            expired: false,
-            statusCode: 200
-        };
+        return  await this.fileService.deleteFile(fileId, user);
     }
 }

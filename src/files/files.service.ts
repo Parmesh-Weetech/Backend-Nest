@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
 
@@ -68,53 +68,89 @@ export class FilesService {
     }
 
 
-    async listFiles(user: User) {
-        const files = await this.fileRepository.find({ where: { user: user } });
+    async listFiles(user: User): Promise<APIResponse> {
+        const files = await this.fileRepository.find({
+            where: {
+                user: user,
+                status: Not(In(['ORPHAN', 'PENDING'])),
+            },
+        });
 
         if (!files || files.length === 0) throw new NotFoundException("Files not found.");
 
-        return await this.storageService.list(user.id);
+        const response = files.map(file => ({
+            id: file.id,
+            originalFileName: file.originalFileName,
+            mimeType: file.mimeType,
+            status: file.status,
+            bucket: file.bucket,
+            user: file.user ? { id: file.user.id, } : null,
+            created_at: file.created_at,
+            updated_at: file.updated_at,
+        }));
+
+        return {
+            data: response,
+            success: true,
+            message: "Files retrieved successfully.",
+            statusCode: 200,
+            expired: false
+        };
     }
 
-    async downloadFile(fileId: string) {
+    async downloadFile(fileId: string): Promise<APIResponse> {
         const file = await this.fileRepository.findOne({ where: { id: fileId }, relations: ["user"] });
-
         if (!file) throw new NotFoundException('File not found');
+
+        if (file.status !== 'ACTIVE') {
+            throw new ForbiddenException('File is not available for download');
+        }
 
         const stream = await this.storageService.download(file.path);
 
         return {
-            stream,
-            filename: file.path.split('/').pop(),
-            contentType: 'application/octet-stream'
+            data: {
+                stream,
+                filename: file.path.split('/').pop(),
+                contentType: 'application/octet-stream'
+            },
+            success: true,
+            message: "File download prepared successfully.",
+            statusCode: 200,
+            expired: false
         };
     }
 
-    async getSignedUrl(fileId: string) {
+    async getSignedUrl(fileId: string): Promise<APIResponse> {
         const file = await this.fileRepository.findOne({ where: { id: fileId } });
-
         if (!file) throw new NotFoundException('File not found');
 
-        return this.storageService.getSignedUrl(file.path);
+        const response = this.storageService.getSignedUrl(file.path);
+
+        return {
+            data: response,
+            success: true,
+            message: "Signed URL generated successfully.",
+            statusCode: 200,
+            expired: false
+        };
     }
 
     async getFileById(fileId: string) {
         return await this.fileRepository.findOne({ where: { id: fileId } });
     }
 
-    async getUploadSignedUrl(
+    async createSignedUploadUrl(
         filename: string,
         type: string,
         user: User
-    ) {
-        if (!filename) {
-            throw new BadRequestException('Filename is required');
-        }
+    ): Promise<APIResponse> {
+        if (!filename) throw new BadRequestException('Filename is required');
 
         const ext = filename.split('.').pop();
         const path = `${user.id}/${randomUUID()}.${ext}`;
 
-        const { signedUrl } = await this.storageService.getSignedUploadUrl(path);
+        const { signedUrl } = await this.storageService.createSignedUploadUrl(path);
 
         const file = await this.fileRepository.save({
             user: user,
@@ -126,54 +162,46 @@ export class FilesService {
         });
 
         return {
-            fileId: file.id,
-            signedUrl,
+            data: {
+                uploadUrl: signedUrl,
+                fileId: file.id,
+            },
+            success: true,
+            expired: false,
+            message: "Signed upload URL created successfully.",
+            statusCode: 201
         };
     }
 
-    async confirmFileUpload(fileId: string) {
+    async confirmFileUpload(fileId: string): Promise<APIResponse> {
         const fileMetadata = await this.fileRepository.findOne({ where: { id: fileId }, relations: ['user'] });
-        if (!fileMetadata) {
-            return {
-                confirm: false,
-                message: "File not found in db!",
-                status: 404
-            }
-        }
+        if (!fileMetadata) throw new NotFoundException('File metadata not found');
 
         const exists = await this.storageService.exists(fileMetadata.path);
-
         if (!exists) {
             fileMetadata.status = 'ORPHAN';
             await this.fileRepository.save(fileMetadata);
 
-            return {
-                confirm: false,
-                message: "File not found in supabase!",
-                status: 404
-            };
+            throw new NotFoundException('File not found in storage');
         }
 
         fileMetadata.status = 'ACTIVE';
 
-        try {
-            const file = await this.fileRepository.save(fileMetadata);
-
-            return {
-                confirm: true,
-                message: "File found in supabase.",
-                status: 200
-            };
-        } catch (error: any) {
-            return {
-                confirm: false,
-                message: error.message,
-                status: error.status
-            }
+        const file = await this.fileRepository.save(fileMetadata);
+        if (!file) {
+            throw new InternalServerErrorException('Failed to update file status');
         }
+
+        return {
+            success: true,
+            data: null,
+            message: "File found in supabase.",
+            statusCode: 200,
+            expired: false
+        };
     }
 
-    async deleteFile(fileId: string, user: User): Promise<void> {
+    async deleteFile(fileId: string, user: User): Promise<APIResponse> {
         const file = await this.fileRepository.findOne({
             where: { id: fileId },
         });
@@ -186,10 +214,24 @@ export class FilesService {
             throw new ForbiddenException('Access denied');
         }
 
-        // delete from storage first
-        await this.storageService.deleteFile(file.path);
+        const storageResponse = await this.storageService.deleteFile(file.path);
 
-        // delete from DB
-        await this.fileRepository.delete(file.id);
+        if (storageResponse === false) {
+            throw new InternalServerErrorException('Failed to delete file from storage');
+        }
+
+        const databaseResponse = await this.fileRepository.delete(file.id);
+
+        if (databaseResponse.affected === null || databaseResponse.affected === undefined || databaseResponse.affected === 0) {
+            throw new InternalServerErrorException('Failed to delete file record from database');
+        }
+
+        return {
+            success: true,
+            message: 'File deleted successfully',
+            data: null,
+            expired: false,
+            statusCode: 200
+        }
     }
 }

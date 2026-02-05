@@ -48,15 +48,11 @@ export class StorageService {
             .from(this.bucket)
             .createSignedUrl(path, 86400);
 
-        if (error || !data?.signedUrl) {
-            throw new InternalServerErrorException('Failed to create signed URL');
-        }
+        if (error || !data?.signedUrl) throw new InternalServerErrorException('Failed to create signed URL');
 
         const response = await fetch(data.signedUrl);
 
-        if (!response.ok || !response.body) {
-            throw new NotFoundException('File not found in storage');
-        }
+        if (!response.ok || !response.body) throw new NotFoundException('File not found in storage');
 
         return Readable.fromWeb(response.body as any);
     }
@@ -65,27 +61,20 @@ export class StorageService {
         const { data, error } = await this.client.storage.from(this.bucket).list(path);
         if (error) throw new InternalServerErrorException(error.message);
 
-        // return only file names
         return data.map(file => file.name);
     }
 
     async getSignedUrl(path: string, expiresIn = 86400): Promise<string> {
-        try {
-            const { data, error } = await this.client.storage
-                .from(this.bucket)
-                .createSignedUrl(path, expiresIn);
+        const { data, error } = await this.client.storage
+            .from(this.bucket)
+            .createSignedUrl(path, expiresIn);
 
-            if (error) {
-                throw new InternalServerErrorException(error.message);
-            }
+        if (error) throw new InternalServerErrorException(error.message);
 
-            return data.signedUrl;
-        } catch (error) {
-            throw new Error(error);
-        }
+        return data.signedUrl;
     }
 
-    async getSignedUploadUrl(path: string) {
+    async createSignedUploadUrl(path: string) {
         const { data, error } = await this.client
             .storage
             .from(this.bucket)
@@ -93,9 +82,7 @@ export class StorageService {
                 upsert: false
             });
 
-        if (error) {
-            throw new InternalServerErrorException(error.message);
-        }
+        if (error) throw new InternalServerErrorException(error.message);
 
         return data;
     }
@@ -112,11 +99,13 @@ export class StorageService {
         return data.length > 0;
     }
 
-    async deleteFile(path: string): Promise<void> {
+    async deleteFile(path: string): Promise<boolean> {
         const { error } = await this.client.storage
             .from(this.bucket)
             .remove([path]);
 
         if (error) throw new InternalServerErrorException(error.message);
+
+        return true;
     }
 }
