@@ -1,28 +1,26 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { randomUUID } from 'crypto';
+
+import { APIResponse } from '../common/response/response.dto';
 import { StorageService } from '../storage/storage.service';
 import { User } from '../user/entities/user.entity';
-import { Readable } from 'stream';
 import { FfmpegService } from '../ffmpeg/ffmpeg.service';
-import { InjectRepository } from '@nestjs/typeorm';
+
 import { Video } from './entities/video.entity';
-import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { APIResponse } from '../common/response/response.dto';
-import { promises as fs } from 'fs';
-import { Queue } from 'bullmq';
-import { InjectQueue } from '@nestjs/bullmq';
 import { VideoSseService } from './videoSse.service';
 
 @Injectable()
 export class VideoService {
     constructor(
-        private readonly storageService: StorageService,
-        private readonly ffmpegService: FfmpegService,
         @InjectRepository(Video)
         private readonly videoRepository: Repository<Video>,
+        private readonly storageService: StorageService,
         private readonly configService: ConfigService,
-        private readonly videoSseService: VideoSseService,
 
         @InjectQueue('video-processing')
         private readonly videoQueue: Queue,
@@ -41,15 +39,9 @@ export class VideoService {
 
         const video = await this.videoRepository.save(videoMetadata);
 
-        if (!video) return {
-            success: false,
-            expired: false,
-            data: null,
-            message: "Internal Server Error while adding video in db!",
-            statusCode: 500
-        }
+        if (!video) throw new InternalServerErrorException('Failed to save video metadata');
 
-        const job = await this.videoQueue.add(
+        await this.videoQueue.add(
             'process',
             {
                 videoId,

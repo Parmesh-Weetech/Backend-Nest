@@ -1,8 +1,8 @@
-// src/video/video-sse.controller.ts
 import { Controller, Sse } from '@nestjs/common';
 import { MessageEvent } from '@nestjs/common';
-import { VideoSseService } from './videoSse.service';
 import { Observable } from 'rxjs';
+
+import { VideoSseService } from './videoSse.service';
 
 @Controller('video')
 export class VideoSseController {

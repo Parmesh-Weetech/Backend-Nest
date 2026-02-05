@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { BullModule } from '@nestjs/bullmq';
+
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
+import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
+import { StorageModule } from '../storage/storage.module';
+
 import { VideoService } from './video.service';
 import { VideoController } from './video.controller';
-import { StorageModule } from '../storage/storage.module';
-import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
 import { Video } from './entities/video.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from '../user/user.module';
-import { AuthModule } from '../auth/auth.module';
-import { BullModule } from '@nestjs/bullmq';
 import { VideoSseService } from './videoSse.service';
 import { VideoSseController } from './videoSse.controller';
 

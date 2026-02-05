@@ -1,27 +1,24 @@
-import { Body, Controller, Get, Param, Post, Res, Sse, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { VideoService } from './video.service';
-import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
-import { User } from '../user/entities/user.entity';
 import type { Response } from 'express';
+
+import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
-import { Subject } from 'rxjs';
-import { VideoSseService } from './videoSse.service';
+import { User } from '../user/entities/user.entity';
+
+import { VideoService } from './video.service';
+import { APIResponse } from '../common/response/response.dto';
 
 @Controller('video')
 export class VideoController {
 
     constructor(
-        private readonly videoService: VideoService,
-        private readonly videoSseService: VideoSseService
+        private readonly videoService: VideoService
     ) {}
 
-    private videoEvents = new Subject<MessageEvent>();
-
+    @UseInterceptors(FileInterceptor("file") , CurrentUserInterceptor)
     @Post("upload")
-    @UseInterceptors(FileInterceptor("file"))
-    @UseInterceptors(CurrentUserInterceptor)
-    async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User) {
+    async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User): Promise<APIResponse> {
         return await this.videoService.enqueue(file, user);
     }
 

@@ -1,15 +1,18 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Job } from 'bullmq';
-import { Video } from './entities/video.entity';
-import { Repository } from 'typeorm';
-import { CacheService } from 'src/cache/cache.service';
-import { FfmpegService } from 'src/ffmpeg/ffmpeg.service';
-import { StorageService } from 'src/storage/storage.service';
+import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job } from 'bullmq';
 import { Readable } from 'stream';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
+import { StorageService } from '../storage/storage.service';
+import { CacheService } from '../cache/cache.service';
+import { FfmpegService } from '../ffmpeg/ffmpeg.service';
+
+import { Video } from './entities/video.entity';
 import { VideoSseService } from './videoSse.service';
 
 @Processor('video-processing')
@@ -27,7 +30,7 @@ export class VideoProcessor extends WorkerHost {
     }
 
     async process(job: Job): Promise<any> {
-        const { videoId, userId, file } = job.data;
+        const { videoId, file } = job.data;
         const lockKey = `video:lock:${videoId}`;
 
         if (await this.cache.get(lockKey)) {
@@ -36,45 +39,37 @@ export class VideoProcessor extends WorkerHost {
         await this.cache.set(lockKey, true, 600);
 
         try {
-            // 1. Check existing video
             const existing = await this.videoRepo.findOne({ where: { id: videoId } });
 
-            if(!existing) throw new Error("video not found");
+            if(!existing) throw new NotFoundException("video not found");
 
             if (existing.status === 'ACTIVE') return { alreadyProcessed: true };
 
-            // 2. Prepare file paths
             const ext = file.originalname.split('.').pop();
             const originalFilePath = `videos/${videoId}/original.${ext}`;
 
-            // Convert serialized buffer to actual Buffer
             const bufferData = Buffer.isBuffer(file.buffer)
                 ? file.buffer
                 : Buffer.from(file.buffer.data);
 
-            // 3. Upload original file
             await this.storage.upload(originalFilePath, Readable.from(bufferData), file.mimetype);
 
-            // 4. Save to assets folder (only JSON-safe operations)
             const rootFolder = this.config.get("ROOT_DIRECTORY");
             const assetsVideoDir = path.join(rootFolder, 'assets', 'video');
             const savedFilePath = path.join(assetsVideoDir, file.originalname);
             await fs.mkdir(assetsVideoDir, { recursive: true });
             await fs.writeFile(savedFilePath, bufferData);
 
-            // 6. Verify file exists
             try {
                 await fs.access(savedFilePath);
             } catch {
                 await this.videoRepo.delete(videoId);
-                return { error: 'Uploaded file missing, aborted.' }; // safe return
+                throw new NotFoundException('Failed to save uploaded video file');
             }
 
-            // 7. Generate HLS
             const outputDir = `${this.config.get("OUTPUT_DIRECTORY")}/${videoId}`;
             await this.ffmpeg.generateHls(savedFilePath, outputDir);
 
-            // 8. Upload HLS master playlist
             const masterPath = await this.storage.uploadHls(videoId, outputDir);
 
             try {
@@ -84,7 +79,6 @@ export class VideoProcessor extends WorkerHost {
                 console.warn(`Failed to remove temporary folder ${outputDir}:`, err);
             }
 
-            // 9. Update DB
             await this.videoRepo.update(videoId, {
                 path: masterPath,
                 bucket: this.config.get('SUPABASE_BUCKET'),
@@ -93,14 +87,14 @@ export class VideoProcessor extends WorkerHost {
 
             this.videoSseService.sendSuccess(videoId, "ACTIVE")
 
-            return { success: true, videoId, masterPath }; // return JSON-safe info
+            return { success: true, videoId, masterPath };
         } catch (error: any) {
             console.error('Video processing failed:', error);
             await this.videoRepo.update(videoId, {
                 status: "FAILED"
             });
             this.videoSseService.sendError(videoId, error, "FAILED");
-            return { success: false, error: error.message }; // return JSON-safe error
+            throw new Error(`Video processing failed: ${error.message}`);
         } finally {
             await this.cache.del(lockKey);
         }

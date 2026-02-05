@@ -1,5 +1,4 @@
-// src/video/video-sse.controller.ts
-import { Sse, MessageEvent, Injectable } from '@nestjs/common';
+import { MessageEvent, Injectable } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 
 @Injectable()
