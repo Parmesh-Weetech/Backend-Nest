@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -31,7 +31,6 @@ export class PermissionService {
                 }
             }
         });
-
         if (!permissions) throw new NotFoundException('No permissions found.');
 
         return {
@@ -60,36 +59,26 @@ export class PermissionService {
         const organization = await this.organizationService.findOne(orgId);
 
         const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: organization.data } });
+        if (existingPermissions) throw new ForbiddenException("Permission already exists!");
 
-        if (existingPermissions) throw new Error("Permission already exists!");
+        const permission = this.permissionRepository.create({
+            key: dto.key,
+            label: dto.label,
+            description: dto.description,
+            entity: dto.entity,
+            action: dto.action,
+            organization: organization.data
+        });
 
-        try {
-            const permission = this.permissionRepository.create({
-                key: dto.key,
-                label: dto.label,
-                description: dto.description,
-                entity: dto.entity,
-                action: dto.action,
-                organization: organization.data
-            });
+        const newPermission = await this.permissionRepository.save(permission);
+        if (!newPermission) throw new InternalServerErrorException('Failed to create permission');
 
-            const newPermission = await this.permissionRepository.save(permission);
-
-            return {
-                success: true,
-                expired: false,
-                message: "Permission created successfully.",
-                statusCode: 201,
-                data: newPermission
-            }
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message,
-                data: null,
-                statusCode: 500,
-                expired: false,
-            }
+        return {
+            success: true,
+            expired: false,
+            message: "Permission created successfully.",
+            statusCode: 201,
+            data: newPermission
         }
     }
 
@@ -113,7 +102,6 @@ export class PermissionService {
         }
 
         const updatedPermission = await this.permissionRepository.save(perm.data);
-
         if (!updatedPermission) throw new InternalServerErrorException('Failed to update permission');
 
         return {
@@ -130,9 +118,8 @@ export class PermissionService {
 
         const response = await this.permissionRepository.softDelete(id);
 
-        if (response.affected === undefined && response.affected === null && response.affected === 0) {
+        if (response.affected === undefined && response.affected === null && response.affected === 0)
             throw new InternalServerErrorException("Error while deleting permission.")
-        }
 
         return {
             success: true,
@@ -150,9 +137,8 @@ export class PermissionService {
             .where('role.id = :roleId', { roleId })
             .getMany();
 
-        if (permissions.length === 0 || !permissions) {
+        if (permissions.length === 0 || !permissions)
             throw new NotFoundException('No permissions found for the given role ID.');
-        }
 
         return {
             success: true,
