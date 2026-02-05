@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Res, Headers, UseInterceptors } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
 import { APIResponse } from '../common/response/response.dto';
 import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
@@ -12,7 +12,7 @@ import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @Controller('organization')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, CurrentUserGuard)
 export class OrganizationController {
   constructor(
     private readonly organizationService: OrganizationService

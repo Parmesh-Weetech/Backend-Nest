@@ -30,7 +30,6 @@ export class AuthController {
         return await this.authService.signup(signupDTO);
     }
 
-    @Public()
     @UseGuards(HcaptchaGuard)
     @Post('/login')
     async login(@Body() loginDTO: LoginDTO): Promise<APIResponse> {

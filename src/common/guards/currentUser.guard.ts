@@ -1,0 +1,28 @@
+import { CanActivate, ExecutionContext, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+
+import { UserService } from "../../user/user.service";
+
+@Injectable()
+export class CurrentUserGuard implements CanActivate {
+    constructor(private readonly userService: UserService) { }
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const request = context.switchToHttp().getRequest();
+
+        if (!request.auth?.sub) {
+            throw new UnauthorizedException('Auth payload missing');
+        }
+
+        const user = await this.userService.findOne(
+            request.auth.sub,
+        );
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        request.currentUser = user.data;
+
+        return true;
+    }
+}

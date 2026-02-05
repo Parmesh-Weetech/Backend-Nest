@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response as response } from 'express'
 
 import { AuthGuard } from '../common/guards/auth.guard';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
 import { APIResponse } from '../common/response/response.dto';
 import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
@@ -22,7 +23,7 @@ import { User } from '../user/entities/user.entity';
 
 import { FilesService } from './files.service';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, CurrentUserGuard)
 @Controller('files')
 export class FilesController {
     constructor(

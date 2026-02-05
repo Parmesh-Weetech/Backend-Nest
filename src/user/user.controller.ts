@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards, UseInterceptors } from '@nestjs/common';
-import type { Response } from 'express';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
 import { APIResponse } from '../common/response/response.dto';
 import { PermissionsGuard } from '../common/guards/permission.guard';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum';
@@ -17,7 +17,7 @@ import { CreateUserDTO } from './dtos/create-user.dto';
 import { updateUserDTO } from './dtos/update-user.dto';
 
 @Controller('user')
-@UseGuards(AuthGuard, PermissionsGuard)
+@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
 export class UserController {
     constructor(
         private readonly userService: UserService

@@ -1,13 +1,14 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
 import { APIResponse } from '../common/response/response.dto';
 import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 
 import { WebsocketService } from './websocket.service';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, CurrentUserGuard)
 @Controller('websocket')
 export class WebsocketController {
     constructor(

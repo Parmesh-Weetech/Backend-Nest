@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseIntercep
 
 import { AuthGuard } from '../common/guards/auth.guard.js';
 import { APIResponse } from '../common/response/response.dto.js';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard.js';
 import { PermissionsGuard } from '../common/guards/permission.guard.js';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum.js';
 import { AccessActionEnum } from '../common/enums/access-action.enum.js';
@@ -15,7 +16,7 @@ import { CreatePostDTO } from './dtos/create-post.dto.js';
 import { PostService } from './post.service.js';
 
 @Controller('post')
-@UseGuards(AuthGuard, PermissionsGuard)
+@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
 export class PostController {
 
     constructor(

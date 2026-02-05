@@ -37,9 +37,8 @@ export class AuthGuard implements CanActivate {
 
         const payload = await this.auth.decode(token);
 
-        // 👇 Attach once, reuse everywhere
         request.auth = payload;
-
+        
         return true;
     }
 }

@@ -16,19 +16,23 @@ export class PermissionsGuard implements CanActivate {
         if (!requiredPermission) return true;
 
         const user = request.currentUser;
-        if (!user) throw new UnauthorizedException();
+        if (!user) throw new UnauthorizedException("User not found in request");
 
         const { entity, action } = requiredPermission;
         const orgId = user.organization.id;
 
         for (const role of user.roles) {
+            if (!role.organization) continue;
+
             if (role.organization.id !== orgId) continue;
 
-            if (role.key === 'admin') return true;
+            if (role.key === 'admin') {
+                return true;
+            }
 
             for (const permission of role.permissions) {
                 if (
-                    permission.organization.id === orgId &&
+                    permission.organization?.id === orgId &&
                     permission.entity === entity &&
                     permission.action === action
                 ) {

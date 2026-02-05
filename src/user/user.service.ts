@@ -76,7 +76,15 @@ export class UserService {
         let cachedUser = await this.cacheService.get(cacheKey);
 
         if (!cachedUser) {
-            const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: ['roles', 'organization'] });
+            const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: {
+                organization: true,
+                roles: {
+                    organization: true,
+                    permissions: {
+                        organization: true,
+                    },
+                },
+            } });
 
             if (!fetchedUser) throw new NotFoundException('User not found.');
 

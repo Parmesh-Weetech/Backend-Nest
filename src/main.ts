@@ -24,7 +24,6 @@ import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { PermissionsMiddleware } from './common/middlewares/permission.middleware';
 import { MainSeeder } from '../db/seeders/main.seed';
 
-
 async function bootstrap() {
   try {
     const app =
@@ -77,6 +76,7 @@ async function bootstrap() {
     app.use(compression());
 
     /* -------------------- GLOBAL SETUP -------------------- */
+
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
