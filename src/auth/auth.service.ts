@@ -125,6 +125,7 @@ export class AuthService {
         const decodedPayload = await this.auth.decode(token);
 
         const deleteRefreshToken = await this.refresh_tokenRepository.delete({ user: { id: decodedPayload.sub }, refresh_token: token });
+        
         if (deleteRefreshToken.affected === null || deleteRefreshToken.affected === undefined || deleteRefreshToken.affected === 0) {
             throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
         }
