@@ -20,9 +20,9 @@ import { AuthController } from './auth.controller';
   providers: [AuthService, AuthMiddleware, Auth],
   imports: [
     TypeOrmModule.forFeature([User, Refresh_token]),
-    forwardRef(() => RoleModule),
-    forwardRef(() => PermissionModule),
-    forwardRef(() => OrganizationModule),
+    RoleModule,
+    PermissionModule,
+    OrganizationModule,
     HCaptchaModule,
     forwardRef(() => UserModule),
     JwtModule.registerAsync({

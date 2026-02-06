@@ -1,8 +1,8 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { Permission } from '../../src/permission/entities/permission.entity.js';
-import { Role } from '../../src/role/entities/role.entity.js';
-import { PERMISSIONS } from '../Default_Values.js';
+import { Permission } from '../../src/permission/entities/permission.entity';
+import { Role } from '../../src/role/entities/role.entity';
+import { PERMISSIONS } from '../Default_Values';
 
 export class PermissionSeeder implements Seeder {
     async run(dataSource: DataSource): Promise<void> {

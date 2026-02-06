@@ -11,7 +11,10 @@ import { CacheModule } from '../cache/cache.module';
 
 @Module({
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule), forwardRef(() => RoleModule), forwardRef(() => PermissionModule), forwardRef(() => OrganizationModule), CacheModule],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule),   // ✅ FIX
+    forwardRef(() => RoleModule),   // recommended
+    forwardRef(() => PermissionModule),
+    forwardRef(() => OrganizationModule), CacheModule],
   controllers: [UserController],
   exports: [UserService]
 })

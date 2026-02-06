@@ -6,5 +6,8 @@
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  "globalSetup": "./helper/setup.ts",
+  "globalTeardown": "./helper/teardown.ts",
+  "maxWorkers": 4,
   "clearMocks": true
 }
