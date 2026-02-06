@@ -9,5 +9,6 @@
   "globalSetup": "./helper/setup.ts",
   "globalTeardown": "./helper/teardown.ts",
   "maxWorkers": 4,
-  "clearMocks": true
+  "clearMocks": true,
+  "timeout": 30000
 }

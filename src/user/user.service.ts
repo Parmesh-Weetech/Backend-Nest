@@ -90,6 +90,8 @@ export class UserService {
                 },
             } });
 
+            console.log(fetchedUser)
+
             if (!fetchedUser) throw new NotFoundException('User not found.');
 
             cachedUser = fetchedUser;

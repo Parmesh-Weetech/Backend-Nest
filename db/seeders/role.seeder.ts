@@ -4,20 +4,25 @@ import { Role } from '../../src/role/entities/role.entity';
 import { ROLES } from '../Default_Values';
 
 export class RoleSeeder implements Seeder {
-    async run(dataSource: DataSource): Promise<void> {
+    async run(dataSource: DataSource): Promise<Role[]> {
         const roleRepo = dataSource.getRepository(Role);
+        const seededRoles: Role[] = [];
 
         for (const roleData of ROLES) {
-            const exists = await roleRepo.findOne({
+            let exists = await roleRepo.findOne({
                 where: { key: roleData.key },
             });
 
             if (!exists) {
-                await roleRepo.save(roleRepo.create(roleData));
+                exists = await roleRepo.save(roleRepo.create(roleData));
                 console.log(`✅ Role created: ${roleData.key}`);
             } else {
                 console.log("Roles already exists! No action needed.")
             }
+
+            seededRoles.push(exists);
         }
+
+        return seededRoles;
     }
 }

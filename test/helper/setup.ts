@@ -1,5 +1,6 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Client } from 'pg';
+import 'reflect-metadata';
 
 const workerId = process.env.JEST_WORKER_ID || '0';
 const schema = `test_${workerId}`;
