@@ -124,19 +124,18 @@ export class AuthService {
 
         const decodedPayload = await this.auth.decode(token);
 
-        const deleteRefreshToken = await this.refresh_tokenRepository.delete({ user: { id: decodedPayload.sub } });
-
-        if (deleteRefreshToken.affected !== null && deleteRefreshToken.affected !== undefined && deleteRefreshToken.affected > 0) {
-            return {
-                success: true,
-                statusCode: 200,
-                message: "Logout Successfully.",
-                data: null,
-                expired: false
-            }
+        const deleteRefreshToken = await this.refresh_tokenRepository.delete({ user: { id: decodedPayload.sub }, refresh_token: token });
+        if (deleteRefreshToken.affected === null || deleteRefreshToken.affected === undefined || deleteRefreshToken.affected === 0) {
+            throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
         }
 
-        throw new InternalServerErrorException({ message: "Something went wrong while processing your request" })
+        return {
+            success: true,
+            statusCode: 200,
+            message: "Logout Successfully.",
+            data: null,
+            expired: false
+        }
     }
 
     async refreshAccessToken(refreshToken: string): Promise<APIResponse> {
@@ -161,7 +160,6 @@ export class AuthService {
 
         if (!newAccessToken || !newRefreshToken) {
             await this.logout(refreshToken)
-            throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
         }
 
         const updateRefreshTokenRecord = await this.refresh_tokenRepository.update(existingRefreshTokenRecord.id, {
