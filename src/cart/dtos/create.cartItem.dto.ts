@@ -1,4 +1,5 @@
-import { IsInt, IsNumber, IsUUID, Min } from "class-validator";
+import { Type } from "class-transformer";
+import { IsInt, IsNumber, IsUUID, Min, ValidateNested } from "class-validator";
 
 export class CreateCartItemDTO {
     @IsUUID()
@@ -10,4 +11,10 @@ export class CreateCartItemDTO {
 
     @IsNumber()
     price: number;
+}
+
+export class AddToCartDTO {
+    @ValidateNested({ each: true })
+    @Type(() => CreateCartItemDTO)
+    items: CreateCartItemDTO[];
 }

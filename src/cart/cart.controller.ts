@@ -6,7 +6,7 @@ import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 
 import { CartService } from './cart.service';
-import { CreateCartItemDTO } from './dtos/create.cartItem.dto';
+import { AddToCartDTO } from './dtos/create.cartItem.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 
 @Controller('cart')
@@ -16,7 +16,7 @@ export class CartController {
 
     @UseInterceptors(CurrentUserInterceptor)
     @Post("add")
-    async addToCart(@Body() createCartItemDTO: CreateCartItemDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return this.cartService.addToCart(createCartItemDTO, user);
+    async addToCart(@Body() addToCartDTO: AddToCartDTO, @CurrentUser() user: User): Promise<APIResponse> {
+        return this.cartService.addToCart(addToCartDTO, user);
     }
 }
