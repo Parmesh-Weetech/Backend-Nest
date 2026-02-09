@@ -1,11 +1,13 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './entities/product.entity';
-import { In, Repository } from 'typeorm';
-import { CreateProductDTO } from './dtos/create-product.dto';
-import { UpdateProductDTO } from './dtos/update-product.dto';
+import { Repository } from 'typeorm';
+
 import { APIResponse } from '../common/response/response.dto';
 import { User } from '../user/entities/user.entity';
+
+import { Product } from './entities/product.entity';
+import { CreateProductDTO } from './dtos/create-product.dto';
+import { UpdateProductDTO } from './dtos/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -33,9 +35,9 @@ export class ProductService {
         if (search) {
             qb.andWhere(
                 `
-      product.name ILIKE :search
-      OR :search = ANY(product.mealType)
-      `,
+                    product.name ILIKE :search
+                    OR :search = ANY(product.mealType)
+                `,
                 { search: `%${search}%` },
             );
         }
