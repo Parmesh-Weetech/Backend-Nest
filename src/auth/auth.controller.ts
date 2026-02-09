@@ -16,6 +16,7 @@ import { Serialize } from './interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dtos/login.dto';
 import { SignupDTO } from './dtos/signup.dto';
+import { RefreshTokenRequest } from 'src/common/decorators/refreshToken.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -53,6 +54,7 @@ export class AuthController {
         return await this.authService.logout(authorization)
     }
 
+    @RefreshTokenRequest()
     @UseGuards(AuthGuard)
     @Post("/refresh-token")
     async refreshAccessToken(@Body('refreshToken') refreshToken: string): Promise<APIResponse> {
