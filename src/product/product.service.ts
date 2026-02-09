@@ -36,9 +36,9 @@ export class ProductService {
         if (search) {
             qb.andWhere(
                 `
-            product.name ILIKE :searchLike
-            OR :searchExact = ANY(product.mealType)
-        `,
+                    product.name ILIKE :searchLike
+                    OR :searchExact = ANY(product.mealType)
+                `,
                 {
                     searchLike: `%${search}%`,
                     searchExact: search,
