@@ -1,12 +1,14 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { User } from 'src/user/entities/user.entity';
-import { APIResponse } from '../common/response/response.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Cart } from './entities/cart.entity';
 import { In, Repository } from 'typeorm';
+
+import { APIResponse } from '../common/response/response.dto';
+import { User } from '../user/entities/user.entity';
+import { Product } from '../product/entities/product.entity';
+
+import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart.item.entity';
 import { AddToCartDTO } from './dtos/create.cartItem.dto';
-import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class CartService {
@@ -20,7 +22,7 @@ export class CartService {
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    
+
     async addToCart(addToCartDTO: AddToCartDTO, user: User): Promise<APIResponse> {
         let cart = await this.cartRepository.findOne({
             where: { user: { id: user.id }, status: 'ACTIVE' },
@@ -59,8 +61,7 @@ export class CartService {
             if (existingItem) {
                 /* ➕ Increase quantity */
                 existingItem.quantity += dto.quantity;
-                existingItem.total_price =
-                    existingItem.quantity * existingItem.price;
+                existingItem.total_price = existingItem.quantity * existingItem.price;
 
                 cartItemsToSave.push(existingItem);
             } else {
