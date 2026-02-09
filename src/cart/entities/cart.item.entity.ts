@@ -8,9 +8,7 @@ export class CartItem {
     id: string;
 
     @ManyToOne(() => Cart, cart => cart.items, {
-        cascade: true,
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
     })
     cart: Cart;
 
@@ -21,7 +19,10 @@ export class CartItem {
     quantity: number;
 
     @Column('numeric', { precision: 10, scale: 2 })
-    price_at_time: number;
+    price: number;
+
+    @Column('numeric', { precision: 10, scale: 2, default: 0 })
+    total_price: number;
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

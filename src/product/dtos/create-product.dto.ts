@@ -1,37 +1,51 @@
-import { IsArray, IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
+import {
+    IsArray,
+    IsNotEmpty,
+    IsNumber,
+    IsPositive,
+    IsString,
+    IsEnum,
+} from 'class-validator';
 
 export class CreateProductDTO {
     @IsString()
     @IsNotEmpty()
-    name: string
+    name: string;
 
     @IsString()
     @IsNotEmpty()
-    image: string
+    image: string;
 
     @IsNumber()
-    @IsNotEmpty()
     @IsPositive()
-    price: number
+    price: number;
 
     @IsNumber()
-    @IsNotEmpty()
     @IsPositive()
-    rating: number
+    rating: number;
 
     @IsArray()
-    @IsNotEmpty()
-    mealType: [string]
+    @IsString({ each: true }) // ✅ critical
+    mealType: string[];
 
     @IsString()
     @IsNotEmpty()
-    cuisine: string
+    cuisine: string;
 
     @IsArray()
-    @IsNotEmpty()
-    ingredients: [string]
+    @IsString({ each: true })
+    ingredients: string[];
 
     @IsArray()
-    @IsNotEmpty()
-    instructions: [string]
+    @IsString({ each: true })
+    instructions: string[];
+
+    @IsNumber()
+    prepTimeMinutes: number;
+
+    @IsNumber()
+    cookTimeMinutes: number;
+
+    @IsEnum(['Easy', 'Medium', 'Hard'])
+    difficulty: 'Easy' | 'Medium' | 'Hard';
 }

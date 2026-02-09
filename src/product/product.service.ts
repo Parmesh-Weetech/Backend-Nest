@@ -32,13 +32,17 @@ export class ProductService {
             .where('product.deleted_at IS NULL');
 
         /* 🔍 Search */
+        /* 🔍 Search */
         if (search) {
             qb.andWhere(
                 `
-                    product.name ILIKE :search
-                    OR :search = ANY(product.mealType)
-                `,
-                { search: `%${search}%` },
+            product.name ILIKE :searchLike
+            OR :searchExact = ANY(product.mealType)
+        `,
+                {
+                    searchLike: `%${search}%`,
+                    searchExact: search,
+                },
             );
         }
 
@@ -127,29 +131,36 @@ export class ProductService {
         }
     }
 
-    async insertBulk(products: CreateProductDTO[], user: User): Promise<APIResponse> {
-        const data = products.map((product) => ({
+    async insertBulk(
+        products: CreateProductDTO[],
+        user: User,
+    ): Promise<APIResponse> {
+        const data = products.map(product => ({
             ...product,
-            user: user
-        }))
+            user,
+        }));
 
-        const bulkProduct = await this.productRepository
+        const result = await this.productRepository
             .createQueryBuilder()
             .insert()
             .into(Product)
             .values(data)
-            .returning("*")
+            .returning('*')
             .execute();
 
-        if (bulkProduct.identifiers.length === 0) throw new InternalServerErrorException('Failed to insert bulk products.');
+        if (!result.raw.length) {
+            throw new InternalServerErrorException(
+                'Failed to insert bulk products.',
+            );
+        }
 
         return {
             success: true,
-            message: "Successfully inserted all products.",
-            data: bulkProduct.raw,
+            message: 'Successfully inserted all products.',
+            data: result.raw,
             expired: false,
             statusCode: 201,
-        }
+        };
     }
 
     async update(product: UpdateProductDTO, user: User): Promise<APIResponse> {

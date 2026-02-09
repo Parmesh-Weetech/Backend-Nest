@@ -11,6 +11,7 @@ import { Product } from './entities/product.entity';
 @Module({
   controllers: [ProductController],
   providers: [ProductService],
+  exports: [ProductService],
   imports: [UserModule, TypeOrmModule.forFeature([Product]), AuthModule]
 })
 export class ProductModule {}

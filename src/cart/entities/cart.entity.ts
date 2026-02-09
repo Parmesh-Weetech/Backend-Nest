@@ -3,9 +3,9 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, OneToMa
 import { User } from "../../user/entities/user.entity";
 import { CartItem } from "./cart.item.entity";
 
-@Entity("cart")
+@Entity('cart')
 export class Cart {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({
@@ -14,11 +14,16 @@ export class Cart {
         default: 'ACTIVE',
     })
     status: 'ACTIVE' | 'CHECKED_OUT' | 'ORDER';
-    @OneToOne(() => User, user => user.cart, { cascade: true, onUpdate: "CASCADE", onDelete: 'CASCADE' })
+
+    @OneToOne(() => User, user => user.cart, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn()
     user: User;
 
-    @OneToMany(() => CartItem, item => item.cart)
+    @OneToMany(() => CartItem, item => item.cart, {
+        cascade: ['insert', 'update'],
+    })
     items: CartItem[];
 
     @CreateDateColumn({ type: 'timestamptz' })
