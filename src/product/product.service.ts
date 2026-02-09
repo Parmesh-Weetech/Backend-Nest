@@ -1,9 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { Auth } from '../common/util/auth';
-import { UserService } from '../user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
 import { APIResponse } from '../common/response/response.dto';
@@ -12,32 +10,78 @@ import { User } from '../user/entities/user.entity';
 @Injectable()
 export class ProductService {
     constructor(
-        private readonly auth: Auth,
-        private readonly userService: UserService,
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    async findAll(skip: number, take: number): Promise<APIResponse> {
-        const [products, total] = await this.productRepository.findAndCount({
-            skip: skip,
-            take: take,
-            order: { created_at: 'DESC' }
-        });
+    async findAll(
+        skip: number,
+        take: number,
+        search?: string,
+        filter?: {
+            _cuisine?: string[],
+            _price?: [number, number],
+        },
+        sort = 'created_at',
+        order: 'ASC' | 'DESC' = 'DESC',
+    ): Promise<APIResponse> {
+
+        const qb = this.productRepository
+            .createQueryBuilder('product')
+            .where('product.deleted_at IS NULL');
+
+        /* 🔍 Search */
+        if (search) {
+            qb.andWhere(
+                `
+      product.name ILIKE :search
+      OR :search = ANY(product.mealType)
+      `,
+                { search: `%${search}%` },
+            );
+        }
+
+        /* 🍽 Cuisine filter */
+        if (filter?._cuisine?.length) {
+            qb.andWhere('product.cuisine IN (:...cuisines)', {
+                cuisines: filter._cuisine,
+            });
+        }
+
+        /* 💰 Price range */
+        if (filter?._price && filter._price.length === 2) {
+            qb.andWhere(
+                'product.price BETWEEN :min AND :max',
+                {
+                    min: filter._price[0],
+                    max: filter._price[1],
+                },
+            );
+        }
+
+        /* ↕ Sorting */
+        qb.orderBy(`product.${sort}`, order);
+
+        /* 📄 Pagination */
+        qb.skip(skip).take(take);
+
+        const [products, total] = await qb.getManyAndCount();
 
         return {
             success: true,
-            message: products.length > 0 ? "Products fetched successfully." : "No Products found.",
+            message: products.length
+                ? 'Products fetched successfully.'
+                : 'No Products found.',
             data: {
                 items: products,
                 meta: {
                     totalItems: total,
                     skip,
                     limit: take,
-                    total: skip === 0 ? take : total - skip
-                }
+                    total: Math.max(total - skip, 0),
+                },
             },
             expired: false,
-            statusCode: 200
+            statusCode: 200,
         };
     }
 

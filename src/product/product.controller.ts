@@ -22,12 +22,19 @@ export class ProductController {
     @Get()
     async findAll(
         @Query('_start') start = '0',
-        @Query('_limit') limit = '10'
+        @Query('_limit') limit = '10',
+        @Query('_sort') sort = 'created_at',
+        @Query('_order') order: 'ASC' | 'DESC' = 'DESC',
+        @Query('_search') search?: string,
+        @Query('_filter') filter?: {
+            _cuisine?: [string],
+            _price?: [min: number, max: number],
+        },
     ): Promise<APIResponse> {
         const skip = Math.max(parseInt(start, 10), 0);
         const take = Math.min(parseInt(limit, 10), 100);
 
-        return await this.productService.findAll(skip, take);
+        return await this.productService.findAll(skip, take, search, filter, sort, order);
     }
 
     @Get(":id")
