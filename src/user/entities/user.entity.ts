@@ -1,4 +1,4 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Exclude, Expose } from "class-transformer";
 import bcrypt from "bcryptjs";
 
@@ -8,6 +8,7 @@ import { Video } from "../../video/entities/video.entity";
 import { Product } from "../../product/entities/product.entity";
 import { Organization } from "../../organization/entities/organization.entity";
 import { Notification } from "../../notification/entities/notification.entity";
+import { Cart } from "../../cart/entities/cart.entity";
 
 import { Refresh_token } from "./refresh_token.entity";
 
@@ -52,6 +53,9 @@ export class User {
 
     @OneToMany(() => Product, product => product.user)
     products: Product[];
+
+    @OneToOne(() => Cart, cart => cart.user)
+    cart: Cart;
 
     @Index(["email", "organizationId"], { unique: true })
 

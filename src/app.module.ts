@@ -22,6 +22,7 @@ import { CacheModule } from './cache/cache.module';
 import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
 import { VideoModule } from './video/video.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -52,7 +53,7 @@ import { VideoModule } from './video/video.module';
         },
       ],
     }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule],
   controllers: [AppController],
   providers: [AppService],
 })
