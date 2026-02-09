@@ -25,16 +25,42 @@ export class ProductController {
         @Query('_limit') limit = '10',
         @Query('_sort') sort = 'created_at',
         @Query('_order') order: 'ASC' | 'DESC' = 'DESC',
-        @Query('_search') search?: string,
-        @Query('_filter') filter?: {
-            _cuisine?: [string],
-            _price?: [min: number, max: number],
-        },
+
+        @Query('search') search?: string,
+        @Query('cuisine') cuisine?: string,
+        @Query('price') price?: string,
     ): Promise<APIResponse> {
+
         const skip = Math.max(parseInt(start, 10), 0);
         const take = Math.min(parseInt(limit, 10), 100);
 
-        return await this.productService.findAll(skip, take, search, filter, sort, order);
+        /* 🎯 Build filter object */
+        const filter: {
+            _cuisine?: string[];
+            _price?: [number, number];
+        } = {};
+
+        /* 🍽 Cuisine: "Italian,Mexican" → ["Italian","Mexican"] */
+        if (cuisine) {
+            filter._cuisine = cuisine.split(',').map(c => c.trim());
+        }
+
+        /* 💰 Price: "140-250" → [140, 250] */
+        if (price) {
+            const [min, max] = price.split('-').map(Number);
+            if (!isNaN(min) && !isNaN(max)) {
+                filter._price = [min, max];
+            }
+        }
+
+        return this.productService.findAll(
+            skip,
+            take,
+            search,
+            filter,
+            sort,
+            order,
+        );
     }
 
     @Get(":id")
