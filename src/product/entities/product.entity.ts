@@ -23,16 +23,25 @@ export class Product {
     rating: number;
 
     @Column("text", { array: true })
-    mealType: [string]
+    mealType: string[]
 
     @Column()
     cuisine: string
 
     @Column("text", { array: true })
-    ingredients: [string]
+    ingredients: string[]
 
     @Column("text", { array: true })
-    instructions: [string]
+    instructions: string[]
+
+    @Column({ type: 'int', default: 0 })
+    prepTimeMinutes: number;
+
+    @Column({ type: 'int', default: 0 })
+    cookTimeMinutes: number;
+
+    @Column({ type: 'enum', enum: ['Easy', 'Medium', 'Hard'], default: 'Easy' })
+    difficulty: 'Easy' | 'Medium' | 'Hard';
 
     @CreateDateColumn({ type: 'timestamptz' })
     created_at: Date;

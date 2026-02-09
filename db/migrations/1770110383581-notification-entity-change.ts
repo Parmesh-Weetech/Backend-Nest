@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddScheduledAtTimezoneColumnInNotification1769752655687 implements MigrationInterface {
-    name = 'AddScheduledAtTimezoneColumnInNotification1769752655687'
+export class NotificationEntityChange1770110383581 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "notifications" ADD "scheduledAt" TIMESTAMP WITH TIME ZONE`);

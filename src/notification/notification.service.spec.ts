@@ -116,8 +116,8 @@ describe('NotificationService (real DB + real Redis)', () => {
         senderId,
         conversationId,
         'Hello, this is a test notification!',
-        '2099-02-06',     // YYYY-MM-DD
-        '15:43',          // 24-hour, no PM
+        '2099-02-09',     // YYYY-MM-DD
+        '09:10',          // 24-hour, no PM
         'Asia/Kolkata',   // valid IANA timezone
       );
 

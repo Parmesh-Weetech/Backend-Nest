@@ -62,22 +62,7 @@ describe('AuthController (e2e)', () => {
         factory: async () => {
           const ds = new DataSource({
             ...(testDataSource.options as any),
-            schema,
-            entities: [
-              Role,
-              Permission,
-              User,
-              Organization,
-              Refresh_token,
-              Files,
-              Video,
-              PostEntity,
-              Product,
-              Notification,
-              Message,
-              MessageAttachment,
-              Conversation
-            ],
+            schema
           });
 
           await ds.initialize();

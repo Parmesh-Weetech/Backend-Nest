@@ -22,13 +22,12 @@ export class ProductController {
     @Get()
     async findAll(
         @Query('_start') start = '0',
-        @Query('_limit') limit = '10',
-        @CurrentUser() user: User
+        @Query('_limit') limit = '10'
     ): Promise<APIResponse> {
         const skip = Math.max(parseInt(start, 10), 0);
         const take = Math.min(parseInt(limit, 10), 100);
 
-        return await this.productService.findAll(user, skip, take);
+        return await this.productService.findAll(skip, take);
     }
 
     @Get(":id")

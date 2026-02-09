@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class UpdateNotificationEntity1769763503010 implements MigrationInterface {
-    name = 'UpdateNotificationEntity1769763503010'
+export class NotificationEntityDropReceiver1770110435895 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "notifications" DROP COLUMN "receiverId"`);

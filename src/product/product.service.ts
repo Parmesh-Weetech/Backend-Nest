@@ -17,9 +17,8 @@ export class ProductService {
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>
     ) { }
-    async findAll(user: User, skip: number, take: number): Promise<APIResponse> {
+    async findAll(skip: number, take: number): Promise<APIResponse> {
         const [products, total] = await this.productRepository.findAndCount({
-            where: { user: { id: user.id } },
             skip: skip,
             take: take,
             order: { created_at: 'DESC' }
@@ -114,10 +113,10 @@ export class ProductService {
         if (!product.image && existingProduct?.image) product.image = existingProduct.image;
         if (!product.price && existingProduct?.price) product.price = existingProduct.price;
         if (!product.rating && existingProduct?.rating) product.rating = existingProduct.rating;
-        if (!product.mealType?.length && existingProduct?.mealType?.length) product.mealType = existingProduct.mealType;
+        if (!product.mealType?.length && existingProduct?.mealType?.length) product.mealType = existingProduct.mealType as [string];
         if (!product.cuisine && existingProduct?.cuisine) product.cuisine = existingProduct.cuisine;
-        if (!product.ingredients?.length && existingProduct?.ingredients?.length) product.ingredients = existingProduct.ingredients;
-        if (!product.instructions?.length && existingProduct?.instructions?.length) product.instructions = existingProduct.instructions;
+        if (!product.ingredients?.length && existingProduct?.ingredients?.length) product.ingredients = existingProduct.ingredients as [string];
+        if (!product.instructions?.length && existingProduct?.instructions?.length) product.instructions = existingProduct.instructions as [string];
 
         const saveProduct = await this.productRepository.save(product);
         if (!saveProduct) throw new InternalServerErrorException('Failed to update product.');

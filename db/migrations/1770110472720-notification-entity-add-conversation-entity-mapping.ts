@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class UpdateNotificationOnUpdateCascadeForConversation1769763880875 implements MigrationInterface {
-    name = 'UpdateNotificationOnUpdateCascadeForConversation1769763880875'
+export class NotificationEntityAddConversationEntityMapping1770110472720 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "notifications" DROP CONSTRAINT "FK_cc7d3a957c3fe287fcdc289a12b"`);
