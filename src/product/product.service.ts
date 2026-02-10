@@ -23,8 +23,8 @@ export class ProductService {
             _cuisine?: string[],
             _price?: [number, number],
         },
-        sort = 'created_at',
-        order: 'ASC' | 'DESC' = 'DESC',
+        sort = 'name',
+        order: 'ASC' | 'DESC' = 'ASC',
     ): Promise<APIResponse> {
 
         const qb = this.productRepository

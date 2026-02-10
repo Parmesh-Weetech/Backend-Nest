@@ -23,8 +23,8 @@ export class ProductController {
     async findAll(
         @Query('_start') start = '0',
         @Query('_limit') limit = '10',
-        @Query('_sort') sort = 'created_at',
-        @Query('_order') order: 'ASC' | 'DESC' = 'DESC',
+        @Query('_sort') sort = 'name',
+        @Query('_order') order: 'ASC' | 'DESC' = 'ASC',
 
         @Query('search') search?: string,
         @Query('cuisine') cuisine?: string,
