@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { APIResponse } from '../common/response/response.dto';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
@@ -18,5 +18,11 @@ export class CartController {
     @Post("add")
     async addToCart(@Body() addToCartDTO: AddToCartDTO, @CurrentUser() user: User): Promise<APIResponse> {
         return this.cartService.addToCart(addToCartDTO, user);
+    }
+
+    @UseInterceptors(CurrentUserInterceptor)
+    @Get()
+    async findCart(@CurrentUser() user: User): Promise<APIResponse> {
+        return this.cartService.findCart(user);
     }
 }

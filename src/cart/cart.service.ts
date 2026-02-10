@@ -88,4 +88,32 @@ export class CartService {
             statusCode: 200,
         };
     }
+
+    async findCart(user: User): Promise<APIResponse> {
+        const cartItem = await this.cartItemRepository.find({ where: { cart: { user: { id: user.id } } }, relations: { cart: {
+            user: true
+        }, product: true } });
+
+        if(!cartItem || cartItem.length == 0) {
+            const cart = await this.cartRepository.find({ where: { user: { id: user.id } } });
+
+            if(!cart) throw new NotFoundException("Cart not found.");
+
+            return {
+                success:true,
+                data: cart,
+                expired: false,
+                message: "Cart fetched successfully.",
+                statusCode: 200
+            }
+        }
+
+        return {
+            success: true,
+            data: cartItem,
+            message: "Cart fetched successfully.",
+            expired: false,
+            statusCode: 200
+        }
+    }
 }
