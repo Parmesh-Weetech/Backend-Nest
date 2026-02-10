@@ -12,8 +12,8 @@ import { UserRepository } from './user.repository';
 
 @Module({
   providers: [UserService, UserRepository],
-  imports: [TypeOrmModule.forFeature([UserRepository]), forwardRef(() => AuthModule),   // ✅ FIX
-    forwardRef(() => RoleModule),   // recommended
+  imports: [TypeOrmModule.forFeature([UserRepository]), forwardRef(() => AuthModule),
+    forwardRef(() => RoleModule),
     forwardRef(() => PermissionModule),
     forwardRef(() => OrganizationModule), CacheModule],
   controllers: [UserController],
