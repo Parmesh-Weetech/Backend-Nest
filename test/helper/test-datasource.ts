@@ -12,6 +12,8 @@ import { Message } from '../../src/websocket/entities/message.entity';
 import { MessageAttachment } from '../../src/websocket/entities/MessageAttachment.entity';
 import { Product } from '../../src/product/entities/product.entity';
 import { PostEntity } from '../../src/post/entities/post.entity';
+import { Cart } from '../../src/cart/entities/cart.entity';
+import { CartItem } from '../../src/cart/entities/cart.item.entity';
 
 const workerId = process.env.JEST_WORKER_ID || '0';
 const schema = `test_${workerId}`;
@@ -24,7 +26,7 @@ export const testDataSource = new DataSource({
     password: 'divpassword',
     database: 'divdata',
     schema,
-    entities: [User, Role, Permission, Organization, Refresh_token, Files, Video, Notification, Conversation, Message, MessageAttachment, Product, PostEntity],
+    entities: [User, Role, Permission, Organization, Refresh_token, Files, Video, Notification, Conversation, Message, MessageAttachment, Product, PostEntity, Cart, CartItem],
     synchronize: true,
     logging: false,
 });

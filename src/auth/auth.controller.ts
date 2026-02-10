@@ -10,13 +10,13 @@ import { Public } from '../common/decorators/public.decorator';
 import { HcaptchaGuard } from '../common/guards/h-captcha.guard';
 import { APIResponse } from '../common/response/response.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
+import { RefreshTokenRequest } from '../common/decorators/refreshToken.decorator';
 
 import { User } from '../user/entities/user.entity';
 import { Serialize } from './interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dtos/login.dto';
 import { SignupDTO } from './dtos/signup.dto';
-import { RefreshTokenRequest } from 'src/common/decorators/refreshToken.decorator';
 
 @Controller('auth')
 export class AuthController {
