@@ -152,13 +152,13 @@ describe('AuthService (real DB)', () => {
 
   describe('getAllUsers', () => {
     it('should return all users', async () => {
-      const users = await service.findAllUser(userData);
+      const users = await service.findAllUser(userData.id);
       expect(users).toBeDefined();
       expect(users.data.length).toBeGreaterThan(0);
     });
 
     it("get all cached user", async () => {
-      const cachedUser = await service.findAllCachedUser(userData);
+      const cachedUser = await service.findAllCachedUser(userData.id);
       expect(cachedUser).toBeDefined();
       expect(cachedUser.data.length).toBeGreaterThan(0);
     })

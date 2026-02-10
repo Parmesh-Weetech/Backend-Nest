@@ -39,7 +39,6 @@ export class OrganizationService {
 
   async findOne(id: string): Promise<APIResponse> {
     const organization = await this.organizationRepository.findOne({ where: { id: id } });
-
     if (!organization) throw new NotFoundException('Organization not found.');
 
     return {

@@ -29,7 +29,7 @@ export class PermissionsMiddleware implements NestMiddleware {
 
             const decodedPayload = await this.auth.decode(token);
 
-            const user = await this.userService.findOneWithRolesAndPermissions(decodedPayload.sub);
+            const user = await this.userService.findOne(decodedPayload.sub);
             if (!user) throw new NotFoundException('User not found');
 
             const hasAccess = user.data.roles.some(role => {

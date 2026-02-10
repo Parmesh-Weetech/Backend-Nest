@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CurrentUserGuard } from '../common/guards/currentUser.guard';
@@ -7,12 +7,9 @@ import { PermissionsGuard } from '../common/guards/permission.guard';
 import { AccessEntityEnum } from '../common/enums/access-entity.enum';
 import { AccessActionEnum } from '../common/enums/access-action.enum';
 import { Permission } from '../common/decorators/permission.decorator';
-import { CurrentUser } from '../common/decorators/currentUser.decorator';
-import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator';
 
 import { UserService } from './user.service';
-import { User } from './entities/user.entity';
 import { CreateUserDTO } from './dtos/create-user.dto';
 import { updateUserDTO } from './dtos/update-user.dto';
 
@@ -23,15 +20,14 @@ export class UserController {
         private readonly userService: UserService
     ) { }
     
-    @UseInterceptors(CurrentUserInterceptor)
     @Get()
-    async findAllCachedUser(@CurrentUser() user: User): Promise<APIResponse> {
-        return await this.userService.findAllCachedUser(user);
+    async findAllCachedUser(@Req() req): Promise<APIResponse> {
+        return await this.userService.findAllCachedUser(req.currentUser.id);
     }
 
     @Get("/all")
-    async findAllUser(@CurrentUser() user: User): Promise<APIResponse> {
-        return await this.userService.findAllUser(user);
+    async findAllUser(@Req() req): Promise<APIResponse> {
+        return await this.userService.findAllUser(req.currentUser.id);
     }
 
     @Get(":id")
