@@ -6,7 +6,6 @@ import {
     UnauthorizedException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import bcrypt from "bcryptjs";
 
@@ -15,12 +14,12 @@ import { APIResponse } from '../common/response/response.dto';
 import { RoleService } from '../role/role.service';
 import { PermissionService } from '../permission/permission.service';
 import { OrganizationService } from '../organization/organization.service';
-import { Refresh_token } from '../user/entities/refresh_token.entity';
 
 import { SignupDTO } from './dtos/signup.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { TokenResponse } from './dtos/token-response.dto';
 import { UserRepository } from '../user/user.repository';
+import { RefreshTokenRepository } from './refreshToken.repository';
 
 @Injectable()
 export class AuthService {
@@ -28,8 +27,8 @@ export class AuthService {
         @InjectRepository(UserRepository)
         private readonly userRepository: UserRepository,
 
-        @InjectRepository(Refresh_token)
-        private readonly refreshTokenRepository: Repository<Refresh_token>,
+        @InjectRepository(RefreshTokenRepository)
+        private readonly refreshTokenRepository: RefreshTokenRepository,
 
         private readonly roleService: RoleService,
         private readonly permissionService: PermissionService,
@@ -72,7 +71,7 @@ export class AuthService {
             email: signupDTO.email,
             password: signupDTO.password,
             roleIds: [newRole.data.id]
-        }, newRole.data, newOrganization.data)
+        }, newRole.data, newOrganization.data);
 
         if (!newUser) throw new InternalServerErrorException({ message: "Something went wrong while processing user." });
 
@@ -91,7 +90,7 @@ export class AuthService {
             if (!organization) throw new NotFoundException({ message: "Organization not found!" });
         }
 
-        const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
+        const user = await this.userRepository.findByEmail(loginDTO.email);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
 
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
@@ -100,13 +99,9 @@ export class AuthService {
         const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email });
         const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
 
-        const saveRefreshToken = this.refreshTokenRepository.create({
-            user: user,
-            refresh_token: refresh_token
-        });
+        const saveRefreshToken = await this.refreshTokenRepository.createRefreshToken(user, refresh_token);
 
-        const savedRefreshToken = await this.refreshTokenRepository.save(saveRefreshToken);
-        if (!savedRefreshToken) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
+        if (!saveRefreshToken) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
 
         return {
             success: true,
@@ -122,9 +117,9 @@ export class AuthService {
 
         const decodedPayload = await this.auth.decode(token);
 
-        const deleteRefreshToken = await this.refreshTokenRepository.delete({ user: { id: decodedPayload.sub }, refresh_token: token });
+        const deleteRefreshToken = await this.refreshTokenRepository.deleteRefreshToken(decodedPayload.sub, token);
 
-        if (deleteRefreshToken.affected === null || deleteRefreshToken.affected === undefined || deleteRefreshToken.affected === 0) {
+        if (!deleteRefreshToken) {
             throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
         }
 
@@ -143,15 +138,15 @@ export class AuthService {
         const token = type === "Bearer" ? authorization : undefined
         if (!token) throw new UnauthorizedException({ message: "Unauthorized access!" });
 
-        const existingRefreshTokenRecord = await this.refreshTokenRepository.findOne({ where: { refresh_token: token } });
+        const existingRefreshTokenRecord = await this.refreshTokenRepository.findByToken(token);
         if (!existingRefreshTokenRecord) throw new NotFoundException({ message: "Token not found." });
 
         const isValid = this.auth.verify(token);
         if (!isValid) throw new UnauthorizedException({ message: "Token expired!", expired: true });
 
         const decode = await this.auth.decode(token);
-
-        const user = await this.userRepository.findOne({ where: { id: decode.sub } });
+        
+        const user = await this.userRepository.findById(decode.sub);
         if (!user) throw new NotFoundException({ message: "User not found!" });
 
         const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email });
@@ -161,15 +156,12 @@ export class AuthService {
             await this.logout(refreshToken)
         }
 
-        const updateRefreshTokenRecord = await this.refreshTokenRepository.update(existingRefreshTokenRecord.id, {
-            refresh_token: newRefreshToken,
-            user: user
-        });
+        const updateRefreshTokenRecord = await this.refreshTokenRepository.updateRefreshToken(
+            existingRefreshTokenRecord.id, newRefreshToken, user
+        );
 
         if (
-            updateRefreshTokenRecord.affected === null ||
-            updateRefreshTokenRecord.affected === undefined ||
-            updateRefreshTokenRecord.affected === 0
+            !updateRefreshTokenRecord
         ) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
 
         return {

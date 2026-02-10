@@ -10,16 +10,16 @@ import { PermissionModule } from '../permission/permission.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { HCaptchaModule } from '../h-captcha/h-captcha.module';
 import { UserModule } from '../user/user.module';
-import { Refresh_token } from '../user/entities/refresh_token.entity';
 import { UserRepository } from '../user/user.repository';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { RefreshTokenRepository } from './refreshToken.repository';
 
 @Module({
-  providers: [AuthService, AuthMiddleware, Auth, UserRepository],
+  providers: [AuthService, AuthMiddleware, Auth, UserRepository, RefreshTokenRepository],
   imports: [
-    TypeOrmModule.forFeature([UserRepository, Refresh_token]),
+    TypeOrmModule.forFeature([UserRepository, RefreshTokenRepository]),
     RoleModule,
     PermissionModule,
     OrganizationModule,
