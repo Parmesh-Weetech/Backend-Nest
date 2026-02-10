@@ -11,16 +11,15 @@ import { AuthGuard } from '../common/guards/auth.guard';
 
 @Controller('cart')
 @UseGuards(AuthGuard)
+@UseInterceptors(CurrentUserInterceptor)
 export class CartController {
     constructor(private readonly cartService: CartService) {}
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Post("add")
     async addToCart(@Body() addToCartDTO: AddToCartDTO, @CurrentUser() user: User): Promise<APIResponse> {
         return this.cartService.addToCart(addToCartDTO, user);
     }
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Get()
     async findCart(@CurrentUser() user: User): Promise<APIResponse> {
         return this.cartService.findCart(user);
