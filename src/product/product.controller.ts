@@ -64,8 +64,8 @@ export class ProductController {
     }
 
     @Get(":id")
-    async findOne(@Param("id") id: string, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.productService.findOne(id, user);
+    async findOne(@Param("id") id: string): Promise<APIResponse> {
+        return await this.productService.findOne(id);
     }
 
 

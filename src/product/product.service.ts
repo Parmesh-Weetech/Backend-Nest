@@ -95,8 +95,8 @@ export class ProductService {
     }
 
 
-    async findOne(id: string, user: User): Promise<APIResponse> {
-        const product = await this.productRepository.findOneBy({ id: id, user: user });
+    async findOne(id: string): Promise<APIResponse> {
+        const product = await this.productRepository.findOne({ where: { id: id } });
 
         if (!product) throw new NotFoundException('Product not found.');
 
