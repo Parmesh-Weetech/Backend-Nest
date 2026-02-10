@@ -9,17 +9,17 @@ import { RoleModule } from '../role/role.module';
 import { PermissionModule } from '../permission/permission.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { HCaptchaModule } from '../h-captcha/h-captcha.module';
-import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
 import { Refresh_token } from '../user/entities/refresh_token.entity';
+import { UserRepository } from '../user/user.repository';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 
 @Module({
-  providers: [AuthService, AuthMiddleware, Auth],
+  providers: [AuthService, AuthMiddleware, Auth, UserRepository],
   imports: [
-    TypeOrmModule.forFeature([User, Refresh_token]),
+    TypeOrmModule.forFeature([UserRepository, Refresh_token]),
     RoleModule,
     PermissionModule,
     OrganizationModule,

@@ -28,6 +28,20 @@ export class UserRepository extends Repository<User> {
         });
     }
 
+    async findByEmail(email: string): Promise<User | null> {
+        return this.findOne({
+            where: { email: email }, relations: {
+                organization: true,
+                roles: {
+                    organization: true,
+                    permissions: {
+                        organization: true,
+                    },
+                },
+            }
+        })
+    }
+
     async findAll(id: string): Promise<User[] | [] | null> {
         const fetchedUser = await this.find({ where: { id: Not(id) }, relations: ['roles'] });
 
