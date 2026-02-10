@@ -156,6 +156,12 @@ describe('AuthService (real DB)', () => {
       expect(users).toBeDefined();
       expect(users.data.length).toBeGreaterThan(0);
     });
+
+    it("get all cached user", async () => {
+      const cachedUser = await service.findAllCachedUser(userData);
+      expect(cachedUser).toBeDefined();
+      expect(cachedUser.data.length).toBeGreaterThan(0);
+    })
   });
 
   describe('updateUser', () => {
