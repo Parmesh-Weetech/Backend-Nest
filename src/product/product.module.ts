@@ -6,12 +6,12 @@ import { UserModule } from '../user/user.module';
 
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
-import { Product } from './entities/product.entity';
+import { ProductRepository } from './product.repository';
 
 @Module({
   controllers: [ProductController],
-  providers: [ProductService],
+  providers: [ProductService, ProductRepository],
   exports: [ProductService],
-  imports: [UserModule, TypeOrmModule.forFeature([Product]), AuthModule]
+  imports: [UserModule, TypeOrmModule.forFeature([ProductRepository]), AuthModule]
 })
 export class ProductModule {}

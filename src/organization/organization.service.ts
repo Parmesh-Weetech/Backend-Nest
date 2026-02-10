@@ -6,7 +6,7 @@ import { User } from '../user/entities/user.entity';
 
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { OrganizationRepository } from './prganization.repository';
+import { OrganizationRepository } from './organization.repository';
 
 @Injectable()
 export class OrganizationService {

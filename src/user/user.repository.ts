@@ -15,7 +15,7 @@ export class UserRepository extends Repository<User> {
     }
 
     async findById(id: string): Promise<User | null> {
-        return this.findOne({
+        const user = await this.findOne({
             where: { id: id }, relations: {
                 organization: true,
                 roles: {
@@ -26,10 +26,14 @@ export class UserRepository extends Repository<User> {
                 },
             }
         });
+
+        if(!user) return null;
+
+        return user;
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return this.findOne({
+        const user = await this.findOne({
             where: { email: email }, relations: {
                 organization: true,
                 roles: {
@@ -39,7 +43,11 @@ export class UserRepository extends Repository<User> {
                     },
                 },
             }
-        })
+        });
+
+        if(!user) return null;
+
+        return user;
     }
 
     async findAll(id: string): Promise<User[] | [] | null> {
@@ -51,7 +59,7 @@ export class UserRepository extends Repository<User> {
             return null;
         }
 
-        return fetchedUser
+        return fetchedUser;
     }
 
     async createUser(createUserDTO: CreateUserDTO, requiredRoles: Role[], organization: Organization): Promise<User | null> {

@@ -1,6 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { User } from '../user/entities/user.entity';
@@ -8,12 +7,13 @@ import { User } from '../user/entities/user.entity';
 import { Product } from './entities/product.entity';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
+import { ProductRepository } from './product.repository';
 
 @Injectable()
 export class ProductService {
     constructor(
-        @InjectRepository(Product)
-        private readonly productRepository: Repository<Product>
+        @InjectRepository(ProductRepository)
+        private readonly productRepository: ProductRepository
     ) { }
     async findAll(
         skip: number,
@@ -26,67 +26,22 @@ export class ProductService {
         sort = 'created_at',
         order: 'ASC' | 'DESC' = 'DESC',
     ): Promise<APIResponse> {
+        const response = await this.productRepository.findAll(search, filter, sort, order, skip, take);
 
-        const qb = this.productRepository
-            .createQueryBuilder('product')
-            .where('product.deleted_at IS NULL');
-
-        /* 🔍 Search */
-        /* 🔍 Search */
-        if (search) {
-            qb.andWhere(
-                `
-                        product.name ILIKE :searchLike
-                        OR EXISTS (
-                        SELECT 1
-                        FROM unnest(product.mealType) mt
-                        WHERE mt ILIKE :searchLike
-                    )
-                `,
-                {
-                    searchLike: `%${search}%`,
-                },
-            );
-        }
-
-        /* 🍽 Cuisine filter */
-        if (filter?._cuisine?.length) {
-            qb.andWhere('product.cuisine IN (:...cuisines)', {
-                cuisines: filter._cuisine,
-            });
-        }
-
-        /* 💰 Price range */
-        if (filter?._price && filter._price.length === 2) {
-            qb.andWhere(
-                'product.price BETWEEN :min AND :max',
-                {
-                    min: filter._price[0],
-                    max: filter._price[1],
-                },
-            );
-        }
-
-        /* ↕ Sorting */
-        qb.orderBy(`product.${sort}`, order);
-
-        /* 📄 Pagination */
-        qb.skip(skip).take(take);
-
-        const [products, total] = await qb.getManyAndCount();
+        if(!response.products) throw new InternalServerErrorException({ message: "Something went wrong while fetching product." });
 
         return {
             success: true,
-            message: products.length
+            message: response.products.length > 0
                 ? 'Products fetched successfully.'
                 : 'No Products found.',
             data: {
-                items: products,
+                items: response.products.length > 0 ? response.products : [],
                 meta: {
-                    totalItems: total,
+                    totalItems: response.total,
                     skip,
                     limit: take,
-                    total: Math.max(total - skip, 0),
+                    total: Math.max(response.total - skip, 0),
                 },
             },
             expired: false,
@@ -96,7 +51,7 @@ export class ProductService {
 
 
     async findOne(id: string, user: User): Promise<APIResponse> {
-        const product = await this.productRepository.findOneBy({ id: id, user: user });
+        const product = await this.productRepository.findById(id);
 
         if (!product) throw new NotFoundException('Product not found.');
 

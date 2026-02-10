@@ -48,10 +48,10 @@ export class OrganizationRepository extends Repository<Organization> {
         return updateOrganization;
     }
 
-    async softDeleteOrganization(id: string): Promise<boolean | null> {
+    async softDeleteOrganization(id: string): Promise<boolean> {
         const affectedRows = await this.softDelete(id);
 
-        if(!affectedRows.affected === null || affectedRows.affected === undefined || affectedRows.affected === 0) return null;
+        if(!affectedRows.affected === null || affectedRows.affected === undefined || affectedRows.affected === 0) return false;
 
         return true;
     }

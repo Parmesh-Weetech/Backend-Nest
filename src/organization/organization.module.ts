@@ -7,8 +7,7 @@ import { PermissionModule } from '../permission/permission.module';
 
 import { OrganizationService } from './organization.service';
 import { OrganizationController } from './organization.controller';
-import { Organization } from './entities/organization.entity';
-import { OrganizationRepository } from './prganization.repository';
+import { OrganizationRepository } from './organization.repository';
 
 @Module({
   controllers: [OrganizationController],
@@ -16,4 +15,4 @@ import { OrganizationRepository } from './prganization.repository';
   imports: [TypeOrmModule.forFeature([OrganizationRepository]), forwardRef(() => PermissionModule), forwardRef(() => AuthModule), forwardRef(() => UserModule)],
   exports: [OrganizationService]
 })
-export class OrganizationModule {}
+export class OrganizationModule { }
