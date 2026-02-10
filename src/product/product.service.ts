@@ -28,7 +28,7 @@ export class ProductService {
     ): Promise<APIResponse> {
         const response = await this.productRepository.findAll(search, filter, sort, order, skip, take);
 
-        if(!response.products) throw new InternalServerErrorException({ message: "Something went wrong while fetching product." });
+        if (!response.products) throw new InternalServerErrorException({ message: "Something went wrong while fetching product." });
 
         return {
             success: true,
@@ -50,7 +50,7 @@ export class ProductService {
     }
 
 
-    async findOne(id: string, user: User): Promise<APIResponse> {
+    async findOne(id: string): Promise<APIResponse> {
         const product = await this.productRepository.findById(id);
 
         if (!product) throw new NotFoundException('Product not found.');
@@ -65,27 +65,16 @@ export class ProductService {
     }
 
     async create(product: CreateProductDTO, user: User): Promise<APIResponse> {
-        const newProduct = this.productRepository.create({
-            name: product.name,
-            user: user,
-            image: product.image,
-            price: product.price,
-            rating: product.rating,
-            mealType: product.mealType,
-            cuisine: product.cuisine,
-            ingredients: product.ingredients,
-            instructions: product.instructions
-        });
+        const newProduct = this.productRepository.createProduct(product, user)
 
-        const saveProduct = await this.productRepository.save(newProduct);
-        if (!saveProduct) throw new InternalServerErrorException('Failed to create product.');
+        if (!newProduct) throw new InternalServerErrorException('Failed to create product.');
 
         return {
             success: true,
             message: "Product saved successfully.",
             statusCode: 201,
             expired: false,
-            data: saveProduct
+            data: newProduct
         }
     }
 
@@ -121,19 +110,19 @@ export class ProductService {
         };
     }
 
-    async update(product: UpdateProductDTO, user: User): Promise<APIResponse> {
-        const existingProduct = await this.productRepository.findOne({ where: { id: product.id } })
+    async update(product: UpdateProductDTO): Promise<APIResponse> {
+        const existingProduct = await this.findOne(product.id);
 
-        if (!product.name && existingProduct?.name) product.name = existingProduct.name;
-        if (!product.image && existingProduct?.image) product.image = existingProduct.image;
-        if (!product.price && existingProduct?.price) product.price = existingProduct.price;
-        if (!product.rating && existingProduct?.rating) product.rating = existingProduct.rating;
-        if (!product.mealType?.length && existingProduct?.mealType?.length) product.mealType = existingProduct.mealType as [string];
-        if (!product.cuisine && existingProduct?.cuisine) product.cuisine = existingProduct.cuisine;
-        if (!product.ingredients?.length && existingProduct?.ingredients?.length) product.ingredients = existingProduct.ingredients as [string];
-        if (!product.instructions?.length && existingProduct?.instructions?.length) product.instructions = existingProduct.instructions as [string];
+        if (!product.name && existingProduct?.data.name) product.name = existingProduct.data.name;
+        if (!product.image && existingProduct?.data.image) product.image = existingProduct.data.image;
+        if (!product.price && existingProduct?.data.price) product.price = existingProduct.data.price;
+        if (!product.rating && existingProduct?.data.rating) product.rating = existingProduct.data.rating;
+        if (!product.mealType?.length && existingProduct?.data.mealType?.length) product.mealType = existingProduct.data.mealType as [string];
+        if (!product.cuisine && existingProduct?.data.cuisine) product.cuisine = existingProduct.data.cuisine;
+        if (!product.ingredients?.length && existingProduct?.data.ingredients?.length) product.ingredients = existingProduct.data.ingredients as [string];
+        if (!product.instructions?.length && existingProduct?.data.instructions?.length) product.instructions = existingProduct.data.instructions as [string];
 
-        const saveProduct = await this.productRepository.save(product);
+        const saveProduct = await this.productRepository.updateProduct(product);
         if (!saveProduct) throw new InternalServerErrorException('Failed to update product.');
 
         return {
@@ -145,14 +134,12 @@ export class ProductService {
         }
     }
 
-    async deleteAll(user: User): Promise<APIResponse> {
-        const existingProduct = await this.productRepository.find({ where: { user: { id: user.id } } });
+    async deleteAll(id: string): Promise<APIResponse> {
+        const existingProduct = await this.productRepository.findByUserId(id);
+        if (!existingProduct) throw new InternalServerErrorException({ message: "Something went wrong while fetching product." });
 
-        if (existingProduct.length === 0) throw new NotFoundException('Products associated with current user not found.');
-
-        const deleteProduct = await this.productRepository.softDelete({ user: user });
-
-        if (deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) throw new InternalServerErrorException('Products associated with current user not found.');
+        const deleteProduct = await this.productRepository.softDeleteAllProduct(id);
+        if (!deleteProduct) throw new InternalServerErrorException('Products associated with current user not found.');
 
         return {
             success: false,
@@ -164,12 +151,11 @@ export class ProductService {
     }
 
     async deleteById(id: string): Promise<APIResponse> {
-        const existingProduct = await this.productRepository.findOne({ where: { id: id } });
+        const existingProduct = await this.findOne(id);
         if (!existingProduct) throw new NotFoundException('Product associated with current user not found.');
 
-        const deleteProduct = await this.productRepository.softDelete({ id: id });
-
-        if (deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) throw new InternalServerErrorException('Product associated with current user is not deleted.');
+        const deleteProduct = await this.productRepository.softDeleteProductById(id);
+        if (!deleteProduct) throw new InternalServerErrorException('Product associated with current user is not deleted.');
 
         return {
             success: false,

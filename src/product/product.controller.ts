@@ -1,11 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CurrentUserGuard } from '../common/guards/currentUser.guard';
 import { APIResponse } from '../common/response/response.dto';
-import { CurrentUser } from '../common/decorators/currentUser.decorator';
-import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
-import { User } from '../user/entities/user.entity';
 
 import { ProductService } from './product.service';
 import { CreateProductDTO } from './dtos/create-product.dto';
@@ -13,7 +10,6 @@ import { UpdateProductDTO } from './dtos/update-product.dto';
 
 @Controller('product')
 @UseGuards(AuthGuard, CurrentUserGuard)
-@UseInterceptors(CurrentUserInterceptor)
 export class ProductController {
     constructor(
         private readonly productService: ProductService
@@ -64,29 +60,29 @@ export class ProductController {
     }
 
     @Get(":id")
-    async findOne(@Param("id") id: string, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.productService.findOne(id, user);
+    async findOne(@Param("id") id: string): Promise<APIResponse> {
+        return await this.productService.findOne(id);
     }
 
 
     @Post("/create")
-    async create(@Body() product: CreateProductDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.productService.create(product, user);
+    async create(@Body() product: CreateProductDTO, @Req() req): Promise<APIResponse> {
+        return await this.productService.create(product, req.currentUser);
     }
 
     @Post("/insert/bulk")
-    async insertBulk(@Body() products: CreateProductDTO[], @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.productService.insertBulk(products, user)
+    async insertBulk(@Body() products: CreateProductDTO[], @Req() req): Promise<APIResponse> {
+        return await this.productService.insertBulk(products, req.currentUser)
     }
 
     @Put("/update")
-    async update(@Body() product: UpdateProductDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.productService.update(product, user)
+    async update(@Body() product: UpdateProductDTO): Promise<APIResponse> {
+        return await this.productService.update(product)
     }
 
     @Delete()
-    async deleteAll(@CurrentUser() user: User): Promise<APIResponse> {
-        return await this.productService.deleteAll(user);
+    async deleteAll(@Req() req): Promise<APIResponse> {
+        return await this.productService.deleteAll(req.currentUser.id);
     }
 
     @Delete(":id")

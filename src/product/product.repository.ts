@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { Product } from "./entities/product.entity";
 import { DataSource, Repository } from "typeorm";
+import { CreateProductDTO } from "./dtos/create-product.dto";
+import { User } from "../user/entities/user.entity";
+import { UpdatePostDTO } from "src/post/dtos/update-post.dto";
 
 @Injectable()
 export class ProductRepository extends Repository<Product> {
@@ -82,10 +85,67 @@ export class ProductRepository extends Repository<Product> {
     }
 
     async findById(id: string): Promise<Product | null> {
-        const product = await this.findOne({ where: { id: id }});
+        const product = await this.findOne({ where: { id: id } });
 
-        if(!product) return null;
+        if (!product) return null;
 
         return product;
+    }
+
+    async findByUserId(userId: string): Promise<Product[] | [] | null> {
+        const product = await this.find({ where: { user: { id: userId } } });
+
+        if (!product) return null;
+
+        if (product.length === 0) return [];
+
+        return product;
+    }
+
+    async createProduct(productDTO: CreateProductDTO, user: User): Promise<Product | null> {
+        const newProduct = this.create({
+            name: productDTO.name,
+            user: user,
+            image: productDTO.image,
+            price: productDTO.price,
+            rating: productDTO.rating,
+            mealType: productDTO.mealType,
+            cuisine: productDTO.cuisine,
+            ingredients: productDTO.ingredients,
+            instructions: productDTO.instructions,
+            cookTimeMinutes: productDTO.cookTimeMinutes,
+            prepTimeMinutes: productDTO.prepTimeMinutes,
+            difficulty: productDTO.difficulty,
+        });
+
+        const saveProduct = await this.save(newProduct);
+
+        if (!saveProduct) return null;
+
+        return saveProduct;
+    }
+
+    async updateProduct(updateProductDTO: UpdatePostDTO): Promise<Product | null> {
+        const updateProduct = await this.save(updateProductDTO);
+
+        if (!updateProduct) return null;
+
+        return updateProduct;
+    }
+
+    async softDeleteAllProduct(id: string): Promise<boolean> {
+        const affectedRows = await this.softDelete({ user: { id: id } });
+
+        if(affectedRows.affected === null || affectedRows.affected === undefined || affectedRows.affected === 0) return false;
+
+        return true;
+    }
+
+    async softDeleteProductById(id: string): Promise<boolean> {
+        const affectedRows = await this.softDelete(id);
+
+        if (affectedRows.affected === null || affectedRows.affected === undefined || affectedRows.affected === 0) return false;
+
+        return true;
     }
 }
