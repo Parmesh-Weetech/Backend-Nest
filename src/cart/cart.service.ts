@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
@@ -8,7 +8,7 @@ import { Product } from '../product/entities/product.entity';
 
 import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart.item.entity';
-import { AddToCartDTO } from './dtos/create.cartItem.dto';
+import { AddToCartDTO, RemoveCartItemDTO } from './dtos/create.cartItem.dto';
 
 @Injectable()
 export class CartService {
@@ -90,17 +90,21 @@ export class CartService {
     }
 
     async findCart(user: User): Promise<APIResponse> {
-        const cartItem = await this.cartItemRepository.find({ where: { cart: { user: { id: user.id } } }, relations: { cart: {
-            user: true
-        }, product: true } });
+        const cartItem = await this.cartItemRepository.find({
+            where: { cart: { user: { id: user.id } } }, relations: {
+                cart: {
+                    user: true
+                }, product: true
+            }
+        });
 
-        if(!cartItem || cartItem.length == 0) {
+        if (!cartItem || cartItem.length == 0) {
             const cart = await this.cartRepository.find({ where: { user: { id: user.id } } });
 
-            if(!cart) throw new NotFoundException("Cart not found.");
+            if (!cart) throw new NotFoundException("Cart not found.");
 
             return {
-                success:true,
+                success: true,
                 data: cart,
                 expired: false,
                 message: "Cart fetched successfully.",
@@ -115,5 +119,34 @@ export class CartService {
             expired: false,
             statusCode: 200
         }
+    }
+
+    async removeCartItem(removeCartItemDTO: RemoveCartItemDTO, user: User): Promise<APIResponse> {
+        const cartItems = await this.cartItemRepository.find({
+            where: { id: In(removeCartItemDTO.ids) },
+            relations: {
+                cart: { user: true }
+            },
+        });
+
+        for (const item of cartItems) {
+            if (item.cart.user.id !== user.id) {
+                throw new ForbiddenException('You are not authorized to remove this item.');
+            }
+
+            const removeCartItem = await this.cartItemRepository.delete(item.id);
+
+            if (removeCartItem.affected === 0) {
+                throw new InternalServerErrorException("Something went wrong while removing cart item.");
+            }
+        }
+
+        return {
+            success: true,
+            data: null,
+            expired: false,
+            message: "Cart-Item removed successfully.",
+            statusCode: 200,
+        };
     }
 }

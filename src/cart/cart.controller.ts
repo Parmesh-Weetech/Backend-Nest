@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { APIResponse } from '../common/response/response.dto';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
@@ -6,7 +6,7 @@ import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { User } from '../user/entities/user.entity';
 
 import { CartService } from './cart.service';
-import { AddToCartDTO } from './dtos/create.cartItem.dto';
+import { AddToCartDTO, RemoveCartItemDTO } from './dtos/create.cartItem.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 
 @Controller('cart')
@@ -23,5 +23,10 @@ export class CartController {
     @Get()
     async findCart(@CurrentUser() user: User): Promise<APIResponse> {
         return this.cartService.findCart(user);
+    }
+
+    @Delete()
+    async removeCartItem(@Body() removeCartItemDTO: RemoveCartItemDTO, @CurrentUser() user: User): Promise<APIResponse> {
+        return this.cartService.removeCartItem(removeCartItemDTO, user)
     }
 }
