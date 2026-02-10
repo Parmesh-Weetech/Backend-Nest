@@ -1,44 +1,35 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 
-import { Auth } from '../common/util/auth';
 import { APIResponse } from '../common/response/response.dto';
-import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 
-import { Organization } from './entities/organization.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { OrganizationRepository } from './prganization.repository';
 
 @Injectable()
 export class OrganizationService {
   constructor(
-    @InjectRepository(Organization)
-    private readonly organizationRepository: Repository<Organization>,
-
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
-
-    private readonly auth: Auth,
+    @InjectRepository(OrganizationRepository)
+    private readonly organizationRepository: OrganizationRepository,
   ) { }
 
   async findAll(user: User): Promise<APIResponse> {
-    const organizations = await this.organizationRepository.find({ where: { users: In([user.id]) }, relations: ['users'] });
-
+    const organizations = await this.organizationRepository.findAll(user.id);
     if (!organizations) throw new NotFoundException('No organizations found.');
 
     return {
       success: true,
       message: "Organizations fetched successfully.",
-      data: organizations,
+      data: organizations.length > 0 ? organizations : [],
       expired: false,
       statusCode: 200
     };
   }
 
   async findOne(id: string): Promise<APIResponse> {
-    const organization = await this.organizationRepository.findOne({ where: { id: id } });
+    const organization = await this.organizationRepository.findById(id);
     if (!organization) throw new NotFoundException('Organization not found.');
 
     return {
@@ -51,16 +42,14 @@ export class OrganizationService {
   }
 
   async create(createOrganizationDto: CreateOrganizationDto): Promise<APIResponse> {
-    const newOrganization = this.organizationRepository.create(createOrganizationDto);
+    const newOrganization = this.organizationRepository.createOrganization(createOrganizationDto)
 
-    const organization = await this.organizationRepository.save(newOrganization);
-
-    if (!organization) throw new InternalServerErrorException('Failed to create organization.');
+    if (!newOrganization) throw new InternalServerErrorException('Failed to create organization.');
 
     return {
       success: true,
       message: "Organization Created Successfully.",
-      data: organization,
+      data: newOrganization,
       expired: false,
       statusCode: 201
     }
@@ -71,7 +60,7 @@ export class OrganizationService {
 
     if (updateOrganizationDto.name) existingOrganization.data.name = updateOrganizationDto.name;
 
-    const organization = await this.organizationRepository.save(existingOrganization.data);
+    const organization = await this.organizationRepository.updateOrganization(updateOrganizationDto)
     if (!organization) throw new InternalServerErrorException('Failed to update organization.');
 
     return {
@@ -86,16 +75,14 @@ export class OrganizationService {
   async remove(id: string): Promise<APIResponse> {
     await this.findOne(id);
 
-    const res = await this.organizationRepository.softDelete(id);
+    const res = await this.organizationRepository.softDeleteOrganization(id);
 
-    if (res.affected === null && res.affected === undefined && res.affected === 0) {
-      throw new InternalServerErrorException("Error while removing organization.")
-    }
+    if (!res) throw new InternalServerErrorException("Error while removing organization.")
 
     return {
       success: true,
       expired: false,
-      data: res.raw,
+      data: res,
       message: "Organization removed successfully.",
       statusCode: 200
     }

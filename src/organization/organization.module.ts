@@ -8,11 +8,12 @@ import { PermissionModule } from '../permission/permission.module';
 import { OrganizationService } from './organization.service';
 import { OrganizationController } from './organization.controller';
 import { Organization } from './entities/organization.entity';
+import { OrganizationRepository } from './prganization.repository';
 
 @Module({
   controllers: [OrganizationController],
-  providers: [OrganizationService],
-  imports: [TypeOrmModule.forFeature([Organization]), forwardRef(() => PermissionModule), forwardRef(() => AuthModule), forwardRef(() => UserModule)],
+  providers: [OrganizationService, OrganizationRepository],
+  imports: [TypeOrmModule.forFeature([OrganizationRepository]), forwardRef(() => PermissionModule), forwardRef(() => AuthModule), forwardRef(() => UserModule)],
   exports: [OrganizationService]
 })
 export class OrganizationModule {}

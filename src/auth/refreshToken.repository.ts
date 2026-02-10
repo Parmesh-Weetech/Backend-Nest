@@ -46,8 +46,6 @@ export class RefreshTokenRepository extends Repository<Refresh_token> {
             user: user
         });
 
-        console.log(updateRefreshToken.affected)
-
         if(updateRefreshToken.affected === null || updateRefreshToken.affected === undefined || updateRefreshToken.affected === 0) return null;
 
         return true;
