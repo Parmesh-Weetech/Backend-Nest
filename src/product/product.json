@@ -1,0 +1,394 @@
+[
+  {
+    "name": "Classic Margherita Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/1.webp",
+    "price": 9.99,
+    "rating": 4.6,
+    "mealType": ["Dinner"],
+    "cuisine": "Italian",
+    "ingredients": [
+      "Pizza dough",
+      "Tomato sauce",
+      "Fresh mozzarella cheese",
+      "Fresh basil leaves",
+      "Olive oil",
+      "Salt and pepper to taste"
+    ],
+    "instructions": [
+      "Preheat the oven to 475°F (245°C).",
+      "Roll out the pizza dough and spread tomato sauce evenly.",
+      "Top with slices of fresh mozzarella and fresh basil leaves.",
+      "Drizzle with olive oil and season with salt and pepper.",
+      "Bake in the preheated oven for 12-15 minutes or until the crust is golden brown.",
+      "Slice and serve hot."
+    ],
+    "prepTimeMinutes": 20,
+    "cookTimeMinutes": 15,
+    "difficulty": "Easy"
+  },
+  {
+    "name": "Vegetarian Stir-Fry",
+    "image": "https://cdn.dummyjson.com/recipe-images/2.webp",
+    "price": 8.49,
+    "rating": 4.7,
+    "mealType": ["Lunch"],
+    "cuisine": "Asian",
+    "ingredients": [
+      "Tofu, cubed",
+      "Broccoli florets",
+      "Carrots, sliced",
+      "Bell peppers, sliced",
+      "Soy sauce",
+      "Ginger, minced",
+      "Garlic, minced",
+      "Sesame oil",
+      "Cooked rice for serving"
+    ],
+    "instructions": [
+      "In a wok, heat sesame oil over medium-high heat.",
+      "Add minced ginger and garlic, sauté until fragrant.",
+      "Add cubed tofu and stir-fry until golden brown.",
+      "Add broccoli, carrots, and bell peppers. Cook until vegetables are tender-crisp.",
+      "Pour soy sauce over the stir-fry and toss to combine.",
+      "Serve over cooked rice."
+    ],
+    "prepTimeMinutes": 15,
+    "cookTimeMinutes": 20,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Chocolate Chip Cookies",
+    "image": "https://cdn.dummyjson.com/recipe-images/3.webp",
+    "price": 5.99,
+    "rating": 4.9,
+    "mealType": ["Snack", "Dessert"],
+    "cuisine": "American",
+    "ingredients": [
+      "All-purpose flour",
+      "Butter, softened",
+      "Brown sugar",
+      "White sugar",
+      "Eggs",
+      "Vanilla extract",
+      "Baking soda",
+      "Salt",
+      "Chocolate chips"
+    ],
+    "instructions": [
+      "Preheat the oven to 350°F (175°C).",
+      "In a bowl, cream together softened butter, brown sugar, and white sugar.",
+      "Beat in eggs one at a time, then stir in vanilla extract.",
+      "Combine flour, baking soda, and salt. Gradually add to the wet ingredients.",
+      "Fold in chocolate chips.",
+      "Drop rounded tablespoons of dough onto ungreased baking sheets.",
+      "Bake for 10-12 minutes or until edges are golden brown.",
+      "Allow cookies to cool on the baking sheet for a few minutes before transferring to a wire rack."
+    ],
+    "prepTimeMinutes": 15,
+    "cookTimeMinutes": 10,
+    "difficulty": "Easy"
+  },
+  {
+    "name": "Japanese Ramen Soup",
+    "image": "https://cdn.dummyjson.com/recipe-images/16.webp",
+    "price": 12.99,
+    "rating": 4.9,
+    "mealType": ["Dinner"],
+    "cuisine": "Japanese",
+    "ingredients": [
+      "Ramen noodles",
+      "Chicken broth",
+      "Soy sauce",
+      "Mirin",
+      "Sesame oil",
+      "Shiitake mushrooms, sliced",
+      "Bok choy, chopped",
+      "Green onions, sliced",
+      "Soft-boiled eggs",
+      "Grilled chicken slices",
+      "Norwegian seaweed (nori)"
+    ],
+    "instructions": [
+      "Cook ramen noodles according to package instructions and set aside.",
+      "In a pot, combine chicken broth, soy sauce, mirin, and sesame oil. Bring to a simmer.",
+      "Add sliced shiitake mushrooms and chopped bok choy. Cook until vegetables are tender.",
+      "Divide the cooked noodles into serving bowls and ladle the hot broth over them.",
+      "Top with green onions, soft-boiled eggs, grilled chicken slices, and nori.",
+      "Serve hot and enjoy the authentic Japanese ramen!"
+    ],
+    "prepTimeMinutes": 20,
+    "cookTimeMinutes": 25,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Moroccan Chickpea Tagine",
+    "image": "https://cdn.dummyjson.com/recipe-images/17.webp",
+    "price": 10.99,
+    "rating": 4.5,
+    "mealType": ["Dinner"],
+    "cuisine": "Moroccan",
+    "ingredients": [
+      "Chickpeas, cooked",
+      "Tomatoes, chopped",
+      "Carrots, diced",
+      "Onions, finely chopped",
+      "Garlic, minced",
+      "Cumin",
+      "Coriander",
+      "Cinnamon",
+      "Paprika",
+      "Vegetable broth",
+      "Olives",
+      "Fresh cilantro, chopped"
+    ],
+    "instructions": [
+      "In a tagine or large pot, sauté chopped onions and minced garlic until softened.",
+      "Add diced carrots, chopped tomatoes, and cooked chickpeas.",
+      "Season with cumin, coriander, cinnamon, and paprika. Stir to coat.",
+      "Pour in vegetable broth and bring to a simmer. Cook until carrots are tender.",
+      "Stir in olives and garnish with fresh cilantro before serving.",
+      "Serve this flavorful Moroccan dish with couscous or crusty bread."
+    ],
+    "prepTimeMinutes": 15,
+    "cookTimeMinutes": 30,
+    "difficulty": "Easy"
+  },
+  {
+    "name": "Korean Bibimbap",
+    "image": "https://cdn.dummyjson.com/recipe-images/18.webp",
+    "price": 11.99,
+    "rating": 4.9,
+    "mealType": ["Dinner"],
+    "cuisine": "Korean",
+    "ingredients": [
+      "Cooked white rice",
+      "Beef bulgogi (marinated and grilled beef slices)",
+      "Carrots, julienned and sautéed",
+      "Spinach, blanched and seasoned",
+      "Zucchini, sliced and grilled",
+      "Bean sprouts, blanched",
+      "Fried egg",
+      "Gochujang (Korean red pepper paste)",
+      "Sesame oil",
+      "Toasted sesame seeds"
+    ],
+    "instructions": [
+      "Arrange cooked white rice in a bowl.",
+      "Top with beef bulgogi, sautéed carrots, seasoned spinach, grilled zucchini, and blanched bean sprouts.",
+      "Place a fried egg on top and drizzle with gochujang and sesame oil.",
+      "Sprinkle with toasted sesame seeds before serving.",
+      "Mix everything together before enjoying this delicious Korean bibimbap!",
+      "Feel free to customize with additional vegetables or protein."
+    ],
+    "prepTimeMinutes": 30,
+    "cookTimeMinutes": 20,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Greek Moussaka",
+    "image": "https://cdn.dummyjson.com/recipe-images/19.webp",
+    "price": 12.49,
+    "rating": 4.3,
+    "mealType": ["Dinner"],
+    "cuisine": "Greek",
+    "ingredients": [
+      "Eggplants, sliced",
+      "Ground lamb or beef",
+      "Onions, finely chopped",
+      "Garlic, minced",
+      "Tomatoes, crushed",
+      "Red wine",
+      "Cinnamon",
+      "Allspice",
+      "Nutmeg",
+      "Olive oil",
+      "Milk",
+      "Flour",
+      "Parmesan cheese",
+      "Egg yolks"
+    ],
+    "instructions": [
+      "Preheat oven to 375°F (190°C).",
+      "Sauté sliced eggplants in olive oil until browned. Set aside.",
+      "In the same pan, cook chopped onions and minced garlic until softened.",
+      "Add ground lamb or beef and brown. Stir in crushed tomatoes, red wine, and spices.",
+      "In a separate saucepan, make béchamel sauce: melt butter, whisk in flour, add milk, and cook until thickened.",
+      "Remove from heat and stir in Parmesan cheese and egg yolks.",
+      "In a baking dish, layer eggplants and meat mixture. Top with béchamel sauce.",
+      "Bake for 40-45 minutes until golden brown. Let it cool before slicing.",
+      "Serve slices of moussaka warm and enjoy this Greek classic!"
+    ],
+    "prepTimeMinutes": 45,
+    "cookTimeMinutes": 45,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Butter Chicken (Murgh Makhani)",
+    "image": "https://cdn.dummyjson.com/recipe-images/20.webp",
+    "price": 11.49,
+    "rating": 4.5,
+    "mealType": ["Dinner"],
+    "cuisine": "Pakistani",
+    "ingredients": [
+      "Chicken thighs, boneless and skinless",
+      "Yogurt",
+      "Ginger-garlic paste",
+      "Garam masala",
+      "Kashmiri red chili powder",
+      "Tomato puree",
+      "Butter",
+      "Heavy cream",
+      "Kasuri methi (dried fenugreek leaves)",
+      "Sugar",
+      "Salt to taste"
+    ],
+    "instructions": [
+      "Marinate chicken thighs in a mixture of yogurt, ginger-garlic paste, garam masala, and Kashmiri red chili powder.",
+      "In a pan, melt butter and sauté the marinated chicken until browned.",
+      "Add tomato puree and cook until the oil separates. Stir in heavy cream.",
+      "Sprinkle kasuri methi, sugar, and salt. Simmer until the chicken is fully cooked.",
+      "Serve this creamy butter chicken over rice or with naan for an authentic Pakistani/Indian experience."
+    ],
+    "prepTimeMinutes": 30,
+    "cookTimeMinutes": 25,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Thai Green Curry",
+    "image": "https://cdn.dummyjson.com/recipe-images/21.webp",
+    "price": 10.99,
+    "rating": 4.2,
+    "mealType": ["Dinner"],
+    "cuisine": "Thai",
+    "ingredients": [
+      "Chicken thighs, boneless and skinless",
+      "Green curry paste",
+      "Coconut milk",
+      "Fish sauce",
+      "Sugar",
+      "Eggplant, sliced",
+      "Bell peppers, sliced",
+      "Basil leaves",
+      "Jasmine rice for serving"
+    ],
+    "instructions": [
+      "In a pot, simmer green curry paste in coconut milk.",
+      "Add chicken, fish sauce, and sugar. Cook until chicken is tender.",
+      "Stir in sliced eggplant and bell peppers. Simmer until vegetables are cooked.",
+      "Garnish with fresh basil leaves.",
+      "Serve hot over jasmine rice and enjoy this Thai classic!"
+    ],
+    "prepTimeMinutes": 20,
+    "cookTimeMinutes": 30,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Mango Lassi",
+    "image": "https://cdn.dummyjson.com/recipe-images/22.webp",
+    "price": 4.99,
+    "rating": 4.7,
+    "mealType": ["Beverage"],
+    "cuisine": "Indian",
+    "ingredients": [
+      "Ripe mango, peeled and diced",
+      "Yogurt",
+      "Milk",
+      "Honey",
+      "Cardamom powder",
+      "Ice cubes"
+    ],
+    "instructions": [
+      "In a blender, combine diced mango, yogurt, milk, honey, and cardamom powder.",
+      "Blend until smooth and creamy.",
+      "Add ice cubes and blend again until the lassi is chilled.",
+      "Pour into glasses and garnish with a sprinkle of cardamom.",
+      "Enjoy this refreshing Mango Lassi!"
+    ],
+    "prepTimeMinutes": 10,
+    "cookTimeMinutes": 0,
+    "difficulty": "Easy"
+  },
+  {
+    "name": "Italian Tiramisu",
+    "image": "https://cdn.dummyjson.com/recipe-images/23.webp",
+    "price": 8.99,
+    "rating": 4.6,
+    "mealType": ["Dessert"],
+    "cuisine": "Italian",
+    "ingredients": [
+      "Espresso, brewed and cooled",
+      "Ladyfinger cookies",
+      "Mascarpone cheese",
+      "Heavy cream",
+      "Sugar",
+      "Cocoa powder"
+    ],
+    "instructions": [
+      "In a bowl, whip heavy cream until stiff peaks form.",
+      "In another bowl, mix mascarpone cheese and sugar until smooth.",
+      "Gently fold the whipped cream into the mascarpone mixture.",
+      "Dip ladyfinger cookies into brewed espresso and layer them in a serving dish.",
+      "Spread a layer of the mascarpone mixture over the cookies.",
+      "Repeat layers and finish with a dusting of cocoa powder.",
+      "Chill in the refrigerator for a few hours before serving.",
+      "Indulge in the decadence of this classic Italian Tiramisu!"
+    ],
+    "prepTimeMinutes": 30,
+    "cookTimeMinutes": 0,
+    "difficulty": "Medium"
+  },
+  {
+    "name": "Turkish Kebabs",
+    "image": "https://cdn.dummyjson.com/recipe-images/24.webp",
+    "price": 9.49,
+    "rating": 4.6,
+    "mealType": ["Dinner"],
+    "cuisine": "Turkish",
+    "ingredients": [
+      "Ground lamb or beef",
+      "Onions, grated",
+      "Garlic, minced",
+      "Parsley, finely chopped",
+      "Cumin",
+      "Coriander",
+      "Red pepper flakes",
+      "Salt and pepper to taste",
+      "Flatbread for serving",
+      "Tahini sauce"
+    ],
+    "instructions": [
+      "In a bowl, mix ground meat, grated onions, minced garlic, chopped parsley, and spices.",
+      "Form the mixture into kebab shapes and grill until fully cooked.",
+      "Serve the kebabs on flatbread with a drizzle of tahini sauce.",
+      "Enjoy these flavorful Turkish Kebabs with your favorite sides."
+    ],
+    "prepTimeMinutes": 25,
+    "cookTimeMinutes": 15,
+    "difficulty": "Easy"
+  },
+  {
+    "name": "Blueberry Banana Smoothie",
+    "image": "https://cdn.dummyjson.com/recipe-images/25.webp",
+    "price": 5.49,
+    "rating": 4.8,
+    "mealType": ["Breakfast", "Beverage"],
+    "cuisine": "Smoothie",
+    "ingredients": [
+      "Blueberries, fresh or frozen",
+      "Banana, peeled and sliced",
+      "Greek yogurt",
+      "Almond milk",
+      "Honey",
+      "Chia seeds (optional)"
+    ],
+    "instructions": [
+      "In a blender, combine blueberries, banana, Greek yogurt, almond milk, and honey.",
+      "Blend until smooth and creamy.",
+      "Add chia seeds for extra nutrition and blend briefly.",
+      "Pour into a glass and enjoy this nutritious Blueberry Banana Smoothie!"
+    ],
+    "prepTimeMinutes": 10,
+    "cookTimeMinutes": 0,
+    "difficulty": "Easy"
+  }
+]

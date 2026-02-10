@@ -9,12 +9,12 @@ import { OrganizationModule } from '../organization/organization.module';
 
 import { PermissionController } from './permission.controller';
 import { PermissionService } from './permission.service';
-import { Permission } from './entities/permission.entity';
+import { PermissionRepository } from './permission.repository';
 
 @Module({
   controllers: [PermissionController],
-  providers: [PermissionService, PermissionsMiddleware],
-  imports: [TypeOrmModule.forFeature([Permission]), forwardRef(() => RoleModule), forwardRef(() => OrganizationModule), forwardRef(() => UserModule), forwardRef(() => AuthModule)],
+  providers: [PermissionService, PermissionsMiddleware, PermissionRepository],
+  imports: [TypeOrmModule.forFeature([PermissionRepository]), forwardRef(() => RoleModule), forwardRef(() => OrganizationModule), forwardRef(() => UserModule), forwardRef(() => AuthModule)],
   exports: [PermissionService]
 })
 export class PermissionModule { }

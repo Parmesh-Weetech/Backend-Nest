@@ -1,39 +1,37 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { OrganizationService } from '../organization/organization.service';
 
-import { Permission } from './entities/permission.entity';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto';
 import { CreatePermissionDTO } from './dtos/create-permission.dto';
+import { PermissionRepository } from './permission.repository';
 
 @Injectable()
 export class PermissionService {
     constructor(
-        @InjectRepository(Permission)
-        private readonly permissionRepository: Repository<Permission>,
+        @InjectRepository(PermissionRepository)
+        private readonly permissionRepository: PermissionRepository,
+
         private readonly organizationService: OrganizationService
     ) { }
 
     async findAll(): Promise<APIResponse> {
-        const permissions = await this.permissionRepository.find({
-            relations: ['roles']
-        });
-        if (!permissions) throw new NotFoundException('No permissions found.');
+        const permissions = await this.permissionRepository.findAll();
+        if (!permissions) throw new InternalServerErrorException('Something went wrong while fetching permissions.');
 
         return {
             success: true,
             message: "Permissions fetched successfully.",
-            data: permissions,
+            data: permissions.length > 0 ? permissions : [],
             expired: false,
             statusCode: 200
         };
     }
 
     async findOne(id: string): Promise<APIResponse> {
-        const perm = await this.permissionRepository.findOne({ where: { id }, relations: ['roles'] });
+        const perm = await this.permissionRepository.findById(id);
         if (!perm) throw new NotFoundException('Permission not found.');
 
         return {
@@ -51,24 +49,15 @@ export class PermissionService {
         const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: organization.data } });
         if (existingPermissions) throw new ForbiddenException("Permission already exists!");
 
-        const permission = this.permissionRepository.create({
-            key: dto.key,
-            label: dto.label,
-            description: dto.description,
-            entity: dto.entity,
-            action: dto.action,
-            organization: organization.data
-        });
-
-        const newPermission = await this.permissionRepository.save(permission);
-        if (!newPermission) throw new InternalServerErrorException('Failed to create permission');
+        const permission = this.permissionRepository.createPermission(dto, organization.data)
+        if (!permission) throw new InternalServerErrorException('Failed to create permission');
 
         return {
             success: true,
             expired: false,
             message: "Permission created successfully.",
             statusCode: 201,
-            data: newPermission
+            data: permission
         }
     }
 
@@ -91,14 +80,14 @@ export class PermissionService {
             });
         }
 
-        const updatedPermission = await this.permissionRepository.save(perm.data);
+        const updatedPermission = await this.permissionRepository.updatePermission(perm.data);
         if (!updatedPermission) throw new InternalServerErrorException('Failed to update permission');
 
         return {
             success: true,
             message: "Permission updated successfully.",
             statusCode: 200,
-            data: perm.data,
+            data: updatedPermission,
             expired: false
         }
     }
@@ -106,36 +95,17 @@ export class PermissionService {
     async remove(id: string): Promise<APIResponse> {
         await this.findOne(id);
 
-        const response = await this.permissionRepository.softDelete(id);
+        const response = await this.permissionRepository.softDeletePermission(id);
 
-        if (response.affected === undefined && response.affected === null && response.affected === 0)
+        if (!response)
             throw new InternalServerErrorException("Error while deleting permission.")
 
         return {
             success: true,
             message: "Permission deleted successfully.",
             expired: false,
-            data: response.raw,
+            data: response,
             statusCode: 200
-        }
-    }
-
-    async findByRoleId(roleId: string): Promise<APIResponse> {
-        const permissions = await this.permissionRepository
-            .createQueryBuilder('permission')
-            .innerJoin('permission.roles', 'role')
-            .where('role.id = :roleId', { roleId })
-            .getMany();
-
-        if (permissions.length === 0 || !permissions)
-            throw new NotFoundException('No permissions found for the given role ID.');
-
-        return {
-            success: true,
-            message: "Permission fetched successfully",
-            statusCode: 200,
-            data: permissions,
-            expired: false
         }
     }
 }
