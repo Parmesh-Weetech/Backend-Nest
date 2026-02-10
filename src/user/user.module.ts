@@ -8,10 +8,11 @@ import { RoleModule } from '../role/role.module';
 import { PermissionModule } from '../permission/permission.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { CacheModule } from '../cache/cache.module';
+import { UserRepository } from './user.repository';
 
 @Module({
-  providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => AuthModule),   // ✅ FIX
+  providers: [UserService, UserRepository],
+  imports: [TypeOrmModule.forFeature([UserRepository]), forwardRef(() => AuthModule),   // ✅ FIX
     forwardRef(() => RoleModule),   // recommended
     forwardRef(() => PermissionModule),
     forwardRef(() => OrganizationModule), CacheModule],

@@ -8,17 +8,20 @@ import { RoleService } from '../role/role.service';
 import { OrganizationService } from '../organization/organization.service';
 import { APIResponse } from '../common/response/response.dto';
 import { CacheService } from '../cache/cache.service';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User) 
-        private readonly userRepository: Repository<User>,
+        @InjectRepository(UserRepository)
+        private readonly userRepository: UserRepository,
+
         @Inject(forwardRef(() => RoleService))
         private readonly roleService: RoleService,
 
         @Inject(forwardRef(() => OrganizationService))
         private readonly organizationService: OrganizationService,
+
         private readonly cacheService: CacheService
     ) { }
 
@@ -80,16 +83,7 @@ export class UserService {
         let cachedUser = await this.cacheService.get(cacheKey);
 
         if (!cachedUser) {
-            const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: {
-                organization: true,
-                roles: {
-                    organization: true,
-                    permissions: {
-                        organization: true,
-                    },
-                },
-            } });
-
+            const fetchedUser = await this.userRepository.findById(id);
             if (!fetchedUser) throw new NotFoundException('User not found.');
 
             cachedUser = fetchedUser;
