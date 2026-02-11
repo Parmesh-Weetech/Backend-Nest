@@ -3,6 +3,7 @@ import { DataSource, In, Repository } from "typeorm";
 import { Cart } from "./entities/cart.entity";
 import { CartItem } from "./entities/cart.item.entity";
 import { Product } from "src/product/entities/product.entity";
+import { af, r } from "node_modules/@faker-js/faker/dist/airline-CWrCIUHH";
 
 @Injectable()
 export class CartRepository extends Repository<Cart> {
@@ -54,12 +55,47 @@ export class CartItemRepository extends Repository<CartItem> {
 
         return newCartItem;
     }
-    
+
     async saveCartItem(cartItems: CartItem[]): Promise<CartItem[] | null> {
         const saveCartItem = await this.save(cartItems);
 
-        if(!saveCartItem) return null;
+        if (!saveCartItem) return null;
 
         return saveCartItem;
+    }
+
+    async findByUserId(userId: string): Promise<CartItem[] | null> {
+        const cartItems = await this.find({
+            where: { cart: { user: { id: userId } } }, relations: {
+                cart: {
+                    user: true
+                }, product: true
+            }
+        });
+
+        if (!cartItems) return null;
+
+        return cartItems;
+    }
+
+    async findById(ids: string[]): Promise<CartItem[] | null> {
+        const cartItems = await this.find({
+            where: { id: In(ids) },
+            relations: {
+                cart: { user: true }
+            },
+        });
+
+        if(!cartItems) return null;
+
+        return cartItems;
+    }
+
+    async deleteById(id: string): Promise<boolean> {
+        const affectedRows = await this.delete(id);
+
+        if(affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) return false;
+        
+        return true;
     }
 }

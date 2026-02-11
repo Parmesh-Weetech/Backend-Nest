@@ -67,7 +67,7 @@ export class CartService {
                 /* ➕ New cart item */
                 const item = await this.cartItemRepository.createCartItem(cart, product!, dto.quantity, dto.price);
 
-                if(!item) throw new InternalServerErrorException({ message: "Something went wrong while saving cart items. "});
+                if(!item) throw new InternalServerErrorException({ message: "Something went wrong while creating cart items. "});
 
                 cartItemsToSave.push(item);
             }
@@ -87,17 +87,10 @@ export class CartService {
     }
 
     async findCart(user: User): Promise<APIResponse> {
-        const cartItem = await this.cartItemRepository.find({
-            where: { cart: { user: { id: user.id } } }, relations: {
-                cart: {
-                    user: true
-                }, product: true
-            }
-        });
+        const cartItem = await this.cartItemRepository.findByUserId(user.id);
 
         if (!cartItem || cartItem.length == 0) {
-            const cart = await this.cartRepository.find({ where: { user: { id: user.id } } });
-
+            const cart = await this.cartRepository.findById(user.id);
             if (!cart) throw new NotFoundException("Cart not found.");
 
             return {
@@ -119,21 +112,17 @@ export class CartService {
     }
 
     async removeCartItem(removeCartItemDTO: RemoveCartItemDTO, user: User): Promise<APIResponse> {
-        const cartItems = await this.cartItemRepository.find({
-            where: { id: In(removeCartItemDTO.ids) },
-            relations: {
-                cart: { user: true }
-            },
-        });
+        const cartItems = await this.cartItemRepository.findById(removeCartItemDTO.ids);
+        if(!cartItems) throw new InternalServerErrorException({ message: "Something went wrong while fetching cart items "});
 
         for (const item of cartItems) {
             if (item.cart.user.id !== user.id) {
                 throw new ForbiddenException('You are not authorized to remove this item.');
             }
 
-            const removeCartItem = await this.cartItemRepository.delete(item.id);
+            const removeCartItem = await this.cartItemRepository.deleteById(item.id);
 
-            if (removeCartItem.affected === 0) {
+            if (!removeCartItem) {
                 throw new InternalServerErrorException("Something went wrong while removing cart item.");
             }
         }
