@@ -9,7 +9,7 @@ import { Product } from '../product/entities/product.entity';
 import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart.item.entity';
 import { AddToCartDTO, RemoveCartItemDTO } from './dtos/create.cartItem.dto';
-import { CartRepository } from './cart.repository';
+import { CartItemRepository, CartRepository } from './cart.repository';
 import { ProductRepository } from '../product/product.repository';
 
 @Injectable()
@@ -18,8 +18,8 @@ export class CartService {
         @InjectRepository(CartRepository)
         private readonly cartRepository: CartRepository,
 
-        @InjectRepository(CartItem)
-        private readonly cartItemRepository: Repository<CartItem>,
+        @InjectRepository(CartItemRepository)
+        private readonly cartItemRepository: CartItemRepository,
 
         @InjectRepository(ProductRepository)
         private readonly productRepository: ProductRepository
@@ -65,19 +65,17 @@ export class CartService {
                 cartItemsToSave.push(existingItem);
             } else {
                 /* ➕ New cart item */
-                const item = this.cartItemRepository.create({
-                    cart,
-                    product,
-                    quantity: dto.quantity,
-                    price: dto.price,
-                    total_price: dto.quantity * dto.price,
-                });
+                const item = await this.cartItemRepository.createCartItem(cart, product!, dto.quantity, dto.price);
+
+                if(!item) throw new InternalServerErrorException({ message: "Something went wrong while saving cart items. "});
 
                 cartItemsToSave.push(item);
             }
         }
 
-        await this.cartItemRepository.save(cartItemsToSave);
+        const saveCartItem = await this.cartItemRepository.saveCartItem(cartItemsToSave);
+
+        if(!saveCartItem) throw new InternalServerErrorException({ message: "Something went wrong while saving cart item" });
 
         return {
             success: true,
