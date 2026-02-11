@@ -40,4 +40,28 @@ export class VideoRepository extends Repository<Video> {
         
         return video;
     }
+
+    async deleteVideo(id: string): Promise<boolean> {
+        const affectedRows = await this.delete(id);
+
+        if(affectedRows.affected === undefined || affectedRows.affected ===  null || affectedRows.affected === 0) return false;
+
+        return true;
+    }
+
+    async updateVideo(id: string, status: "PENDING" | "PROCESSING" | "ACTIVE" | "FAILED", path?: string, bucket?: string): Promise<Video | null> {
+        const updatedVideo = await this.update(id, {
+            bucket: bucket,
+            path: path,
+            status: status
+        });
+
+        if(updatedVideo.affected === undefined || updatedVideo.affected === null || updatedVideo.affected === 0) return null;
+
+        const video = await this.findById(id);
+
+        if(!video) return null;
+
+        return video;
+    }
 }

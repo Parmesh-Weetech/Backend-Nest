@@ -81,7 +81,7 @@ export class VideoService {
     }
 
     async findMasterFile(videoId: string) {
-        const videoMetadata = await this.videoRepository.findById(videoId);
+        const videoMetadata = await this.findVideoById(videoId);
         if (!videoMetadata) throw new NotFoundException('Video not found');
 
         const stream = await this.storageService.download(`${videoMetadata.path}/master.m3u8`);
@@ -94,7 +94,7 @@ export class VideoService {
     }
 
     async findIndexFile(videoId: string, quality: string) {
-        const video = await this.videoRepository.findById(videoId)
+        const video = await this.findVideoById(videoId)
         if (!video) throw new NotFoundException('Video not found');
 
         const path = `videos/${videoId}/${quality}/index.m3u8`;
@@ -111,7 +111,7 @@ export class VideoService {
         quality: string,
         segment: string,
     ) {
-        const video = await this.videoRepository.findById(videoId);
+        const video = await this.findVideoById(videoId);
         if (!video) throw new NotFoundException('Video not found');
 
         if (segment.includes(".ts")) {
@@ -133,7 +133,7 @@ export class VideoService {
         }
     }
 
-    async getVideoById(videoId: string) {
+    async findVideoById(videoId: string) {
         return await this.videoRepository.findById(videoId);
     }
 

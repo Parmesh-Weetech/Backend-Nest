@@ -14,12 +14,13 @@ import { FfmpegService } from '../ffmpeg/ffmpeg.service';
 
 import { Video } from './entities/video.entity';
 import { VideoSseService } from './videoSse.service';
+import { VideoRepository } from './video.repository';
 
 @Processor('video-processing')
 export class VideoProcessor extends WorkerHost {
     constructor(
-        @InjectRepository(Video)
-        private readonly videoRepo: Repository<Video>,
+        @InjectRepository(VideoRepository)
+        private readonly videoRepository: VideoRepository,
         private readonly cache: CacheService,
         private readonly ffmpeg: FfmpegService,
         private readonly storage: StorageService,
@@ -39,7 +40,7 @@ export class VideoProcessor extends WorkerHost {
         await this.cache.set(lockKey, true, 600);
 
         try {
-            const existing = await this.videoRepo.findOne({ where: { id: videoId } });
+            const existing = await this.videoRepository.findById(videoId);
 
             if(!existing) throw new NotFoundException("video not found");
 
@@ -63,7 +64,7 @@ export class VideoProcessor extends WorkerHost {
             try {
                 await fs.access(savedFilePath);
             } catch {
-                await this.videoRepo.delete(videoId);
+                await this.videoRepository.deleteVideo(videoId);
                 throw new NotFoundException('Failed to save uploaded video file');
             }
 
@@ -79,20 +80,15 @@ export class VideoProcessor extends WorkerHost {
                 console.warn(`Failed to remove temporary folder ${outputDir}:`, err);
             }
 
-            await this.videoRepo.update(videoId, {
-                path: masterPath,
-                bucket: this.config.get('SUPABASE_BUCKET'),
-                status: 'ACTIVE',
-            });
+            await this.videoRepository.updateVideo(videoId, 'ACTIVE', masterPath,
+                this.config.get('SUPABASE_BUCKET')!);
 
             this.videoSseService.sendSuccess(videoId, "ACTIVE")
 
             return { success: true, videoId, masterPath };
         } catch (error: any) {
             console.error('Video processing failed:', error);
-            await this.videoRepo.update(videoId, {
-                status: "FAILED"
-            });
+            await this.videoRepository.updateVideo(videoId, "FAILED");
             this.videoSseService.sendError(videoId, error, "FAILED");
             throw new Error(`Video processing failed: ${error.message}`);
         } finally {
