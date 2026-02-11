@@ -8,6 +8,7 @@ import { DateTime } from "luxon";
 
 import { Notification } from './entities/notification.entity';
 import { APIResponse } from 'src/common/response/response.dto';
+import { NotificationRepository } from './notification.repository';
 
 @Injectable()
 export class NotificationService {
@@ -15,8 +16,8 @@ export class NotificationService {
         @InjectQueue('notifications')
         private readonly queue: Queue,
 
-        @InjectRepository(Notification)
-        private readonly notificationRepository: Repository<Notification>,
+        @InjectRepository(NotificationRepository)
+        private readonly notificationRepository: NotificationRepository
     ) { }
 
     async create(
@@ -34,19 +35,17 @@ export class NotificationService {
         const delay = scheduledAtUtc.diffNow().as('milliseconds');
         if (delay <= 0) throw new BadRequestException('Scheduled time must be in the future');
 
-        const notificationObject = this.notificationRepository.create({
-            sender: { id: senderId },
-            conversation: { id: conversationId },
-            message: message,
-            scheduledAt: scheduledAtUtc.toJSDate(),
-            sentAt: null,
-            status: "PENDING",
-            timezone: timezone,
-        })
+        const notification = await this.notificationRepository.createNotification(
+            senderId,
+            conversationId,
+            message,
+            scheduledAtUtc.toJSDate(),
+            null,
+            "PENDING",
+            timezone,
+        )
 
-        const notification = await this.notificationRepository.save(notificationObject);
-
-        if(!notification) throw new InternalServerErrorException('Failed to create notification');
+        if (!notification) throw new InternalServerErrorException('Failed to create notification');
 
         await this.queue.add(
             'send-notification',
@@ -63,7 +62,6 @@ export class NotificationService {
                     age: 24 * 60 * 60,
                     count: 1000
                 },
-                
             },
         );
 

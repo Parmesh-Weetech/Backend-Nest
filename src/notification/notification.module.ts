@@ -11,15 +11,16 @@ import { NotificationService } from './notification.service';
 import { NotificationSseService } from './notificationSse.service';
 import { NotificationController } from './notification.controller';
 import { NotificationSseController } from './notificationSse.controller';
+import { NotificationRepository } from './notification.repository';
 
 @Module({
-  providers: [NotificationService, NotificationSseService, CurrentUserInterceptor],
+  providers: [NotificationService, NotificationSseService, CurrentUserInterceptor, NotificationRepository],
   controllers: [NotificationController, NotificationSseController],
   exports: [NotificationService, NotificationSseService],
   imports: [
     AuthModule,
     UserModule,
-    TypeOrmModule.forFeature([Notification]),
+    TypeOrmModule.forFeature([NotificationRepository]),
     BullModule.registerQueue({
       name: 'notifications',
       connection: {

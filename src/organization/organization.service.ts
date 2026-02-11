@@ -82,7 +82,7 @@ export class OrganizationService {
     return {
       success: true,
       expired: false,
-      data: res,
+      data: null,
       message: "Organization removed successfully.",
       statusCode: 200
     }

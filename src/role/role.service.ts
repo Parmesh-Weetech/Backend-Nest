@@ -9,12 +9,14 @@ import { PermissionService } from '../permission/permission.service';
 import { Role } from './entities/role.entity';
 import { CreateRoleDTO } from './dtos/create-role.dto';
 import { UpdateRoleDTO } from './dtos/update-role.dto';
+import { RoleRepository } from './role.repository';
 
 @Injectable()
 export class RoleService {
     constructor(
-        @InjectRepository(Role)
-        private roleRepository: Repository<Role>,
+        @InjectRepository(RoleRepository)
+        private roleRepository: RoleRepository,
+
         @Inject(forwardRef(() => PermissionService))
         private readonly permissionService: PermissionService,
 
@@ -22,20 +24,20 @@ export class RoleService {
     ) { }
 
     async findAll(): Promise<APIResponse> {
-        const roles = await this.roleRepository.find({ relations: ['permissions'] });
+        const roles = await this.roleRepository.findAll();
         if (!roles) throw new NotFoundException('No roles found.');
 
         return {
             success: true,
             expired: false,
             message: "Roles fetched successfully.",
-            data: roles,
+            data: roles.length > 0 ? roles : [],
             statusCode: 200
         };
     }
 
     async findOne(id: string): Promise<APIResponse> {
-        const role = await this.roleRepository.findOne({ where: { id }, relations: ['organization', 'permissions'] });
+        const role = await this.roleRepository.findById(id);
         if (!role) throw new NotFoundException('Role not found.');
 
         return {
@@ -59,13 +61,8 @@ export class RoleService {
             .sort()
             .join('|');
 
-        const existingRoles = await this.roleRepository.find({
-            where: {
-                key: roleDTO.key,
-                organization: { id: orgId }
-            },
-            relations: ['permissions']
-        });
+        const existingRoles = await this.roleRepository.findByRoleKey(roleDTO.key, orgId);
+        if (!existingRoles) throw new InternalServerErrorException({ message: "Something went wrong while fetching roles!" });
 
         for (const role of existingRoles) {
             const existingSignature = role.permissions
@@ -80,30 +77,23 @@ export class RoleService {
             }
         }
 
-        const role = this.roleRepository.create({
-            key: roleDTO.key,
-            label: roleDTO.label,
-            description: roleDTO.description,
-            organization: organization.data,
-            permissions: requestedPermissions.map(p => p.data)
-        });
+        const permissions = requestedPermissions.map(p => p.data);
 
-        const savedRole = await this.roleRepository.save(role);
-        if (!savedRole) throw new InternalServerErrorException('Failed to create role.');
+        const role = await this.roleRepository.createRole(roleDTO, organization.data, permissions);
+        if (!role) throw new InternalServerErrorException('Failed to create role.');
 
         return {
             statusCode: 201,
             success: true,
-            data: savedRole,
+            data: role,
             expired: false,
             message: "Role created successfully."
         }
     }
 
     async update(dto: UpdateRoleDTO): Promise<APIResponse> {
-        const roleResponse = await this.findOne(dto.id);
-
-        const role = roleResponse.data;
+        const existingRoles = await this.findOne(dto.id);
+        const role = existingRoles.data;
 
         if (dto.key) role.key = dto.key;
         if (dto.label) role.label = dto.label;
@@ -127,7 +117,7 @@ export class RoleService {
             }
         }
 
-        const updatedRole = await this.roleRepository.save(role);
+        const updatedRole = await this.roleRepository.updateRole(role);
         if (!updatedRole) throw new InternalServerErrorException('Failed to update role.');
 
         return {
@@ -142,12 +132,12 @@ export class RoleService {
     async remove(id: string): Promise<APIResponse> {
         await this.findOne(id);
 
-        const deletedRows = await this.roleRepository.softDelete(id);
-        if (deletedRows.affected === null || deletedRows.affected === undefined || deletedRows.affected === 0) throw new InternalServerErrorException('Failed to delete role.');
+        const deletedRows = await this.roleRepository.softDeleteRole(id);
+        if (!deletedRows) throw new InternalServerErrorException('Failed to delete role.');
 
         return {
             success: true,
-            data: deletedRows.raw,
+            data: null,
             expired: false,
             message: "Role deleted successfully.",
             statusCode: 200
@@ -155,8 +145,7 @@ export class RoleService {
     }
 
     async findRoleByOrganizationName(key: string): Promise<APIResponse> {
-        const role = await this.roleRepository.findOne({ where: { key: key, organization: IsNull() }, relations: ['permissions'] });
-
+        const role = await this.roleRepository.findByRoleKey(key, null);
         if (!role) throw new NotFoundException('Role not found.');
 
         return {
