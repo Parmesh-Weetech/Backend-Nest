@@ -2,11 +2,9 @@ import { BadRequestException, Injectable, InternalServerErrorException } from '@
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 
-import { Repository } from 'typeorm';
 import { Queue } from 'bullmq';
 import { DateTime } from "luxon";
 
-import { Notification } from './entities/notification.entity';
 import { APIResponse } from 'src/common/response/response.dto';
 import { NotificationRepository } from './notification.repository';
 

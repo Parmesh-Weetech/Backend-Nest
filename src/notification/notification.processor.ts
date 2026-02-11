@@ -7,14 +7,16 @@ import { Job } from 'bullmq';
 import { Notification } from './entities/notification.entity';
 import { NotificationSseService } from './notificationSse.service';
 import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { NotificationRepository } from './notification.repository';
 
 @Processor('notifications', {
     concurrency: 10
 })
 export class NotificationProcessor extends WorkerHost {
     constructor(
-        @InjectRepository(Notification)
-        private readonly repo: Repository<Notification>,
+        @InjectRepository(NotificationRepository)
+        private readonly notificationRepository: NotificationRepository,
+
         private readonly notificationSseService: NotificationSseService
     ) {
         super();
@@ -24,22 +26,13 @@ export class NotificationProcessor extends WorkerHost {
         const { notificationId } = job.data;
 
         try {
-            const notification = await this.repo.findOne({ where: { id: notificationId }, relations: ['sender', 'conversation'] });
+            const notification = await this.notificationRepository.findById(notificationId)
             if (!notification) throw new NotFoundException('Notification not found');
-            
-            const result = await this.repo
-                .createQueryBuilder()
-                .update(Notification)
-                .set({
-                    sentAt: () => 'NOW()',
-                    status: 'SENT',
-                })
-                .where('id = :id', { id: notificationId })
-                .andWhere('sentAt IS NULL')
-                .execute();
 
-            if (result.affected === 0) {
-                return;
+            const result = await this.notificationRepository.updateNotification(notificationId);
+
+            if (result.affected === 0 || result.affected === undefined || result.affected === null) {
+                throw new InternalServerErrorException({ message: "Something went wrong while updating status" });
             }
 
             console.log(
@@ -53,15 +46,13 @@ export class NotificationProcessor extends WorkerHost {
             }
 
         } catch (err) {
-            const updateNotificationStatus = await this.repo.update(notificationId, {
+            await this.notificationRepository.update(notificationId, {
                 status: 'FAILED',
             });
 
-            if (updateNotificationStatus.affected !== undefined && updateNotificationStatus.affected !== null && updateNotificationStatus.affected > 0) {
-                this.notificationSseService.sendError(
-                    notificationId, err, "FAILED"
-                );
-            }
+            this.notificationSseService.sendError(
+                notificationId, err, "FAILED"
+            );
 
             throw new InternalServerErrorException(err.message || 'Failed to send notification');
         }

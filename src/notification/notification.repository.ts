@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Repository, UpdateResult } from "typeorm";
 import { Notification } from "./entities/notification.entity";
 
 @Injectable()
@@ -10,7 +10,7 @@ export class NotificationRepository extends Repository<Notification> {
     }
 
     async createNotification(
-        senderId: string, 
+        senderId: string,
         conversationId: string,
         message: string,
         scheduledAt: Date,
@@ -30,8 +30,30 @@ export class NotificationRepository extends Repository<Notification> {
 
         const saveNotification = await this.save(newNotification);
 
-        if(!saveNotification) return null;
+        if (!saveNotification) return null;
 
         return saveNotification;
+    }
+
+    async findById(id: string): Promise<Notification | null> {
+        const notification = await this.findOne({ where: { id: id }, relations: ['sender', 'conversation'] });
+
+        if (!notification) return null;
+
+        return notification;
+    }
+
+    async updateNotification(id: string): Promise<UpdateResult> {
+        const result = await this.createQueryBuilder()
+            .update(Notification)
+            .set({
+                sentAt: () => 'NOW()',
+                status: 'SENT',
+            })
+            .where('id = :id', { id: id })
+            .andWhere('sentAt IS NULL')
+            .execute();
+
+        return result;
     }
 }
