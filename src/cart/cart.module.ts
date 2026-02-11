@@ -10,10 +10,11 @@ import { Auth } from '../common/util/auth';
 import { AuthModule } from '../auth/auth.module';
 import { ProductModule } from '../product/product.module';
 import { Product } from '../product/entities/product.entity';
+import { CartRepository } from './cart.repository';
 
 @Module({
-  providers: [CartService, CurrentUserInterceptor, Auth],
+  providers: [CartService, CurrentUserInterceptor, Auth, CartRepository],
   controllers: [CartController],
-  imports: [TypeOrmModule.forFeature([CartItem, Cart, Product]), UserModule, AuthModule, ProductModule]
+  imports: [TypeOrmModule.forFeature([CartItem, CartRepository, Product]), UserModule, AuthModule, ProductModule]
 })
 export class CartModule {}
