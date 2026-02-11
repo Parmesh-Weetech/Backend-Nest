@@ -17,6 +17,7 @@ import { Serialize } from './interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dtos/login.dto';
 import { SignupDTO } from './dtos/signup.dto';
+import { LogoutRequest } from 'src/common/decorators/logout.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -48,6 +49,7 @@ export class AuthController {
         }
     }
 
+    @LogoutRequest()
     @UseGuards(AuthGuard)
     @Post("/logout")  
     async logout(@Headers('Authorization') authorization: string): Promise<APIResponse> {

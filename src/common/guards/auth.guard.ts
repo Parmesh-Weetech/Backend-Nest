@@ -25,6 +25,13 @@ export class AuthGuard implements CanActivate {
 
         if (isRefreshTokenRequest) return true;
 
+        const isLogoutRequest = this.reflector.get<boolean>(
+            'IS_LOGOUT_REQUEST',
+            context.getHandler(),
+        );
+
+        if (isLogoutRequest) return true;
+
         const request = context.switchToHttp().getRequest();
 
         const authHeader = request.headers.authorization;
