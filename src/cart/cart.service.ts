@@ -10,6 +10,7 @@ import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart.item.entity';
 import { AddToCartDTO, RemoveCartItemDTO } from './dtos/create.cartItem.dto';
 import { CartRepository } from './cart.repository';
+import { ProductRepository } from '../product/product.repository';
 
 @Injectable()
 export class CartService {
@@ -20,8 +21,8 @@ export class CartService {
         @InjectRepository(CartItem)
         private readonly cartItemRepository: Repository<CartItem>,
 
-        @InjectRepository(Product)
-        private readonly productRepository: Repository<Product>
+        @InjectRepository(ProductRepository)
+        private readonly productRepository: ProductRepository
     ) { }
 
     async addToCart(addToCartDTO: AddToCartDTO, user: User): Promise<APIResponse> {
@@ -31,15 +32,15 @@ export class CartService {
         if (!cart) {
             cart = await this.cartRepository.createCart(user.id);
 
-            if(!cart) throw new InternalServerErrorException({ message: "Something went wrong while creating new cart!" });
+            if (!cart) throw new InternalServerErrorException({ message: "Something went wrong while creating new cart!" });
         }
 
         const productIds = addToCartDTO.items.map(i => i.productId);
 
         /* 🔍 Fetch all products in one query */
-        const products = await this.productRepository.findBy({
-            id: In(productIds)
-        });
+        const products = await this.productRepository.findByProductIds(productIds);
+
+        if (!products || products.length === 0) throw new InternalServerErrorException({ message: "Something went wrong while fetching products" });
 
         if (products.length !== productIds.length) {
             throw new NotFoundException('One or more products not found.');

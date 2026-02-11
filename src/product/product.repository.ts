@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Product } from "./entities/product.entity";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import { CreateProductDTO } from "./dtos/create-product.dto";
 import { User } from "../user/entities/user.entity";
 import { UpdatePostDTO } from "src/post/dtos/update-post.dto";
@@ -100,6 +100,16 @@ export class ProductRepository extends Repository<Product> {
         if (product.length === 0) return [];
 
         return product;
+    }
+
+    async findByProductIds(productIds: string[]): Promise<Product[] | null> {
+        const products = await this.findBy({
+            id: In(productIds)
+        });
+
+        if(!productIds) return null;
+
+        return products;
     }
 
     async createProduct(productDTO: CreateProductDTO, user: User): Promise<Product | null> {
