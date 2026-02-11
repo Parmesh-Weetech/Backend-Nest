@@ -89,6 +89,24 @@ export class CartService {
         };
     }
 
+    async updateQuantity(productId: string, quantity: number, userId: string): Promise<APIResponse> {
+        const updateQuantity = await this.cartItemRepository.update({ product: { id: productId }, cart: { user: { id: userId } } }, {
+            quantity: quantity
+        });
+
+        if (updateQuantity.affected === null || updateQuantity.affected === undefined || updateQuantity.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while updating quantity" });
+
+        const cartItem = await this.findOne(productId, userId);
+
+        return {
+            success: true,
+            data: cartItem.data,
+            expired: false,
+            message: "Quantity Updated Successfully.",
+            statusCode: 200
+        }
+    }
+
     async findCart(user: User): Promise<APIResponse> {
         const cartItem = await this.cartItemRepository.find({
             where: { cart: { user: { id: user.id } } }, relations: {
@@ -121,6 +139,24 @@ export class CartService {
         }
     }
 
+    async findOne(productId: string, userId: string): Promise<APIResponse> {
+        const cartItem = await this.cartItemRepository.findOne({
+            where: { product: { id: productId }, cart: { user: { id: userId } } }, relations: {
+                cart: true
+            }
+        });
+
+        if (!cartItem) throw new InternalServerErrorException({ message: "Something went wrong while fetching cart item " });
+
+        return {
+            success: true,
+            data: cartItem,
+            expired: false,
+            message: "Cart Item fetch successfully.",
+            statusCode: 200
+        };
+    }
+
     async removeCartItem(removeCartItemDTO: RemoveCartItemDTO, user: User): Promise<APIResponse> {
         const cartItems = await this.cartItemRepository.find({
             where: { id: In(removeCartItemDTO.ids) },
@@ -148,5 +184,19 @@ export class CartService {
             message: "Cart-Item removed successfully.",
             statusCode: 200,
         };
+    }
+
+    async removeCartItemById(productId: string, userId: string): Promise<APIResponse> {
+        const affectedRows = await this.cartItemRepository.delete({ product: { id: productId }, cart: { user: { id: userId } } });
+
+        if(affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while removing product from cart!"});
+
+        return {
+            success: true,
+            data: null,
+            expired: false,
+            message: "Product removeed successfully from cart.",
+            statusCode: 200
+        }
     }
 }

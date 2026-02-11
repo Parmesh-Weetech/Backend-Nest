@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { APIResponse } from '../common/response/response.dto';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
@@ -20,13 +20,28 @@ export class CartController {
         return this.cartService.addToCart(addToCartDTO, user);
     }
 
+    @Patch("/product/:productId")
+    async updateQuantity(@Param("productId") productId: string, @Body() body: { quantity: number }, @Req() req): Promise<APIResponse> {
+        return this.cartService.updateQuantity(productId, body.quantity, req.currentUser.id);
+    }
+
     @Get()
     async findCart(@CurrentUser() user: User): Promise<APIResponse> {
         return this.cartService.findCart(user);
     }
 
+    @Get(":productId")
+    async findOne(@Param("productId") productId: string, @Req() req): Promise<APIResponse> {
+        return this.cartService.findOne(productId, req.currentUser.id);
+    }
+
     @Delete()
     async removeCartItem(@Body() removeCartItemDTO: RemoveCartItemDTO, @CurrentUser() user: User): Promise<APIResponse> {
         return this.cartService.removeCartItem(removeCartItemDTO, user)
+    }
+
+    @Delete(":productId")
+    async removeCartItemById(@Param("productId") productId, @Req() req): Promise<APIResponse> {
+        return this.cartService.removeCartItemById(productId, req.currentUser.id)
     }
 }
