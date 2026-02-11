@@ -7,7 +7,7 @@ export class CreateCartItemDTO {
 
     @IsInt()
     @Min(1)
-    quantity: number;
+    quantity?: number = 1;
 
     @IsNumber()
     price: number;
