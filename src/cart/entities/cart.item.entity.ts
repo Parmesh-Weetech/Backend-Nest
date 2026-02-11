@@ -18,10 +18,20 @@ export class CartItem {
     @Column({ type: 'int', default: 1 })
     quantity: number;
 
-    @Column('numeric', { precision: 10, scale: 2 })
+    @Column('numeric', {
+        transformer: {
+            to: (value: number) => value,
+            from: (value: string) => parseFloat(value),
+        },
+    })
     price: number;
 
-    @Column('numeric', { precision: 10, scale: 2, default: 0 })
+    @Column('numeric', {
+        transformer: {
+            to: (value: number) => value,
+            from: (value: string) => parseFloat(value),
+        }, default: 0
+    })
     total_price: number;
 
     @CreateDateColumn({ type: 'timestamptz' })

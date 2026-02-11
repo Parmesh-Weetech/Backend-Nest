@@ -84,16 +84,25 @@ export class CartService {
 
         const existingCartItem = await this.cartItemRepository.find({
             where: { cart: { id: cart.id } }, relations: {
-                product: true
+                product: true,
+                cart: true
             }
         });
+
+        const specificCartItem = existingCartItem.map((item) => {
+            return {
+                image: item.product.image,
+                name: item.product.name,
+                mealType: item.product.mealType
+            }
+        })
 
         return {
             success: true,
             message: 'Items added to cart successfully.',
             data: {
                 ...cart,
-                items: existingCartItem
+                items: specificCartItem
             },
             expired: false,
             statusCode: 200,
@@ -101,9 +110,25 @@ export class CartService {
     }
 
     async updateQuantity(productId: string, quantity: number, userId: string): Promise<APIResponse> {
-        const updateQuantity = await this.cartItemRepository.update({ product: { id: productId }, cart: { user: { id: userId } } }, {
-            quantity: quantity
-        });
+        const subQuery = this.cartRepository
+            .createQueryBuilder('cart')
+            .innerJoin('cart.user', 'user')
+            .select('cart.id')
+            .where('user.id = :userId', { userId })
+            .andWhere('cart.status = :status', { status: 'ACTIVE' })
+            .getQuery();
+
+        const updateQuantity = await this.cartItemRepository
+            .createQueryBuilder()
+            .update(CartItem)
+            .set({
+                quantity,
+                total_price: () => `"price" * ${quantity}`,
+            })
+            .where('productId = :productId', { productId })
+            .andWhere(`cartId IN (${subQuery})`)
+            .setParameters({ userId, status: 'ACTIVE' })
+            .execute();
 
         if (updateQuantity.affected === null || updateQuantity.affected === undefined || updateQuantity.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while updating quantity" });
 

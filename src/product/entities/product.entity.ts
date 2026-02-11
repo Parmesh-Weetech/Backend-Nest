@@ -16,10 +16,20 @@ export class Product {
     @Column()
     image: string
 
-    @Column("numeric", { precision: 10, scale: 2 })
+    @Column('numeric', {
+        transformer: {
+            to: (value: number) => value,
+            from: (value: string) => parseFloat(value),
+        },
+    })
     price: number;
 
-    @Column("numeric", { precision: 2, scale: 1 })
+    @Column("numeric", {
+        transformer: {
+            to: (value: number) => value,
+            from: (value: string) => parseFloat(value),
+        }
+    })
     rating: number;
 
     @Column("text", { array: true })
