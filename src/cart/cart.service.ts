@@ -60,7 +60,7 @@ export class CartService {
 
             if (existingItem) {
                 /* ➕ Increase quantity */
-                existingItem.quantity += dto.quantity;
+                existingItem.quantity += (dto.quantity ?? 1);
                 existingItem.total_price = existingItem.quantity * existingItem.price;
 
                 cartItemsToSave.push(existingItem);
@@ -71,19 +71,30 @@ export class CartService {
                     product,
                     quantity: dto.quantity,
                     price: dto.price,
-                    total_price: dto.quantity * dto.price,
+                    total_price: (dto.quantity ?? 1) * dto.price,
                 });
 
                 cartItemsToSave.push(item);
             }
         }
 
-        await this.cartItemRepository.save(cartItemsToSave);
+        const saveCartItem = await this.cartItemRepository.save(cartItemsToSave);
+
+        if (!saveCartItem || saveCartItem.length === 0) throw new InternalServerErrorException({ message: "Somethingwent wrong while saving cart item. " });
+
+        const existingCartItem = await this.cartItemRepository.find({
+            where: { cart: { id: cart.id } }, relations: {
+                product: true
+            }
+        });
 
         return {
             success: true,
             message: 'Items added to cart successfully.',
-            data: cart,
+            data: {
+                ...cart,
+                items: existingCartItem
+            },
             expired: false,
             statusCode: 200,
         };
@@ -189,7 +200,7 @@ export class CartService {
     async removeCartItemById(productId: string, userId: string): Promise<APIResponse> {
         const affectedRows = await this.cartItemRepository.delete({ product: { id: productId }, cart: { user: { id: userId } } });
 
-        if(affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while removing product from cart!"});
+        if (affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while removing product from cart!" });
 
         return {
             success: true,
