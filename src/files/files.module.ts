@@ -10,15 +10,16 @@ import { StorageModule } from '../storage/storage.module';
 import { FilesService } from './files.service';
 import { FilesController } from './files.controller';
 import { Files } from './entities/File.entity';
+import { FileRepository } from './file.repository';
 
 @Module({
-  providers: [FilesService],
+  providers: [FilesService, FileRepository],
   controllers: [FilesController],
   imports: [
     AuthModule,
     UserModule,
     StorageModule,
-    TypeOrmModule.forFeature([Files]),
+    TypeOrmModule.forFeature([FileRepository]),
     MulterModule.register({
       storage: memoryStorage(),
       limits: { fileSize: 10 * 1024 * 1024 },
