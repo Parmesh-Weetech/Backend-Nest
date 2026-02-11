@@ -12,11 +12,12 @@ import { VideoController } from './video.controller';
 import { Video } from './entities/video.entity';
 import { VideoSseService } from './videoSse.service';
 import { VideoSseController } from './videoSse.controller';
+import { VideoRepository } from './video.repository';
 
 @Module({
-  providers: [VideoService, VideoSseService],
+  providers: [VideoService, VideoSseService, VideoRepository],
   controllers: [VideoController, VideoSseController],
-  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([Video]), BullModule.registerQueue({
+  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([VideoRepository]), BullModule.registerQueue({
     name: 'video-processing',
     connection: {
       url: "redis://localhost:6379"

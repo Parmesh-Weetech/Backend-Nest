@@ -13,12 +13,13 @@ import { FfmpegService } from '../ffmpeg/ffmpeg.service';
 
 import { Video } from './entities/video.entity';
 import { VideoSseService } from './videoSse.service';
+import { VideoRepository } from './video.repository';
 
 @Injectable()
 export class VideoService {
     constructor(
-        @InjectRepository(Video)
-        private readonly videoRepository: Repository<Video>,
+        @InjectRepository(VideoRepository)
+        private readonly videoRepository: VideoRepository,
         private readonly storageService: StorageService,
         private readonly configService: ConfigService,
 
@@ -28,18 +29,17 @@ export class VideoService {
     async enqueue(file: Express.Multer.File, user: User): Promise<APIResponse> {
         const videoId = randomUUID();
 
-        const videoMetadata = this.videoRepository.create({
-            id: videoId,
-            path: `videos/${videoId}`,
-            status: "PENDING",
-            user: user,
-            originalVideoName: file.originalname,
-            bucket: this.configService.get<string>("SUPABASE_BUCKET")
-        })
+        const videoMetadata = this.videoRepository.saveVideo(
+            videoId,
+            `videos/${videoId}`,
+            "PENDING",
+            user.id,
+            file.originalname,
+            file.mimetype,
+            this.configService.get<string>("SUPABASE_BUCKET")!
+        )
 
-        const video = await this.videoRepository.save(videoMetadata);
-
-        if (!video) throw new InternalServerErrorException('Failed to save video metadata');
+        if (!videoMetadata) throw new InternalServerErrorException('Failed to save video metadata');
 
         await this.videoQueue.add(
             'process',
@@ -81,7 +81,7 @@ export class VideoService {
     }
 
     async findMasterFile(videoId: string) {
-        const videoMetadata = await this.videoRepository.findOne({ where: { id: videoId } });
+        const videoMetadata = await this.videoRepository.findById(videoId);
         if (!videoMetadata) throw new NotFoundException('Video not found');
 
         const stream = await this.storageService.download(`${videoMetadata.path}/master.m3u8`);
@@ -94,7 +94,7 @@ export class VideoService {
     }
 
     async findIndexFile(videoId: string, quality: string) {
-        const video = await this.videoRepository.findOne({ where: { id: videoId } });
+        const video = await this.videoRepository.findById(videoId)
         if (!video) throw new NotFoundException('Video not found');
 
         const path = `videos/${videoId}/${quality}/index.m3u8`;
@@ -111,7 +111,7 @@ export class VideoService {
         quality: string,
         segment: string,
     ) {
-        const video = await this.videoRepository.findOne({ where: { id: videoId } });
+        const video = await this.videoRepository.findById(videoId);
         if (!video) throw new NotFoundException('Video not found');
 
         if (segment.includes(".ts")) {
@@ -134,9 +134,9 @@ export class VideoService {
     }
 
     async getVideoById(videoId: string) {
-        return await this.videoRepository.findOne({ where: { id: videoId } });
+        return await this.videoRepository.findById(videoId);
     }
-    
+
     async getSignedUrl(videoPath: string, originalVideoName: string) {
         const ext = originalVideoName.split('.').pop();
         return this.storageService.getSignedUrl(`${videoPath}/original.${ext}`);
