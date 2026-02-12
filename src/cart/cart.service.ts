@@ -94,13 +94,13 @@ export class CartService {
         return {
             success: true,
             data: {
-                id: cartItem.data.cart.id,
-                productId: cartItem.data.product.id,
+                id: cartItem.data.id,
+                productId: cartItem.data.productId,
+                name: cartItem.data.name,
+                image: cartItem.data.image,
                 quantity: cartItem.data.quantity,
                 price: cartItem.data.price,
-                image: cartItem.data.product.image,
-                mealType: cartItem.data.product.mealType,
-                name: cartItem.data.product.name
+                mealType: cartItem.data.mealType
             },
             expired: false,
             message: "Quantity Updated Successfully.",
