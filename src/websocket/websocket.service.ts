@@ -13,14 +13,15 @@ import { Conversation } from './entities/conversation.entity';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { MessageAttachment } from './entities/MessageAttachment.entity';
 import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util';
+import { ConversationRepository, MessageRepository } from './websocket.repository';
 
 @Injectable()
 export class WebsocketService {
     constructor(
-        @InjectRepository(Conversation)
-        private readonly conversationRepository: Repository<Conversation>,
-        @InjectRepository(Message)
-        private readonly messageRepository: Repository<Message>,
+        @InjectRepository(ConversationRepository)
+        private readonly conversationRepository: ConversationRepository,
+        @InjectRepository(MessageRepository)
+        private readonly messageRepository: MessageRepository,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         @InjectRepository(MessageAttachment)
@@ -36,15 +37,8 @@ export class WebsocketService {
     }
 
     async findOrCreateConversation(userId: string, otherUserId: string): Promise<APIResponse> {
-        const conversation = await this.conversationRepository
-            .createQueryBuilder('conversation')
-            .where(
-                '(conversation.user1Id = :userId AND conversation.user2Id = :otherUserId) OR (conversation.user1Id = :otherUserId AND conversation.user2Id = :userId)',
-                { userId, otherUserId }
-            )
-            .getOne();
-
-
+        const conversation = await this.conversationRepository.findConversation(userId, otherUserId);
+            
         if (conversation) {
             return {
                 data: conversation,
@@ -55,12 +49,8 @@ export class WebsocketService {
             };
         }
 
-        const newConversationObject = this.conversationRepository.create({
-            user1: { id: userId },
-            user2: { id: otherUserId },
-        });
+        const newConversation = await this.conversationRepository.createConversation(userId, otherUserId);
 
-        const newConversation = await this.conversationRepository.save(newConversationObject);
         if(!newConversation) {
             throw new InternalServerErrorException('Failed to create conversation');
         }
@@ -83,19 +73,8 @@ export class WebsocketService {
         //     await this.cacheService.set(messageKey, messages, 600);
         // }
 
-        const messages = await this.messageRepository.find({
-            where: { conversation: { id: conversationId } },
-            order: { createdAt: 'DESC' },
-            relations: {
-                sender: true,
-                conversation: true,
-                attachments: {
-                    media: true,
-                },
-            },
-            skip,
-            take,
-        });
+        const messages = await this.messageRepository.findAll(conversationId, skip, take);
+        if(!messages) throw new InternalServerErrorException({ message: "Something went wrong while fetching messages! please try again. "});
 
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
@@ -106,7 +85,7 @@ export class WebsocketService {
 
             for (const attachment of message.attachments) {
                 if (attachment.mediaType !== "video") {
-                    const file = await this.fileService.getFileById(attachment.media.id);
+                    const file = await this.fileService.findFileById(attachment.media.id);
                     const signedUrlResponse = file ? await this.fileService.getSignedUrl(file.id) : '';
                     attachment.url = typeof signedUrlResponse === 'string' ? signedUrlResponse : signedUrlResponse.data;
                 }
@@ -162,7 +141,7 @@ export class WebsocketService {
                 let attachment: MessageAttachment
 
                 if (media.mediaType === "video") {
-                    const video = await this.videoService.getVideoById(media.media.id);
+                    const video = await this.videoService.findVideoById(media.media.id);
 
                     if (!video) {
                         throw new Error('Video not found');
@@ -176,7 +155,7 @@ export class WebsocketService {
                         order: index,
                     });
                 } else {
-                    const file = await this.fileService.getFileById(media.media.id);
+                    const file = await this.fileService.findFileById(media.media.id);
 
                     if (!file) {
                         throw new Error('File not found');
