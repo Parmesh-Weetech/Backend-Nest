@@ -1,6 +1,7 @@
-import { DataSource, Repository } from "typeorm";
+import { DataSource, DeepPartial, Repository } from "typeorm";
 import { Conversation } from "./entities/conversation.entity";
 import { Message } from "./entities/message.entity";
+import { User } from "src/user/entities/user.entity";
 
 export class ConversationRepository extends Repository<Conversation> {
 
@@ -33,6 +34,16 @@ export class ConversationRepository extends Repository<Conversation> {
 
         return saveConversation;
     }
+
+    async findById(id: string): Promise<Conversation | null> {
+        const conversation = await this.findOne({
+            where: { id: id },
+        });
+
+        if(!conversation) return null;
+
+        return conversation;
+    }
 }
 
 export class MessageRepository extends Repository<Message> {
@@ -56,8 +67,12 @@ export class MessageRepository extends Repository<Message> {
             take,
         });
 
-        if(!messages) return null;
+        if (!messages) return null;
 
         return messages;
+    }
+
+    async createMessage(type: string, conversation: Conversation, sender: User, content?: string): Promise<Message | null> {
+
     }
 }

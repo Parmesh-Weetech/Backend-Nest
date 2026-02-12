@@ -3,13 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
-import { User } from '../user/entities/user.entity';
 import { FilesService } from '../files/files.service';
 import { VideoService } from '../video/video.service';
 import { NotificationService } from '../notification/notification.service';
+import { UserService } from '../user/user.service';
 
 import { Message } from './entities/message.entity';
-import { Conversation } from './entities/conversation.entity';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { MessageAttachment } from './entities/MessageAttachment.entity';
 import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util';
@@ -22,14 +21,14 @@ export class WebsocketService {
         private readonly conversationRepository: ConversationRepository,
         @InjectRepository(MessageRepository)
         private readonly messageRepository: MessageRepository,
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
+
         @InjectRepository(MessageAttachment)
         private readonly messageAttachmentRepository: Repository<MessageAttachment>,
 
         private readonly fileService: FilesService,
         private readonly videoService: VideoService,
-        private readonly notificationService: NotificationService
+        private readonly notificationService: NotificationService,
+        private readonly userService: UserService
     ) { }
 
     getMessageKey(conversationId: string, skip: number, take: number) {
@@ -107,28 +106,19 @@ export class WebsocketService {
         sendMessageDto: SendMessageDto,
         senderId: string
     ): Promise<Message> {
-        const conversation = await this.conversationRepository.findOne({
-            where: { id: sendMessageDto.conversationId },
-        });
+        const conversation = await this.conversationRepository.findById(sendMessageDto.conversationId);
 
         if (!conversation) {
             throw new Error('Conversation not found');
         }
 
-        const sender = await this.userRepository.findOne({
-            where: { id: senderId },
-        });
+        const sender = await this.userService.findOne(senderId);
 
         if (!sender) {
             throw new Error('Sender not found');
         }
 
-        const message = this.messageRepository.create({
-            content: sendMessageDto.content ?? null,
-            type: sendMessageDto.type,
-            conversation,
-            sender
-        });
+        const message = this.messageRepository.createMessage(sendMessageDto.type, conversation, sender.data, sendMessageDto.content);
 
         const savedMessage = await this.messageRepository.save(message);
 
