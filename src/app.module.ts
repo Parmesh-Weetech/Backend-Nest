@@ -1,7 +1,9 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 
 import AppConfig from './config/app.config';
 import DatabaseConfig from './config/database.config';
@@ -12,7 +14,6 @@ import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import { PostModule } from './post/post.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RequestTimeMiddleware } from './common/middlewares/requestTime.middleware';
 import { OrganizationModule } from './organization/organization.module';
 import { HCaptchaModule } from './h-captcha/h-captcha.module';
@@ -23,6 +24,8 @@ import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
 import { VideoModule } from './video/video.module';
 import { CartModule } from './cart/cart.module';
+import Redis from 'ioredis';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -49,13 +52,25 @@ import { CartModule } from './cart/cart.module';
       throttlers: [
         {
           ttl: 60000,
-          limit: 20,
+          limit: 20
         },
       ],
+      storage: new ThrottlerStorageRedisService(
+        new Redis({
+          host: "localhost",
+          port: 6379,
+        })
+      )
     }),
     UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

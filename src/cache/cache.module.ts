@@ -1,10 +1,11 @@
 import { Module, Global } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import KeyvRedis from '@keyv/redis';
 import Keyv from 'keyv';
 
 import { CacheService } from './cache.service';
+import Redis from 'ioredis';
 
 @Global()
 @Module({
@@ -13,8 +14,10 @@ import { CacheService } from './cache.service';
       isGlobal: true,
     }),
     NestCacheModule.registerAsync({
-      useFactory: async () => {
-        const redisStore = new KeyvRedis('redis://localhost:6379');
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const redisURL = configService.get<string>('REDIS_URL');
+        const redisStore = new KeyvRedis(redisURL);
 
         const keyv = new Keyv({
           store: redisStore,
@@ -28,7 +31,16 @@ import { CacheService } from './cache.service';
       },
     }),
   ],
-  providers: [CacheService],
-  exports: [CacheService],
+  providers: [
+    CacheService,
+    {
+      provide: 'REDIS_CLIENT',
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return new Redis(configService.get<string>('REDIS_URL')!);
+      },
+    },
+  ],
+  exports: [CacheService, 'REDIS_CLIENT'],
 })
 export class CacheModule { }
