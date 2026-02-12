@@ -167,13 +167,12 @@ export class CartService {
         }
 
         const formattedCartItems = cartItem.map((item) => {
+            const { product, ...rest } = item;
             return {
-                ...item,
-                product: {
-                    image: item.product.image,
-                    name: item.product.name,
-                    mealType: item.product.mealType
-                }
+                ...rest,
+                image: product.image,
+                name: product.name,
+                mealType: product.mealType,
             };
         });
 
