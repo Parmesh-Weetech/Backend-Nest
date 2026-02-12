@@ -8,15 +8,17 @@ import { User } from '../user/entities/user.entity';
 
 import { VideoService } from './video.service';
 import { APIResponse } from '../common/response/response.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('video')
 export class VideoController {
 
     constructor(
         private readonly videoService: VideoService
-    ) {}
+    ) { }
 
-    @UseInterceptors(FileInterceptor("file") , CurrentUserInterceptor)
+    @Throttle({ default: { limit: 5, ttl: 60000 } })
+    @UseInterceptors(FileInterceptor("file"), CurrentUserInterceptor)
     @Post("upload")
     async upload(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: User): Promise<APIResponse> {
         return await this.videoService.enqueue(file, user);

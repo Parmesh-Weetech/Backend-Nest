@@ -22,6 +22,7 @@ import { CurrentUserInterceptor } from '../common/interceptors/currentUser.inter
 import { User } from '../user/entities/user.entity';
 
 import { FilesService } from './files.service';
+import { Throttle } from '@nestjs/throttler';
 
 @UseGuards(AuthGuard, CurrentUserGuard)
 @Controller('files')
@@ -30,6 +31,7 @@ export class FilesController {
         private readonly fileService: FilesService
     ) { }
 
+    @Throttle({ default: { limit: 5, ttl: 60000 } })
     @UseInterceptors(FileInterceptor('file'), CurrentUserInterceptor)
     @Post('upload')
     async uploadFile(
@@ -39,6 +41,7 @@ export class FilesController {
         return await this.fileService.uploadFile(file, user);
     }
 
+    @Throttle({ default: { limit: 5, ttl: 60000 } })
     @UseInterceptors(CurrentUserInterceptor)
     @Post('upload/signed-url')
     async createSignedUploadUrl(
@@ -89,6 +92,6 @@ export class FilesController {
         @Param('id') fileId: string,
         @CurrentUser() user: User
     ): Promise<APIResponse> {
-        return  await this.fileService.deleteFile(fileId, user);
+        return await this.fileService.deleteFile(fileId, user);
     }
 }
