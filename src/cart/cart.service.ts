@@ -37,7 +37,7 @@ export class CartService {
 
         const product = await this.productRepository.findOne({ where: { id: createCartItemDTO.productId } });
 
-        if(!product) throw new BadRequestException({ message: "Product is not exists in db" });
+        if (!product) throw new BadRequestException({ message: "Product is not exists in db" });
 
         const cartItem = await this.cartItemRepository.save({
             cart: cart,
@@ -212,16 +212,23 @@ export class CartService {
                 user: { id: userId },
                 status: 'ACTIVE',
             },
+            relations: {
+                items: {
+                    product: true
+                }
+            }
         });
 
         if (!cart) {
             throw new NotFoundException('Cart not found');
         }
-
+        
         const affectedRows = await this.cartItemRepository.delete({
             cart: { id: cart.id },
             product: { id: productId },
         });
+
+        console.log(affectedRows)
 
         if (affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while removing product from cart!" });
 
