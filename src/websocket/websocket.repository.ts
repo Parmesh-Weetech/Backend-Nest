@@ -1,7 +1,10 @@
-import { DataSource, DeepPartial, Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { Conversation } from "./entities/conversation.entity";
 import { Message } from "./entities/message.entity";
 import { User } from "src/user/entities/user.entity";
+import { MediaType, MessageAttachment } from "./entities/MessageAttachment.entity";
+import { Video } from "src/video/entities/video.entity";
+import { Files } from "src/files/entities/File.entity";
 
 export class ConversationRepository extends Repository<Conversation> {
 
@@ -40,7 +43,7 @@ export class ConversationRepository extends Repository<Conversation> {
             where: { id: id },
         });
 
-        if(!conversation) return null;
+        if (!conversation) return null;
 
         return conversation;
     }
@@ -49,7 +52,7 @@ export class ConversationRepository extends Repository<Conversation> {
 export class MessageRepository extends Repository<Message> {
 
     constructor(private dataSource: DataSource) {
-        super(Conversation, dataSource.createEntityManager());
+        super(Message, dataSource.createEntityManager());
     }
 
     async findAll(conversationId: string, skip: number, take: number): Promise<Message[] | null> {
@@ -72,7 +75,46 @@ export class MessageRepository extends Repository<Message> {
         return messages;
     }
 
-    async createMessage(type: string, conversation: Conversation, sender: User, content?: string): Promise<Message | null> {
+    async createMessage(type: Message['type'], conversation: Conversation, sender: User, content?: string): Promise<Message | null> {
+        const newMessage = this.create({
+            type: type,
+            conversation: conversation,
+            sender: sender,
+            content: content,
+        });
 
+        const savedMessage = await this.save(newMessage);
+
+        if (!savedMessage) return null;
+
+        return savedMessage;
+    }
+}
+
+export class MessageAttachmentRepository extends Repository<MessageAttachment> {
+    constructor(private dataSource: DataSource) {
+        super(MessageAttachment, dataSource.createEntityManager());
+    }
+
+    async createMessageAttachment(message: Message, mediaType: MediaType, mimeType: string, media: Video | Files, order: number): Promise<MessageAttachment | null> {
+        const attachment = this.create({
+            message: message,
+            media: media,
+            mediaType: mediaType,
+            mimeType: mimeType,
+            order: order,
+        });
+
+        if (!attachment) return null;
+
+        return attachment;
+    }
+
+    async saveMessageAttachment(messageAttachments: MessageAttachment[]): Promise<MessageAttachment[] | null> {
+        const saveMessageAttachments = await this.save(messageAttachments);
+
+        if(!messageAttachments) return null;
+
+        return saveMessageAttachments;
     }
 }

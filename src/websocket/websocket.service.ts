@@ -1,6 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { FilesService } from '../files/files.service';
@@ -12,7 +11,7 @@ import { Message } from './entities/message.entity';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { MessageAttachment } from './entities/MessageAttachment.entity';
 import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util';
-import { ConversationRepository, MessageRepository } from './websocket.repository';
+import { ConversationRepository, MessageAttachmentRepository, MessageRepository } from './websocket.repository';
 
 @Injectable()
 export class WebsocketService {
@@ -22,8 +21,8 @@ export class WebsocketService {
         @InjectRepository(MessageRepository)
         private readonly messageRepository: MessageRepository,
 
-        @InjectRepository(MessageAttachment)
-        private readonly messageAttachmentRepository: Repository<MessageAttachment>,
+        @InjectRepository(MessageAttachmentRepository)
+        private readonly messageAttachmentRepository: MessageAttachmentRepository,
 
         private readonly fileService: FilesService,
         private readonly videoService: VideoService,
@@ -37,7 +36,7 @@ export class WebsocketService {
 
     async findOrCreateConversation(userId: string, otherUserId: string): Promise<APIResponse> {
         const conversation = await this.conversationRepository.findConversation(userId, otherUserId);
-            
+
         if (conversation) {
             return {
                 data: conversation,
@@ -50,7 +49,7 @@ export class WebsocketService {
 
         const newConversation = await this.conversationRepository.createConversation(userId, otherUserId);
 
-        if(!newConversation) {
+        if (!newConversation) {
             throw new InternalServerErrorException('Failed to create conversation');
         }
 
@@ -68,12 +67,12 @@ export class WebsocketService {
         // let cachedMessages = await this.cacheService.get<Message[]>(messageKey);
 
         // if (!cachedMessages) {
-            
+
         //     await this.cacheService.set(messageKey, messages, 600);
         // }
 
         const messages = await this.messageRepository.findAll(conversationId, skip, take);
-        if(!messages) throw new InternalServerErrorException({ message: "Something went wrong while fetching messages! please try again. "});
+        if (!messages) throw new InternalServerErrorException({ message: "Something went wrong while fetching messages! please try again. " });
 
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
@@ -118,9 +117,9 @@ export class WebsocketService {
             throw new Error('Sender not found');
         }
 
-        const message = this.messageRepository.createMessage(sendMessageDto.type, conversation, sender.data, sendMessageDto.content);
+        const savedMessage = await this.messageRepository.createMessage(sendMessageDto.type, conversation, sender.data, sendMessageDto.content);
 
-        const savedMessage = await this.messageRepository.save(message);
+        if (!savedMessage) throw new InternalServerErrorException({ message: "Internal Server Error while saving message " });
 
         if (sendMessageDto.attachments?.length) {
 
@@ -128,7 +127,7 @@ export class WebsocketService {
 
             for (let index = 0; index < sendMessageDto.attachments.length; index++) {
                 const media = sendMessageDto.attachments[index];
-                let attachment: MessageAttachment
+                let attachment: MessageAttachment | null
 
                 if (media.mediaType === "video") {
                     const video = await this.videoService.findVideoById(media.media.id);
@@ -137,13 +136,9 @@ export class WebsocketService {
                         throw new Error('Video not found');
                     }
 
-                    attachment = this.messageAttachmentRepository.create({
-                        message: savedMessage,
-                        mediaType: media.mediaType,
-                        mimeType: video.mimeType,
-                        media: video,
-                        order: index,
-                    });
+                    attachment = await this.messageAttachmentRepository.createMessageAttachment(savedMessage, media.mediaType, video.mimeType, video, index);
+
+                    if (!attachment) throw new InternalServerErrorException({ message: "Failed to create message attachment" });
                 } else {
                     const file = await this.fileService.findFileById(media.media.id);
 
@@ -154,13 +149,9 @@ export class WebsocketService {
                     const signedUrlResponse = file ? await this.fileService.getSignedUrl(media.media.id) : "";
                     const url = typeof signedUrlResponse === 'string' ? signedUrlResponse : signedUrlResponse.data;
 
-                    attachment = this.messageAttachmentRepository.create({
-                        message: savedMessage,
-                        mediaType: media.mediaType,
-                        mimeType: file.mimeType,
-                        media: file,
-                        order: index,
-                    });
+                    attachment = await this.messageAttachmentRepository.createMessageAttachment(savedMessage, media.mediaType, file.mimeType, file, index);
+
+                    if (!attachment) throw new InternalServerErrorException({ message: "Failed to create message attachment" });
 
                     attachment.url = url;
                 }
@@ -169,15 +160,17 @@ export class WebsocketService {
             }
 
             const savedAttachments =
-                await this.messageAttachmentRepository.save(attachmentEntities);
+                await this.messageAttachmentRepository.saveMessageAttachment(attachmentEntities);
+
+            if (!savedAttachments) throw new InternalServerErrorException({ message: "Failed to save message attachments " });
 
             savedMessage.attachments = savedAttachments;
         }
 
         await this.notificationService.create(
-            sender.id,
+            sender.data.id,
             conversation.id,
-            `New Message from ${sender.name}`,
+            `New Message from ${sender.data.name}`,
             getTodayDate(),
             getCurrentTimePlusSeconds(120),
             'UTC'
