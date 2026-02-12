@@ -170,6 +170,7 @@ export class CartService {
             const { product, ...rest } = item;
             return {
                 ...rest,
+                productId: product.id,
                 image: product.image,
                 name: product.name,
                 mealType: product.mealType,
@@ -233,7 +234,23 @@ export class CartService {
     }
 
     async removeCartItemById(productId: string, userId: string): Promise<APIResponse> {
-        const affectedRows = await this.cartItemRepository.delete({ product: { id: productId }, cart: { user: { id: userId } } });
+        // 1️⃣ Get the active cart for the user
+        const cart = await this.cartRepository.findOne({
+            where: {
+                user: { id: userId },
+                status: 'ACTIVE',
+            },
+        });
+
+        if (!cart) {
+            throw new NotFoundException('Cart not found');
+        }
+
+        // 2️⃣ Delete cart item using direct relation ids
+        const affectedRows = await this.cartItemRepository.delete({
+            cart: { id: cart.id },
+            product: { id: productId },
+        });
 
         if (affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while removing product from cart!" });
 
