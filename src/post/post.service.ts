@@ -8,29 +8,30 @@ import { User } from '../user/entities/user.entity';
 import { PostEntity } from './entities/post.entity';
 import { CreatePostDTO } from './dtos/create-post.dto';
 import { UpdatePostDTO } from './dtos/update-post.dto';
+import { PostRepository } from './post.repository';
 
 @Injectable()
 export class PostService {
     constructor(
-        @InjectRepository(PostEntity)
-        private readonly postRepository: Repository<PostEntity>
+        @InjectRepository(PostRepository)
+        private readonly postRepository: PostRepository
     ) { }
 
-    async findAll(user: User): Promise<APIResponse> {
-        const posts = await this.postRepository.find({ where: { user: user }, relations: ['user'] });
+    async findAll(userId: string): Promise<APIResponse> {
+        const posts = await this.postRepository.findAll(userId);
         if (!posts) throw new NotFoundException('No posts found.');
 
         return {
             success: true,
             message: "Posts fetched successfully",
-            data: posts,
+            data: posts.length > 0 ? posts : [],
             expired: false,
             statusCode: 200
         };
     }
 
     async findOne(id: string): Promise<APIResponse> {
-        const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
+        const post = await this.postRepository.findById(id);
         if (!post) throw new NotFoundException('Post not found.');
 
         return {
@@ -42,23 +43,18 @@ export class PostService {
         };
     }
 
-    async create(post: CreatePostDTO, user: User): Promise<APIResponse> {
-        if (!user) throw new BadRequestException('User not found.');
+    async create(post: CreatePostDTO, userId: string): Promise<APIResponse> {
+        if (!userId) throw new BadRequestException('User not found.');
 
-        const newPost = this.postRepository.create({
-            name: post.name,
-            description: post.description,
-            user: user
-        });
+        const newPost = this.postRepository.createPost(post, userId);
 
-        const savePost = await this.postRepository.save(newPost);
-        if (!savePost) throw new InternalServerErrorException('Failed to create post.');
+        if (!newPost) throw new InternalServerErrorException('Failed to create post.');
 
         return {
             success: true,
             message: "Post created successfully.",
             expired: false,
-            data: savePost,
+            data: newPost,
             statusCode: 201
         }
     }
@@ -70,7 +66,7 @@ export class PostService {
         if (postDTO.name) existingPost.data.name = postDTO.name;
         if (postDTO.description) existingPost.data.description = postDTO.description;
 
-        const savePost = await this.postRepository.save(postDTO);
+        const savePost = await this.postRepository.updatePost(existingPost.data);
         if (!savePost) throw new InternalServerErrorException('Failed to update post.');
 
         return {
@@ -86,15 +82,15 @@ export class PostService {
         const existingPost = await this.findOne(id);
         if(existingPost.data.user.id !== user.id) throw new BadRequestException('You can only delete your own posts.');
 
-        const deletePost = await this.postRepository.softDelete(id);
-        if(deletePost.affected === undefined && deletePost.affected === null && deletePost.affected === 0) throw new InternalServerErrorException("Error while deleting post.");
+        const deletePost = await this.postRepository.softDeletePost(id);
+        if(!deletePost) throw new InternalServerErrorException("Error while deleting post.");
 
         return {
             success: true,
             statusCode: 200,
             message: "Post deleted successfully.",
             expired: false,
-            data: deletePost.raw
+            data: null
         }
     }
 }

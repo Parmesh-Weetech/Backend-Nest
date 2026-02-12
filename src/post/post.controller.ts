@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
 import { APIResponse } from '../common/response/response.dto';
@@ -23,10 +23,9 @@ export class PostController {
         private readonly postService: PostService
     ) { }
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Get()
-    async findAll(@CurrentUser() user: User): Promise<APIResponse> {
-        return await this.postService.findAll(user);
+    async findAll(@Req() req): Promise<APIResponse> {
+        return await this.postService.findAll(req.currentUser.id);
     }
 
     @Get(":id")
@@ -37,8 +36,8 @@ export class PostController {
     @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.CREATE)
     @Post()
-    async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.postService.create(createPostDTO, user);
+    async create(@Body() createPostDTO: CreatePostDTO, @Req() req): Promise<APIResponse> {
+        return await this.postService.create(createPostDTO, req.currentUser.id);
     }
 
     @UseInterceptors(CurrentUserInterceptor)
