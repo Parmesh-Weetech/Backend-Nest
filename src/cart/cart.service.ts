@@ -93,7 +93,15 @@ export class CartService {
 
         return {
             success: true,
-            data: cartItem.data,
+            data: {
+                id: cartItem.data.cart.id,
+                productId: cartItem.data.product.id,
+                quantity: cartItem.data.quantity,
+                price: cartItem.data.price,
+                image: cartItem.data.product.image,
+                mealType: cartItem.data.product.mealType,
+                name: cartItem.data.product.name
+            },
             expired: false,
             message: "Quantity Updated Successfully.",
             statusCode: 200
