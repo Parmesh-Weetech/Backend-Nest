@@ -63,7 +63,7 @@ import { APP_GUARD } from '@nestjs/core';
         throttlers: [
           {
             ttl: 60000,
-            limit: 1
+            limit: 20
           },
         ],
         storage: new ThrottlerStorageRedisService(
