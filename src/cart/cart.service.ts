@@ -234,7 +234,6 @@ export class CartService {
     }
 
     async removeCartItemById(productId: string, userId: string): Promise<APIResponse> {
-        // 1️⃣ Get the active cart for the user
         const cart = await this.cartRepository.findOne({
             where: {
                 user: { id: userId },
@@ -246,7 +245,6 @@ export class CartService {
             throw new NotFoundException('Cart not found');
         }
 
-        // 2️⃣ Delete cart item using direct relation ids
         const affectedRows = await this.cartItemRepository.delete({
             cart: { id: cart.id },
             product: { id: productId },
