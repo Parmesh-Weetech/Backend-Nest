@@ -40,7 +40,7 @@ export class CartService {
 
         /* 🔍 Fetch all products in one query */
         const products = await this.productRepository.findBy({
-            id: In(productIds),
+            id: In(productIds)
         });
 
         if (products.length !== productIds.length) {
