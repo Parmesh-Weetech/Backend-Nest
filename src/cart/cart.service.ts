@@ -162,7 +162,15 @@ export class CartService {
 
         return {
             success: true,
-            data: cartItem,
+            data: {
+                id: cartItem.cart.id,
+                productId: cartItem.product.id,
+                name: cartItem.product.name,
+                image: cartItem.product.image,
+                quantity: cartItem.quantity,
+                price: cartItem.price,
+                mealType: cartItem.product.mealType
+            },
             expired: false,
             message: "Cart Item fetch successfully.",
             statusCode: 200
