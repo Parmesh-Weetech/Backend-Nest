@@ -155,7 +155,7 @@ export class CartService {
         if (!cartItem || cartItem.length == 0) {
             const cart = await this.cartRepository.find({ where: { user: { id: user.id } } });
 
-            if (!cart) throw new NotFoundException("Cart not found.");
+            if (!cart) throw new NotFoundException("Cart or CartItem not found.");
 
             return {
                 success: true,
@@ -166,9 +166,20 @@ export class CartService {
             }
         }
 
+        const formattedCartItems = cartItem.map((item) => {
+            return {
+                ...item,
+                product: {
+                    image: item.product.image,
+                    name: item.product.name,
+                    mealType: item.product.mealType
+                }
+            };
+        });
+
         return {
             success: true,
-            data: cartItem,
+            data: formattedCartItems,
             message: "Cart fetched successfully.",
             expired: false,
             statusCode: 200
