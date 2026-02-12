@@ -1,0 +1,28 @@
+version: "3.9"
+name: redis-prod
+services:
+  redis:
+    image: redis:8.4.0
+    container_name: redis
+    restart: always
+
+    ports:
+      - "6379:6379"
+
+    command: >
+      redis-server
+      --appendonly yes
+      --save 60 1
+      --loglevel notice
+
+    volumes:
+      - redis-data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis-data:

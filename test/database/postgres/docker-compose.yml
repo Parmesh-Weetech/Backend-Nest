@@ -1,0 +1,12 @@
+name: div-test
+version: "3.8"
+services:
+  postgres:
+    image: "postgres:14.5"
+    ports:
+      - "5441:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "div"
+      POSTGRES_PASSWORD: "divpassword"
+      POSTGRES_DB: "divdata"
