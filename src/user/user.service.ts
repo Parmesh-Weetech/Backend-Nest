@@ -8,12 +8,12 @@ import { RoleService } from '../role/role.service';
 import { OrganizationService } from '../organization/organization.service';
 import { APIResponse } from '../common/response/response.dto';
 import { CacheService } from '../cache/cache.service';
+import { type IUserRepository } from './user.repository.interface';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User) 
-        private readonly userRepository: Repository<User>,
+        @Inject('USERS_REPOSITORY') private readonly userRepository: IUserRepository,
         @Inject(forwardRef(() => RoleService))
         private readonly roleService: RoleService,
 
@@ -35,196 +35,105 @@ export class UserService {
         let cachedUsers = await this.cacheService.get<User[]>(usersKey);
 
         if (!cachedUsers) {
-            const users = await this.userRepository.find({ where: { id: Not(user.id) }, relations: ['roles'] });
+            const users = await this.userRepository.findAll(user.id);
 
             if (!users || users.length === 0) throw new NotFoundException('Users not found.');
 
             cachedUsers = users;
-
             await this.cacheService.set(usersKey, users, 600);
         }
 
-        const response = cachedUsers.map((user) => {
-            return {
+        return {
+            success: true,
+            data: cachedUsers.map((user) => ({
                 id: user.id,
                 name: user.name,
-                email: user.email
-            }
-        })
-
-        return {
-            success: true,
-            data: response,
+                email: user.email,
+            })),
             expired: false,
             message: 'Users fetched successfully.',
             statusCode: 200,
-        };
-    }
-
-    async findAllUser(currentUser: User): Promise<APIResponse> {
-        const users = await this.userRepository.find({ where: { id: Not(currentUser.id) }, relations: ['roles'] });
-
-        if (!users || users.length === 0) throw new NotFoundException('Users not found.');
-
-        return {
-            success: true,
-            data: users,
-            expired: false,
-            message: 'Users fetched successfully.',
-            statusCode: 200,
-        };
-    }
-
-    async findOne(id: string): Promise<APIResponse> {
-        const cacheKey = this.userKey(id);
-        let cachedUser = await this.cacheService.get(cacheKey);
-
-        if (!cachedUser) {
-            const fetchedUser = await this.userRepository.findOne({ where: { id: id }, relations: {
-                organization: true,
-                roles: {
-                    organization: true,
-                    permissions: {
-                        organization: true,
-                    },
-                },
-            } });
-
-            if (!fetchedUser) throw new NotFoundException('User not found.');
-
-            cachedUser = fetchedUser;
-
-            await this.cacheService.set(cacheKey, fetchedUser, 600);
-        }
-
-        return {
-            success: true,
-            data: cachedUser,
-            expired: false,
-            message: "User fetched successfully.",
-            statusCode: 200
         };
     }
 
     async create(createUserDTO: CreateUserDTO, orgId: string): Promise<APIResponse> {
         const roles = await Promise.all(
-            createUserDTO.roleIds.map(roleId =>
-                this.roleService.findOne(roleId),
-            ),
+            createUserDTO.roleIds.map((roleId) => this.roleService.findOne(roleId))
         );
-
-        const requiredRoles = roles.map(role => role.data)
 
         const organization = await this.organizationService.findOne(orgId);
         if (!organization) throw new NotFoundException('Organization not found.');
 
-        const newUser = await this.userRepository.create({
+        const newUser = {
             name: createUserDTO.name,
             email: createUserDTO.email,
             password: createUserDTO.password,
-            roles: requiredRoles,
-            organization: organization.data
-        });
+            roles: roles.map((role) => role.data),
+            organization: organization.data,
+        };
 
-        const savedUser = await this.userRepository.save(newUser);
+        const savedUser = await this.userRepository.create(newUser);
         if (!savedUser) throw new InternalServerErrorException('User could not be created.');
 
         return {
             success: true,
             data: savedUser,
             expired: false,
-            message: "User created successfully.",
-            statusCode: 201
-        }
+            message: 'User created successfully.',
+            statusCode: 201,
+        };
     }
 
     async update(updateUserDTO: updateUserDTO): Promise<APIResponse> {
-        const user = await this.findOne(updateUserDTO.id);
+        const user = await this.userRepository.findOne(updateUserDTO.id);
+        if (!user) throw new NotFoundException('User not found.');
 
-        if (updateUserDTO.roleIds) {
-            const roles = await Promise.all(
-                updateUserDTO.roleIds.map(roleId =>
-                    this.roleService.findOne(roleId),
-                ),
-            );
+        const roles = updateUserDTO.roleIds
+            ? await Promise.all(
+                updateUserDTO.roleIds.map((roleId) => this.roleService.findOne(roleId))
+            )
+            : user.data.roles;
 
-            user.data.roles = roles;
-        }
+        const organization =
+            updateUserDTO.organizationId &&
+            (await this.organizationService.findOne(updateUserDTO.organizationId));
 
-        if (updateUserDTO.name) user.data.name = updateUserDTO.name;
-        if (updateUserDTO.email) user.data.email = updateUserDTO.email;
-        if (updateUserDTO.password) user.data.password = updateUserDTO.password;
-        if (updateUserDTO.organizationId) {
-            const organization = await this.organizationService.findOne(updateUserDTO.organizationId);
-            if (!organization) throw new NotFoundException('Organization not found.');
+        if (!organization || organization.data === "") throw new NotFoundException({ message: "Organization not found while updating user " });
 
-            user.data.organization = organization.data;
-        }
+        const updatedUserData = {
+            ...user.data,
+            name: updateUserDTO.name || user.data.name,
+            email: updateUserDTO.email || user.data.email,
+            password: updateUserDTO.password || user.data.password,
+            roles: roles || user.data.roles,
+            organization: organization.data || user.data.organization,
+        };
 
-        const savedUser = await this.userRepository.save(user.data);
+        const savedUser = await this.userRepository.update(updateUserDTO.id, updatedUserData);
         if (!savedUser) throw new InternalServerErrorException('User could not be updated.');
 
         return {
             success: true,
             data: savedUser,
             expired: false,
-            message: "User updated successfully.",
-            statusCode: 200
-        }
+            message: 'User updated successfully.',
+            statusCode: 200,
+        };
     }
 
     async remove(id: string): Promise<APIResponse> {
-        await this.findOne(id);
-
-        const affectedRows = await this.userRepository.softDelete(id);
-
-        if ((affectedRows.affected === null || affectedRows.affected === undefined) && affectedRows.affected === 0) throw new InternalServerErrorException('User could not be deleted.');
-
-        return {
-            success: true,
-            data: affectedRows,
-            expired: false,
-            message: "User deleted successfully.",
-            statusCode: 200
-        }
-    }
-
-    async findOneByEmail(email: string): Promise<APIResponse> {
-        const user = await this.userRepository.findOne({ where: { email: email }, relations: ['roles'] });
+        const user = await this.userRepository.findOne(id);
         if (!user) throw new NotFoundException('User not found.');
 
-        return {
-            success: true,
-            data: user,
-            expired: false,
-            message: "User fetched successfully.",
-            statusCode: 200
-        };
-    }
-
-    async findOneWithRolesAndPermissions(userId: string): Promise<APIResponse> {
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-            relations: {
-                organization: true,
-                roles: {
-                    organization: true,
-                    permissions: {
-                        organization: true,
-                    },
-                },
-            },
-        });
-
-        if (!user) throw new NotFoundException('User not found.');
+        const result = await this.userRepository.remove(id);
+        if (!result) throw new InternalServerErrorException('User could not be deleted.');
 
         return {
             success: true,
-            data: user,
+            data: result,
             expired: false,
-            message: "User fetched successfully.",
-            statusCode: 200
+            message: 'User deleted successfully.',
+            statusCode: 200,
         };
     }
-
 }

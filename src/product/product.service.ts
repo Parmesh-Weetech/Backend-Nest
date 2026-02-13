@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -8,80 +8,32 @@ import { User } from '../user/entities/user.entity';
 import { Product } from './entities/product.entity';
 import { CreateProductDTO } from './dtos/create-product.dto';
 import { UpdateProductDTO } from './dtos/update-product.dto';
+import { type IProductRepository, PRODUCT_REPOSITORY } from './product.repository.interface';
 
 @Injectable()
 export class ProductService {
     constructor(
-        @InjectRepository(Product)
-        private readonly productRepository: Repository<Product>
+        @Inject(PRODUCT_REPOSITORY)
+        private readonly productRepository: IProductRepository,
     ) { }
-    async findAll(
-        skip: number,
-        take: number,
-        search?: string,
-        filter?: {
-            _cuisine?: string[],
-            _price?: [number, number],
-        },
-        sort = 'name',
-        order: 'ASC' | 'DESC' = 'ASC',
-    ): Promise<APIResponse> {
-
-        const qb = this.productRepository
-            .createQueryBuilder('product')
-            .where('product.deleted_at IS NULL');
-
-        /* 🔍 Search */
-        /* 🔍 Search */
-        if (search) {
-            qb.andWhere(
-                `
-                        product.name ILIKE :searchLike
-                        OR EXISTS (
-                        SELECT 1
-                        FROM unnest(product.mealType) mt
-                        WHERE mt ILIKE :searchLike
-                    )
-                `,
-                {
-                    searchLike: `%${search}%`,
-                },
+    async findAll(skip, take, search, filter, sort, order) {
+        const { items, total } =
+            await this.productRepository.findAll(
+                skip,
+                take,
+                search,
+                filter,
+                sort,
+                order,
             );
-        }
-
-        /* 🍽 Cuisine filter */
-        if (filter?._cuisine?.length) {
-            qb.andWhere('product.cuisine IN (:...cuisines)', {
-                cuisines: filter._cuisine,
-            });
-        }
-
-        /* 💰 Price range */
-        if (filter?._price && filter._price.length === 2) {
-            qb.andWhere(
-                'product.price BETWEEN :min AND :max',
-                {
-                    min: filter._price[0],
-                    max: filter._price[1],
-                },
-            );
-        }
-
-        /* ↕ Sorting */
-        qb.orderBy(`product.${sort}`, order);
-
-        /* 📄 Pagination */
-        qb.skip(skip).take(take);
-
-        const [products, total] = await qb.getManyAndCount();
 
         return {
             success: true,
-            message: products.length
+            message: items.length
                 ? 'Products fetched successfully.'
                 : 'No Products found.',
             data: {
-                items: products,
+                items,
                 meta: {
                     totalItems: total,
                     skip,
@@ -94,134 +46,106 @@ export class ProductService {
         };
     }
 
-
-    async findOne(id: string): Promise<APIResponse> {
-        const product = await this.productRepository.findOne({ where: { id: id } });
+    async findOne(id: string) {
+        const product = await this.productRepository.findOne(id);
 
         if (!product) throw new NotFoundException('Product not found.');
 
         return {
             success: true,
-            message: "Product fetched successfully.",
             data: product,
+            message: 'Product fetched successfully.',
+            statusCode: 200,
             expired: false,
-            statusCode: 200
-        }
+        };
     }
 
-    async create(product: CreateProductDTO, user: User): Promise<APIResponse> {
-        const newProduct = this.productRepository.create({
-            name: product.name,
-            user: user,
-            image: product.image,
-            price: product.price,
-            rating: product.rating,
-            mealType: product.mealType,
-            cuisine: product.cuisine,
-            ingredients: product.ingredients,
-            instructions: product.instructions
+    async create(product, user) {
+        const newProduct = await this.productRepository.create({
+            ...product,
+            user: user.id,
         });
 
-        const saveProduct = await this.productRepository.save(newProduct);
-        if (!saveProduct) throw new InternalServerErrorException('Failed to create product.');
+        if (!newProduct)
+            throw new InternalServerErrorException('Failed to create product.');
 
         return {
             success: true,
-            message: "Product saved successfully.",
+            message: 'Product saved successfully.',
+            data: newProduct,
             statusCode: 201,
             expired: false,
-            data: saveProduct
-        }
+        };
     }
 
-    async insertBulk(
-        products: CreateProductDTO[],
-        user: User,
-    ): Promise<APIResponse> {
-        const data = products.map(product => ({
-            ...product,
-            user,
+    async insertBulk(products, user) {
+        const data = products.map(p => ({
+            ...p,
+            user: user.id,
         }));
 
-        const result = await this.productRepository
-            .createQueryBuilder()
-            .insert()
-            .into(Product)
-            .values(data)
-            .returning('*')
-            .execute();
-
-        if (!result.raw.length) {
-            throw new InternalServerErrorException(
-                'Failed to insert bulk products.',
-            );
-        }
+        const result = await this.productRepository.insertBulk(data);
 
         return {
             success: true,
             message: 'Successfully inserted all products.',
-            data: result.raw,
-            expired: false,
+            data: result,
             statusCode: 201,
+            expired: false,
         };
     }
 
-    async update(product: UpdateProductDTO, user: User): Promise<APIResponse> {
-        const existingProduct = await this.productRepository.findOne({ where: { id: product.id } })
+    async update(product, user) {
+        const updated = await this.productRepository.update(
+            product.id,
+            product,
+        );
 
-        if (!product.name && existingProduct?.name) product.name = existingProduct.name;
-        if (!product.image && existingProduct?.image) product.image = existingProduct.image;
-        if (!product.price && existingProduct?.price) product.price = existingProduct.price;
-        if (!product.rating && existingProduct?.rating) product.rating = existingProduct.rating;
-        if (!product.mealType?.length && existingProduct?.mealType?.length) product.mealType = existingProduct.mealType as [string];
-        if (!product.cuisine && existingProduct?.cuisine) product.cuisine = existingProduct.cuisine;
-        if (!product.ingredients?.length && existingProduct?.ingredients?.length) product.ingredients = existingProduct.ingredients as [string];
-        if (!product.instructions?.length && existingProduct?.instructions?.length) product.instructions = existingProduct.instructions as [string];
-
-        const saveProduct = await this.productRepository.save(product);
-        if (!saveProduct) throw new InternalServerErrorException('Failed to update product.');
+        if (!updated)
+            throw new InternalServerErrorException(
+                'Failed to update product.',
+            );
 
         return {
             success: true,
-            message: "Product updated successfully.",
+            message: 'Product updated successfully.',
+            data: updated,
             statusCode: 200,
             expired: false,
-            data: saveProduct
-        }
+        };
     }
 
-    async deleteAll(user: User): Promise<APIResponse> {
-        const existingProduct = await this.productRepository.find({ where: { user: { id: user.id } } });
+    async deleteAll(user) {
+        const count =
+            await this.productRepository.softDeleteByUser(user.id);
 
-        if (existingProduct.length === 0) throw new NotFoundException('Products associated with current user not found.');
-
-        const deleteProduct = await this.productRepository.softDelete({ user: user });
-
-        if (deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) throw new InternalServerErrorException('Products associated with current user not found.');
+        if (!count)
+            throw new NotFoundException(
+                'Products associated with current user not found.',
+            );
 
         return {
-            success: false,
-            message: "Products associated with current user is not deleted.",
+            success: true,
+            message: 'Products deleted successfully.',
             data: null,
+            statusCode: 200,
             expired: false,
-            statusCode: 400
-        }
+        };
     }
 
-    async deleteById(id: string): Promise<APIResponse> {
-        const existingProduct = await this.productRepository.findOne({ where: { id: id } });
-        if (!existingProduct) throw new NotFoundException('Product associated with current user not found.');
+    async deleteById(id: string) {
+        const deleted =
+            await this.productRepository.softDeleteById(id);
 
-        const deleteProduct = await this.productRepository.softDelete({ id: id });
-
-        if (deleteProduct.affected !== null && deleteProduct.affected !== undefined && deleteProduct.affected > 0) throw new InternalServerErrorException('Product associated with current user is not deleted.');
+        if (!deleted)
+            throw new NotFoundException('Product not found.');
 
         return {
-            success: false,
-            message: "Product associated with current user is not deleted.",
+            success: true,
+            message: 'Product deleted successfully.',
             data: null,
+            statusCode: 200,
             expired: false,
-            statusCode: 400
-        }
+        };
     }
 }

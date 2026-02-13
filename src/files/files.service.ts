@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     ForbiddenException,
+    Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException
@@ -16,12 +17,13 @@ import { User } from '../user/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
 
 import { Files } from './entities/File.entity';
+import { FILES_REPOSITORY, type IFilesRepository } from './files.repository.interface';
 
 @Injectable()
 export class FilesService {
     constructor(
-        @InjectRepository(Files)
-        private readonly fileRepository: Repository<Files>,
+        @Inject(FILES_REPOSITORY)
+        private readonly fileRepository: IFilesRepository,
         private readonly storageService: StorageService,
         private readonly configService: ConfigService
     ) { }
@@ -39,7 +41,7 @@ export class FilesService {
         await this.storageService.upload(path, fileStream, file.mimetype);
 
         try {
-            const savedFile = await this.fileRepository.save({
+            const savedFile = await this.fileRepository.create({
                 user: user,
                 path,
                 mimeType: file.mimetype,
@@ -69,12 +71,7 @@ export class FilesService {
 
 
     async listFiles(user: User): Promise<APIResponse> {
-        const files = await this.fileRepository.find({
-            where: {
-                user: user,
-                status: Not(In(['ORPHAN', 'PENDING'])),
-            },
-        });
+        const files = await this.fileRepository.findByUser(user.id);
 
         if (!files || files.length === 0) throw new NotFoundException("Files not found.");
 
@@ -99,7 +96,7 @@ export class FilesService {
     }
 
     async downloadFile(fileId: string): Promise<APIResponse> {
-        const file = await this.fileRepository.findOne({ where: { id: fileId }, relations: ["user"] });
+        const file = await this.fileRepository.findByIdWithUser(fileId);
         if (!file) throw new NotFoundException('File not found');
 
         if (file.status !== 'ACTIVE') {
@@ -122,7 +119,7 @@ export class FilesService {
     }
 
     async getSignedUrl(fileId: string): Promise<APIResponse> {
-        const file = await this.fileRepository.findOne({ where: { id: fileId } });
+        const file = await this.fileRepository.findById(fileId);
         if (!file) throw new NotFoundException('File not found');
 
         const response = this.storageService.getSignedUrl(file.path);
@@ -137,7 +134,7 @@ export class FilesService {
     }
 
     async getFileById(fileId: string) {
-        return await this.fileRepository.findOne({ where: { id: fileId } });
+        return await this.fileRepository.findById(fileId);
     }
 
     async createSignedUploadUrl(
@@ -152,7 +149,7 @@ export class FilesService {
 
         const { signedUrl } = await this.storageService.createSignedUploadUrl(path);
 
-        const file = await this.fileRepository.save({
+        const file = await this.fileRepository.create({
             user: user,
             path: path,
             status: "PENDING",
@@ -174,20 +171,20 @@ export class FilesService {
     }
 
     async confirmFileUpload(fileId: string): Promise<APIResponse> {
-        const fileMetadata = await this.fileRepository.findOne({ where: { id: fileId }, relations: ['user'] });
+        const fileMetadata = await this.fileRepository.findByIdWithUser(fileId);
         if (!fileMetadata) throw new NotFoundException('File metadata not found');
 
         const exists = await this.storageService.exists(fileMetadata.path);
         if (!exists) {
             fileMetadata.status = 'ORPHAN';
-            await this.fileRepository.save(fileMetadata);
+            await this.fileRepository.update(fileId, fileMetadata);
 
             throw new NotFoundException('File not found in storage');
         }
 
         fileMetadata.status = 'ACTIVE';
 
-        const file = await this.fileRepository.save(fileMetadata);
+        const file = await this.fileRepository.update(fileId, fileMetadata);
         if (!file) {
             throw new InternalServerErrorException('Failed to update file status');
         }
@@ -202,9 +199,7 @@ export class FilesService {
     }
 
     async deleteFile(fileId: string, user: User): Promise<APIResponse> {
-        const file = await this.fileRepository.findOne({
-            where: { id: fileId },
-        });
+        const file = await this.fileRepository.findById(fileId);
 
         if (!file) {
             throw new NotFoundException('File not found');
@@ -222,7 +217,7 @@ export class FilesService {
 
         const databaseResponse = await this.fileRepository.delete(file.id);
 
-        if (databaseResponse.affected === null || databaseResponse.affected === undefined || databaseResponse.affected === 0) {
+        if (!databaseResponse) {
             throw new InternalServerErrorException('Failed to delete file record from database');
         }
 
