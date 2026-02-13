@@ -1,32 +1,28 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
-import { Auth } from '../common/util/auth';
 import { APIResponse } from '../common/response/response.dto';
-import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 
 import { Organization } from './entities/organization.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { type IOrganizationRepository, ORGANIZATION_REPOSITORY } from './organization.repository.interface';
 
 @Injectable()
 export class OrganizationService {
   constructor(
-    @InjectRepository(Organization)
-    private readonly organizationRepository: Repository<Organization>,
-
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
-
-    private readonly auth: Auth,
+    @Inject(ORGANIZATION_REPOSITORY)
+    private readonly organizationRepository: IOrganizationRepository,
   ) { }
 
   async findAll(user: User): Promise<APIResponse> {
-    const organizations = await this.organizationRepository.find({ where: { users: In([user.id]) }, relations: ['users'] });
+    const organizations =
+      await this.organizationRepository.findAllByUser(user.id);
 
-    if (!organizations) throw new NotFoundException('No organizations found.');
+    if (!organizations || organizations.length === 0)
+      throw new NotFoundException('No organizations found.');
 
     return {
       success: true,
@@ -38,7 +34,7 @@ export class OrganizationService {
   }
 
   async findOne(id: string): Promise<APIResponse> {
-    const organization = await this.organizationRepository.findOne({ where: { id: id } });
+    const organization = await this.organizationRepository.findById(id);
 
     if (!organization) throw new NotFoundException('Organization not found.');
 
@@ -52,9 +48,7 @@ export class OrganizationService {
   }
 
   async create(createOrganizationDto: CreateOrganizationDto): Promise<APIResponse> {
-    const newOrganization = this.organizationRepository.create(createOrganizationDto);
-
-    const organization = await this.organizationRepository.save(newOrganization);
+    const organization = await this.organizationRepository.create(createOrganizationDto);
 
     if (!organization) throw new InternalServerErrorException('Failed to create organization.');
 
@@ -68,11 +62,10 @@ export class OrganizationService {
   }
 
   async update(updateOrganizationDto: UpdateOrganizationDto): Promise<APIResponse> {
-    const existingOrganization = await this.findOne(updateOrganizationDto.id);
-
-    if (updateOrganizationDto.name) existingOrganization.data.name = updateOrganizationDto.name;
-
-    const organization = await this.organizationRepository.save(existingOrganization.data);
+    const organization = await this.organizationRepository.update(
+      updateOrganizationDto.id,
+      { name: updateOrganizationDto.name }
+    );
     if (!organization) throw new InternalServerErrorException('Failed to update organization.');
 
     return {
@@ -89,14 +82,14 @@ export class OrganizationService {
 
     const res = await this.organizationRepository.softDelete(id);
 
-    if (res.affected === null && res.affected === undefined && res.affected === 0) {
+    if (!res) {
       throw new InternalServerErrorException("Error while removing organization.")
     }
 
     return {
       success: true,
       expired: false,
-      data: res.raw,
+      data: null,
       message: "Organization removed successfully.",
       statusCode: 200
     }

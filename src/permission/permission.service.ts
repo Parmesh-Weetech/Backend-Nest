@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -8,19 +8,19 @@ import { OrganizationService } from '../organization/organization.service';
 import { Permission } from './entities/permission.entity';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto';
 import { CreatePermissionDTO } from './dtos/create-permission.dto';
+import { type IPermissionRepository, PERMISSION_REPOSITORY } from './permission.repository.interface';
 
 @Injectable()
 export class PermissionService {
     constructor(
-        @InjectRepository(Permission)
-        private readonly permissionRepository: Repository<Permission>,
-        private readonly organizationService: OrganizationService
+        @Inject(PERMISSION_REPOSITORY)
+        private readonly permissionRepository: IPermissionRepository,
+        private readonly organizationService: OrganizationService,
     ) { }
 
     async findAll(): Promise<APIResponse> {
-        const permissions = await this.permissionRepository.find({
-            relations: ['roles']
-        });
+        const permissions = await this.permissionRepository.findAll();
+
         if (!permissions) throw new NotFoundException('No permissions found.');
 
         return {
@@ -33,7 +33,7 @@ export class PermissionService {
     }
 
     async findOne(id: string): Promise<APIResponse> {
-        const perm = await this.permissionRepository.findOne({ where: { id }, relations: ['roles'] });
+        const perm = await this.permissionRepository.findById(id);
         if (!perm) throw new NotFoundException('Permission not found.');
 
         return {
@@ -48,19 +48,19 @@ export class PermissionService {
     async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
         const organization = await this.organizationService.findOne(orgId);
 
-        const existingPermissions = await this.permissionRepository.findOne({ where: { entity: dto.entity, action: dto.action, organization: organization.data } });
+        const existingPermissions =
+            await this.permissionRepository.findByEntityActionAndOrg(
+                dto.entity,
+                dto.action,
+                orgId,
+            );
         if (existingPermissions) throw new ForbiddenException("Permission already exists!");
 
-        const permission = this.permissionRepository.create({
-            key: dto.key,
-            label: dto.label,
-            description: dto.description,
-            entity: dto.entity,
-            action: dto.action,
-            organization: organization.data
-        });
-
-        const newPermission = await this.permissionRepository.save(permission);
+        const newPermission =
+            await this.permissionRepository.create({
+                ...dto,
+                organization: orgId,
+            });
         if (!newPermission) throw new InternalServerErrorException('Failed to create permission');
 
         return {
@@ -91,7 +91,8 @@ export class PermissionService {
             });
         }
 
-        const updatedPermission = await this.permissionRepository.save(perm.data);
+        const updatedPermission =
+            await this.permissionRepository.update(dto.id, dto);
         if (!updatedPermission) throw new InternalServerErrorException('Failed to update permission');
 
         return {
@@ -108,24 +109,20 @@ export class PermissionService {
 
         const response = await this.permissionRepository.softDelete(id);
 
-        if (response.affected === undefined && response.affected === null && response.affected === 0)
+        if (!response)
             throw new InternalServerErrorException("Error while deleting permission.")
 
         return {
             success: true,
             message: "Permission deleted successfully.",
             expired: false,
-            data: response.raw,
+            data: null,
             statusCode: 200
         }
     }
 
     async findByRoleId(roleId: string): Promise<APIResponse> {
-        const permissions = await this.permissionRepository
-            .createQueryBuilder('permission')
-            .innerJoin('permission.roles', 'role')
-            .where('role.id = :roleId', { roleId })
-            .getMany();
+        const permissions = await this.permissionRepository.findByRoleId(roleId);
 
         if (permissions.length === 0 || !permissions)
             throw new NotFoundException('No permissions found for the given role ID.');

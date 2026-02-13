@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -29,6 +30,8 @@ import { VideoModule } from './video/video.module';
 import { CartModule } from './cart/cart.module';
 import { MongodbModule } from './mongodb/mongodb.module';
 
+dotenv.config();
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,13 +39,23 @@ import { MongodbModule } from './mongodb/mongodb.module';
       cache: true,
       load: [AppConfig, DatabaseConfig]
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ...configService.get('database'),
+    ...(process.env.DATABASE_PROVIDER === "postgres" ? [
+      TypeOrmModule.forRootAsync({
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          ...configService.get('database'),
+        }),
       }),
+    ] : []),
+    ...(process.env.DATABASE_PROVIDER === "mongodb" ? [MongooseModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
-    }),
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URL'),
+        dbName: "test"
+      }),
+    }), MongodbModule] : []),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -76,15 +89,7 @@ import { MongodbModule } from './mongodb/mongodb.module';
         )
       })
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URL'),
-        dbName: "test"
-      }),
-    }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule, MongodbModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule],
   controllers: [AppController],
   providers: [
     AppService,

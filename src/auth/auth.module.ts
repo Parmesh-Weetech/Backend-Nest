@@ -15,11 +15,34 @@ import { Refresh_token } from '../user/entities/refresh_token.entity';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { UserDocument, UserSchema } from './schemas/user.schema';
+import { RefreshTokenDocument, RefreshTokenSchema } from './schemas/refresh-token.schema';
+import { AUTH_REPOSITORY } from './auth.repository.interface';
+import { PostgresAuthRepository } from './postgres-auth.repository';
+import { MongoAuthRepository } from './mongo-auth.repository';
 
 @Module({
-  providers: [AuthService, AuthMiddleware, Auth],
+  providers: [AuthService, AuthMiddleware, Auth, {
+    provide: AUTH_REPOSITORY,
+    useClass:
+      process.env.DATABASE_PROVIDER === 'postgres'
+        ? PostgresAuthRepository
+        : MongoAuthRepository,
+  }],
   imports: [
-    TypeOrmModule.forFeature([User, Refresh_token]),
+    ...(process.env.DATABASE_PROVIDER === 'postgres'
+      ? [TypeOrmModule.forFeature([User, Refresh_token])]
+      : []),
+
+    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+      ? [
+        MongooseModule.forFeature([
+          { name: UserDocument.name, schema: UserSchema },
+          { name: RefreshTokenDocument.name, schema: RefreshTokenSchema },
+        ]),
+      ]
+      : []),
     RoleModule,
     PermissionModule,
     OrganizationModule,

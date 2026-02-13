@@ -28,7 +28,7 @@ async function bootstrap() {
   try {
     const app =
       await NestFactory.create<NestExpressApplication>(AppModule, {
-        logger: ['error'],
+        logger: ['error', 'log', 'debug'],
       });
 
     const configService = app.get(ConfigService);

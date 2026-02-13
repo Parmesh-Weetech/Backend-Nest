@@ -1,5 +1,6 @@
 import {
     ConflictException,
+    Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
@@ -21,12 +22,13 @@ import { Refresh_token } from '../user/entities/refresh_token.entity';
 import { SignupDTO } from './dtos/signup.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { TokenResponse } from './dtos/token-response.dto';
+import { AUTH_REPOSITORY, type IAuthRepository } from './auth.repository.interface';
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
+        @Inject(AUTH_REPOSITORY)
+        private readonly authRepository: IAuthRepository,
 
         @InjectRepository(Refresh_token)
         private readonly refresh_tokenRepository: Repository<Refresh_token>,
@@ -39,7 +41,7 @@ export class AuthService {
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<APIResponse> {
-        const isUserExists = await this.userRepository.findOne({ where: { email: signupDTO.email } });
+        const isUserExists = await this.authRepository.findUserByEmail(signupDTO.email);
         if (isUserExists) throw new ConflictException({ message: "User with this email already exists!" });
 
         const newOrganization = await this.organizationService.create({ name: "Default" });
@@ -67,7 +69,7 @@ export class AuthService {
             permissionIds: newPermissions.map(p => p.id)
         }, newOrganization.data.id);
 
-        const newUser = this.userRepository.create({
+        const user = this.authRepository.createUser({
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
@@ -75,7 +77,6 @@ export class AuthService {
             roles: [newRole.data]
         });
 
-        const user = await this.userRepository.save(newUser);
         if (!user) throw new InternalServerErrorException({ message: "Something went wrong while processing user." });
 
         return {
@@ -93,7 +94,7 @@ export class AuthService {
             if (!organization) throw new NotFoundException({ message: "Organization not found!" });
         }
 
-        const user = await this.userRepository.findOne({ where: { email: loginDTO.email } });
+        const user = await this.authRepository.findUserByEmail(loginDTO.email);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
 
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
@@ -102,13 +103,12 @@ export class AuthService {
         const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email });
         const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
 
-        const saveRefreshToken = this.refresh_tokenRepository.create({
-            user: user,
-            refresh_token: refresh_token
-        });
+        const saveRefreshToken = this.authRepository.saveRefreshToken(
+            user.id,
+            refresh_token
+        );
 
-        const savedRefreshToken = await this.refresh_tokenRepository.save(saveRefreshToken);
-        if (!savedRefreshToken) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
+        if (!saveRefreshToken) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
 
         return {
             success: true,
@@ -124,9 +124,9 @@ export class AuthService {
 
         const decodedPayload = await this.auth.decode(token);
 
-        const deleteRefreshToken = await this.refresh_tokenRepository.delete({ user: { id: decodedPayload.sub }, refresh_token: token });
-        
-        if (deleteRefreshToken.affected === null || deleteRefreshToken.affected === undefined || deleteRefreshToken.affected === 0) {
+        const deleteRefreshToken = await this.authRepository.deleteRefreshToken(decodedPayload.sub, token);
+
+        if (!deleteRefreshToken) {
             throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
         }
 
@@ -145,7 +145,7 @@ export class AuthService {
         const token = type === "Bearer" ? authorization : undefined
         if (!token) throw new UnauthorizedException({ message: "Unauthorized access!" });
 
-        const existingRefreshTokenRecord = await this.refresh_tokenRepository.findOne({ where: { refresh_token: token } });
+        const existingRefreshTokenRecord = await this.authRepository.findRefreshToken(token);
         if (!existingRefreshTokenRecord) throw new NotFoundException({ message: "Token not found." });
 
         const isValid = this.auth.verify(token);
@@ -153,7 +153,7 @@ export class AuthService {
 
         const decode = await this.auth.decode(token);
 
-        const user = await this.userRepository.findOne({ where: { id: decode.sub } });
+        const user = await this.authRepository.findUserById(decode.sub);
         if (!user) throw new NotFoundException({ message: "User not found!" });
 
         const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email });
@@ -163,15 +163,10 @@ export class AuthService {
             await this.logout(refreshToken)
         }
 
-        const updateRefreshTokenRecord = await this.refresh_tokenRepository.update(existingRefreshTokenRecord.id, {
-            refresh_token: newRefreshToken,
-            user: user
-        });
+        const updateRefreshTokenRecord = await this.authRepository.updateRefreshToken(existingRefreshTokenRecord.id, newRefreshToken);
 
         if (
-            updateRefreshTokenRecord.affected === null ||
-            updateRefreshTokenRecord.affected === undefined ||
-            updateRefreshTokenRecord.affected === 0
+            !updateRefreshTokenRecord
         ) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
 
         return {
