@@ -12,16 +12,28 @@ import { VideoController } from './video.controller';
 import { Video } from './entities/video.entity';
 import { VideoSseService } from './videoSse.service';
 import { VideoSseController } from './videoSse.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { VideoDocument, VideoSchema } from './schemas/video.schema';
 
 @Module({
   providers: [VideoService, VideoSseService],
   controllers: [VideoController, VideoSseController],
-  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, TypeOrmModule.forFeature([Video]), BullModule.registerQueue({
-    name: 'video-processing',
-    connection: {
-      url: "redis://localhost:6379"
-    }
-  })],
+  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, ...(process.env.DATABASE_PROVIDER === 'postgres'
+    ? [TypeOrmModule.forFeature([Video])]
+    : []),
+
+    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+      ? [
+        MongooseModule.forFeature([
+          { name: VideoDocument.name, schema: VideoSchema },
+        ]),
+      ]
+      : []), BullModule.registerQueue({
+        name: 'video-processing',
+        connection: {
+          url: "redis://localhost:6379"
+        }
+      })],
   exports: [VideoSseService, VideoService]
 })
 export class VideoModule { }

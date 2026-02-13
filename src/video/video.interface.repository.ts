@@ -1,8 +1,11 @@
-import { Video } from "./entities/video.entity";
+import { Video } from '../video/entities/video.entity';
+
+export const VIDEO_REPOSITORY = 'VIDEO_REPOSITORY';
 
 export interface IVideoRepository {
-    findOneById(id: string): Promise<Video | null>;
-    save(video: Video): Promise<Video>;
-    update(id: string, videoData: Partial<Video>): Promise<Video>;
+    create(data: Partial<Video>): Promise<Video>;
+    save(video: Partial<Video>): Promise<Video>;
+    findById(id: string): Promise<Video | null>;
+    update(id: string, data: Partial<Video>): Promise<void>;
     delete(id: string): Promise<void>;
 }

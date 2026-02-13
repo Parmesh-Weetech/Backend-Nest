@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -13,18 +13,16 @@ import { Conversation } from './entities/conversation.entity';
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { MessageAttachment } from './entities/MessageAttachment.entity';
 import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util';
+import { type IWebsocketRepository, WEBSOCKET_REPOSITORY } from './websocket.repository.interface';
 
 @Injectable()
 export class WebsocketService {
     constructor(
-        @InjectRepository(Conversation)
-        private readonly conversationRepository: Repository<Conversation>,
-        @InjectRepository(Message)
-        private readonly messageRepository: Repository<Message>,
+        @Inject(WEBSOCKET_REPOSITORY)
+        private readonly repo: IWebsocketRepository,
+
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        @InjectRepository(MessageAttachment)
-        private readonly messageAttachmentRepository: Repository<MessageAttachment>,
 
         private readonly fileService: FilesService,
         private readonly videoService: VideoService,
@@ -36,14 +34,7 @@ export class WebsocketService {
     }
 
     async findOrCreateConversation(userId: string, otherUserId: string): Promise<APIResponse> {
-        const conversation = await this.conversationRepository
-            .createQueryBuilder('conversation')
-            .where(
-                '(conversation.user1Id = :userId AND conversation.user2Id = :otherUserId) OR (conversation.user1Id = :otherUserId AND conversation.user2Id = :userId)',
-                { userId, otherUserId }
-            )
-            .getOne();
-
+        const conversation = await this.repo.findConversation(userId, otherUserId);
 
         if (conversation) {
             return {
@@ -55,12 +46,8 @@ export class WebsocketService {
             };
         }
 
-        const newConversationObject = this.conversationRepository.create({
-            user1: { id: userId },
-            user2: { id: otherUserId },
-        });
+        const newConversation = await this.repo.createConversation(userId, otherUserId);
 
-        const newConversation = await this.conversationRepository.save(newConversationObject);
         if(!newConversation) {
             throw new InternalServerErrorException('Failed to create conversation');
         }
@@ -83,19 +70,7 @@ export class WebsocketService {
         //     await this.cacheService.set(messageKey, messages, 600);
         // }
 
-        const messages = await this.messageRepository.find({
-            where: { conversation: { id: conversationId } },
-            order: { createdAt: 'DESC' },
-            relations: {
-                sender: true,
-                conversation: true,
-                attachments: {
-                    media: true,
-                },
-            },
-            skip,
-            take,
-        });
+        const messages = await this.repo.findMessages(conversationId, skip, take);
 
         for (let i = 0; i < messages.length; i++) {
             const message = messages[i];
@@ -128,9 +103,7 @@ export class WebsocketService {
         sendMessageDto: SendMessageDto,
         senderId: string
     ): Promise<Message> {
-        const conversation = await this.conversationRepository.findOne({
-            where: { id: sendMessageDto.conversationId },
-        });
+        const conversation = await this.repo.findConversationById(sendMessageDto.conversationId);
 
         if (!conversation) {
             throw new Error('Conversation not found');
@@ -144,14 +117,14 @@ export class WebsocketService {
             throw new Error('Sender not found');
         }
 
-        const message = this.messageRepository.create({
+        const message = await this.repo.createMessage({
             content: sendMessageDto.content ?? null,
             type: sendMessageDto.type,
             conversation,
             sender
         });
 
-        const savedMessage = await this.messageRepository.save(message);
+        const savedMessage = await this.repo.saveMessage(message);
 
         if (sendMessageDto.attachments?.length) {
 
@@ -185,7 +158,7 @@ export class WebsocketService {
                     const signedUrlResponse = file ? await this.fileService.getSignedUrl(media.media.id) : "";
                     const url = typeof signedUrlResponse === 'string' ? signedUrlResponse : signedUrlResponse.data;
 
-                    attachment = this.messageAttachmentRepository.create({
+                    attachment = this.repo.create({
                         message: savedMessage,
                         mediaType: media.mediaType,
                         mimeType: file.mimeType,

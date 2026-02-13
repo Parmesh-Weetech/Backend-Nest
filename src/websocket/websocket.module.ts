@@ -13,11 +13,34 @@ import { FilesModule } from '../files/files.module';
 import { CacheModule } from '../cache/cache.module';
 import { VideoModule } from '../video/video.module';
 import { NotificationModule } from '../notification/notification.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConversationDocument, ConversationSchema } from './schemas/conversation.schema';
+import { MessageDocument, MessageSchema } from './schemas/message.schema';
+import { WEBSOCKET_REPOSITORY } from './websocket.repository.interface';
+import { PostgresWebsocketRepository } from './postgres-websocket.repository';
+import { MongoWebsocketRepository } from './mongo-websocket.repository';
 
 @Module({
   controllers: [WebsocketController],
-  providers: [WebsocketService, Gateway],
-  imports: [TypeOrmModule.forFeature([Conversation, Message, User, MessageAttachment]), AuthModule, UserModule, FilesModule, CacheModule, VideoModule, NotificationModule],
+  providers: [WebsocketService, Gateway, {
+    provide: WEBSOCKET_REPOSITORY,
+    useClass:
+      process.env.DATABASE_PROVIDER === 'postgres'
+        ? PostgresWebsocketRepository
+        : MongoWebsocketRepository,
+  }],
+  imports: [...(process.env.DATABASE_PROVIDER === 'postgres'
+    ? [TypeOrmModule.forFeature([Conversation, Message, MessageAttachment, User])]
+    : []),
+
+  ...(process.env.DATABASE_PROVIDER === 'mongodb'
+    ? [
+      MongooseModule.forFeature([
+        { name: ConversationDocument.name, schema: ConversationSchema },
+        { name: MessageDocument.name, schema: MessageSchema },
+      ]),
+    ]
+    : []), AuthModule, UserModule, FilesModule, CacheModule, VideoModule, NotificationModule],
   exports: [WebsocketService]
 })
 export class WebsocketModule { }

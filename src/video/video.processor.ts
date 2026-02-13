@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,12 +14,13 @@ import { FfmpegService } from '../ffmpeg/ffmpeg.service';
 
 import { Video } from './entities/video.entity';
 import { VideoSseService } from './videoSse.service';
+import { type IVideoRepository, VIDEO_REPOSITORY } from './video.interface.repository';
 
 @Processor('video-processing')
 export class VideoProcessor extends WorkerHost {
     constructor(
-        @InjectRepository(Video)
-        private readonly videoRepo: Repository<Video>,
+        @Inject(VIDEO_REPOSITORY)
+        private readonly videoRepo: IVideoRepository,
         private readonly cache: CacheService,
         private readonly ffmpeg: FfmpegService,
         private readonly storage: StorageService,
@@ -39,7 +40,7 @@ export class VideoProcessor extends WorkerHost {
         await this.cache.set(lockKey, true, 600);
 
         try {
-            const existing = await this.videoRepo.findOne({ where: { id: videoId } });
+            const existing = await this.videoRepo.findById(videoId);
 
             if(!existing) throw new NotFoundException("video not found");
 
