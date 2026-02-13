@@ -61,7 +61,7 @@ export class MongoCartRepository implements ICartRepository {
         if (!cart) return false;
 
         const item = await this.cartItemModel.findOne({
-            _id: { $in: cart.items },
+            id: { $in: cart.items },
             productId,
         });
 
@@ -79,7 +79,7 @@ export class MongoCartRepository implements ICartRepository {
         if (!cart) return [];
 
         return this.cartItemModel
-            .find({ _id: { $in: cart.items } })
+            .find({ id: { $in: cart.items } })
             .populate('productId');
     }
 
@@ -88,7 +88,7 @@ export class MongoCartRepository implements ICartRepository {
         if (!cart) return null;
 
         return this.cartItemModel
-            .findOne({ _id: { $in: cart.items }, productId })
+            .findOne({ id: { $in: cart.items }, productId })
             .populate('productId');
     }
 
@@ -102,7 +102,7 @@ export class MongoCartRepository implements ICartRepository {
         if (!cart) return false;
 
         const item = await this.cartItemModel.findOneAndDelete({
-            _id: { $in: cart.items },
+            id: { $in: cart.items },
             productId,
         });
 
