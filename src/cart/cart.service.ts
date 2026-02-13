@@ -207,24 +207,38 @@ export class CartService {
     }
 
     async removeCartItemById(productId: string, userId: string): Promise<APIResponse> {
-        const subQuery = this.cartRepository
-            .createQueryBuilder('cart')
-            .select('cart.id')
-            .where('cart.userId = :userId', { userId })
-            .andWhere('cart.status = :status', { status: 'ACTIVE' })
-            .getQuery();
+        const cart = await this.cartRepository.findOne({
+            where: {
+                user: { id: userId },
+                status: 'ACTIVE',
+            },
+        });
 
-        const result = await this.cartItemRepository
-            .createQueryBuilder()
-            .delete()
-            .from(CartItem)
-            .where('productId = :productId', { productId })
-            .andWhere(`cartId IN (${subQuery})`)
-            .setParameters({ userId, status: 'ACTIVE' })
-            .execute();
+        if (!cart) {
+            throw new NotFoundException('Cart not found');
+        }
+
+        const result = await this.cartItemRepository.delete({
+            cart: { id: cart.id },
+            product: { id: productId },
+        });
 
         if (!result.affected) {
             throw new NotFoundException('Cart item not found');
+        }
+
+        const remainingItems = await this.cartItemRepository.count({
+            where: {
+                cart: { id: cart.id },
+            },
+        });
+
+        if (remainingItems === 0) {
+            const deleteCart = await this.cartRepository.delete(cart.id);
+
+            if (deleteCart.affected === null || deleteCart.affected === undefined || deleteCart.affected === 0) {
+                throw new InternalServerErrorException({ message: "Failed to delete cart." });
+            }
         }
 
         return {
