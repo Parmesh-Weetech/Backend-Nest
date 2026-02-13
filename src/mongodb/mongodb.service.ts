@@ -41,8 +41,8 @@ export class MongodbService {
         }
     }
 
-    async update(id: string, data: UpdateUserDTO): Promise<ResponseUserDTO> {
-        const user = await this.userModel.findByIdAndUpdate(id, data, { new: true }).lean();
+    async update(data: UpdateUserDTO): Promise<ResponseUserDTO> {
+        const user = await this.userModel.findByIdAndUpdate(data.id, data, { new: true }).lean();
 
         if (!user) throw new InternalServerErrorException({ message: "User not updated! " });
 
@@ -54,6 +54,6 @@ export class MongodbService {
     }
 
     async remove(id: string) {
-        return this.userModel.findByIdAndDelete(id).exec();
+        const deleteUser = await this.userModel.findByIdAndDelete(id).lean();
     }
 }

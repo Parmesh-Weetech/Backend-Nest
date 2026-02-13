@@ -11,7 +11,6 @@ export class CreateUserDTO {
 
 export class ResponseUserDTO {
     @IsString()
-    @IsUUID("all")
     id: string;
 
     @IsString()
@@ -24,7 +23,6 @@ export class ResponseUserDTO {
 
 export class UpdateUserDTO {
     @IsString()
-    @IsUUID("all")
     id: string;
 
     @IsString()

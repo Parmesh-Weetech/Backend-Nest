@@ -23,9 +23,9 @@ export class MongodbController {
         return this.mongodbService.findOne(id);
     }
 
-    @Put(':id')
-    async update(@Param('id') id: string, @Body() body: UpdateUserDTO) {
-        return this.mongodbService.update(id, body);
+    @Put()
+    async update(@Body() body: UpdateUserDTO) {
+        return this.mongodbService.update(body);
     }
 
     @Delete(':id')
