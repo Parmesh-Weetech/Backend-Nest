@@ -1,5 +1,4 @@
-import { Transform } from "class-transformer";
-import { IsEmail, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsEmail, IsString, IsUUID } from "class-validator";
 
 export class CreateUserDTO {
     @IsString()
@@ -11,10 +10,22 @@ export class CreateUserDTO {
 }
 
 export class ResponseUserDTO {
-    @IsOptional()
-    @IsUUID("all", { each: true })
-    @Transform(({ value }) => value.toString()) _id: string;
-    id?: string = undefined
+    @IsString()
+    @IsUUID("all")
+    id: string;
+
+    @IsString()
+    name: string;
+
+    @IsString()
+    @IsEmail()
+    email: string
+}
+
+export class UpdateUserDTO {
+    @IsString()
+    @IsUUID("all")
+    id: string;
 
     @IsString()
     name: string;

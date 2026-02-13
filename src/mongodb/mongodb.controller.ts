@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { MongodbService } from './mongodb.service';
-import { CreateUserDTO, ResponseUserDTO } from './dtos/user.dto';
+import { CreateUserDTO, ResponseUserDTO, UpdateUserDTO } from './dtos/user.dto';
 
 @Controller('mongodb')
 export class MongodbController {
@@ -9,23 +9,22 @@ export class MongodbController {
     ) { }
     
     @Post()
-    async create(@Body() createUserDTO: CreateUserDTO) {
-        const response = await this.mongodbService.create(createUserDTO.name, createUserDTO.email);
-        // return response
+    async create(@Body() createUserDTO: CreateUserDTO): Promise<ResponseUserDTO> {
+        return await this.mongodbService.create(createUserDTO.name, createUserDTO.email);
     }
 
     @Get()
-    async findAll() {
+    async findAll(): Promise<ResponseUserDTO[]> {
         return this.mongodbService.findAll();
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
+    async findOne(@Param('id') id: string): Promise<ResponseUserDTO> {
         return this.mongodbService.findOne(id);
     }
 
     @Put(':id')
-    async update(@Param('id') id: string, @Body() body: any) {
+    async update(@Param('id') id: string, @Body() body: UpdateUserDTO) {
         return this.mongodbService.update(id, body);
     }
 
