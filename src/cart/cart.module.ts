@@ -1,19 +1,46 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { CartItem } from './entities/cart.item.entity';
+
 import { Cart } from './entities/cart.entity';
-import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
-import { UserModule } from '../user/user.module';
-import { Auth } from '../common/util/auth';
-import { AuthModule } from '../auth/auth.module';
-import { ProductModule } from '../product/product.module';
+import { CartItem } from './entities/cart.item.entity';
 import { Product } from '../product/entities/product.entity';
 
+import { CartDocument, CartSchema } from './schemas/cart.schema';
+import { CartItemDocument, CartItemSchema } from './schemas/cart_item.schema';
+
+import { CART_REPOSITORY } from './cart.repository.interface';
+import { PostgresCartRepository } from './postgres-cart.repository';
+import { MongoCartRepository } from './mongo-cart.repository';
+
 @Module({
-  providers: [CartService, CurrentUserInterceptor, Auth],
+  imports: [
+    ...(process.env.DATABASE_PROVIDER === 'postgres'
+      ? [TypeOrmModule.forFeature([Cart, CartItem, Product])]
+      : []),
+
+    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+      ? [
+        MongooseModule.forFeature([
+          { name: CartDocument.name, schema: CartSchema },
+          { name: CartItemDocument.name, schema: CartItemSchema },
+        ]),
+      ]
+      : []),
+  ],
   controllers: [CartController],
-  imports: [TypeOrmModule.forFeature([CartItem, Cart, Product]), UserModule, AuthModule, ProductModule]
+  providers: [
+    CartService,
+    {
+      provide: CART_REPOSITORY,
+      useClass:
+        process.env.DATABASE_PROVIDER === 'postgres'
+          ? PostgresCartRepository
+          : MongoCartRepository,
+    },
+  ],
 })
-export class CartModule {}
+export class CartModule { }
