@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 import { Cart } from "./cart.entity";
 import { Product } from "../../product/entities/product.entity";
 
 @Entity('cart_item')
+@Unique(['cart', 'product'])
 export class CartItem {
     @PrimaryGeneratedColumn('uuid')
     id: string;

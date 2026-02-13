@@ -207,37 +207,32 @@ export class CartService {
     }
 
     async removeCartItemById(productId: string, userId: string): Promise<APIResponse> {
-        const cart = await this.cartRepository.findOne({
-            where: {
-                user: { id: userId },
-                status: 'ACTIVE',
-            },
-            relations: {
-                items: {
-                    product: true
-                }
-            }
-        });
+        const subQuery = this.cartRepository
+            .createQueryBuilder('cart')
+            .select('cart.id')
+            .where('cart.userId = :userId', { userId })
+            .andWhere('cart.status = :status', { status: 'ACTIVE' })
+            .getQuery();
 
-        if (!cart) {
-            throw new NotFoundException('Cart not found');
+        const result = await this.cartItemRepository
+            .createQueryBuilder()
+            .delete()
+            .from(CartItem)
+            .where('productId = :productId', { productId })
+            .andWhere(`cartId IN (${subQuery})`)
+            .setParameters({ userId, status: 'ACTIVE' })
+            .execute();
+
+        if (!result.affected) {
+            throw new NotFoundException('Cart item not found');
         }
-        
-        const affectedRows = await this.cartItemRepository.delete({
-            cart: { id: cart.id },
-            product: { id: productId },
-        });
-
-        console.log(affectedRows)
-
-        if (affectedRows.affected === undefined || affectedRows.affected === null || affectedRows.affected === 0) throw new InternalServerErrorException({ message: "Something went wrong while removing product from cart!" });
 
         return {
             success: true,
             data: null,
             expired: false,
-            message: "Product removeed successfully from cart.",
-            statusCode: 200
-        }
+            message: 'Product removed successfully from cart.',
+            statusCode: 200,
+        };
     }
 }
