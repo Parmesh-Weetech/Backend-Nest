@@ -56,6 +56,29 @@ export class UserService {
         };
     }
 
+    async findOne(id: string): Promise<APIResponse> {
+        const cacheKey = this.userKey(id);
+        let cachedUser = await this.cacheService.get(cacheKey);
+
+        if (!cachedUser) {
+            const fetchedUser = await this.userRepository.findOne(id);
+
+            if (!fetchedUser) throw new NotFoundException('User not found.');
+
+            cachedUser = fetchedUser;
+
+            await this.cacheService.set(cacheKey, fetchedUser, 600); // Cache user for 10 minutes
+        }
+
+        return {
+            success: true,
+            data: cachedUser,
+            expired: false,
+            message: 'User fetched successfully.',
+            statusCode: 200,
+        };
+    }
+
     async create(createUserDTO: CreateUserDTO, orgId: string): Promise<APIResponse> {
         const roles = await Promise.all(
             createUserDTO.roleIds.map((roleId) => this.roleService.findOne(roleId))
@@ -134,6 +157,20 @@ export class UserService {
             expired: false,
             message: 'User deleted successfully.',
             statusCode: 200,
+        };
+    }
+
+    async findOneWithRolesAndPermissions(userId: string): Promise<APIResponse> {
+        const user = await this.userRepository.findOneWithRolesAndPermissions(userId)
+
+        if (!user) throw new NotFoundException('User not found.');
+
+        return {
+            success: true,
+            data: user,
+            expired: false,
+            message: "User fetched successfully.",
+            statusCode: 200
         };
     }
 }

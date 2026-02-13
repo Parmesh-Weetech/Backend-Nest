@@ -1,3 +1,5 @@
+import { APIResponse } from "src/common/response/response.dto";
+
 export const USERS_REPOSITORY = 'USERS_REPOSITORY';
 
 export interface IUserRepository {
@@ -6,4 +8,5 @@ export interface IUserRepository {
     findOne(id: string): Promise<any | null>;
     update(id: string, data: any): Promise<any>;
     remove(id: string): Promise<boolean>;
+    findOneWithRolesAndPermissions(userId: string): Promise<APIResponse>;
 }

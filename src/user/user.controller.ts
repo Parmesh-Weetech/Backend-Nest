@@ -31,7 +31,7 @@ export class UserController {
 
     @Get("/all")
     async findAllUser(@CurrentUser() user: User): Promise<APIResponse> {
-        return await this.userService.findAllUser(user);
+        return await this.userService.findAllCachedUser(user);
     }
 
     @Get(":id")

@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { IUserRepository } from './user.repository.interface';
+import { APIResponse } from 'src/common/response/response.dto';
 
 @Injectable()
 export class PostgresUserRepository implements IUserRepository {
@@ -35,5 +36,30 @@ export class PostgresUserRepository implements IUserRepository {
         if (result.affected === undefined || result.affected === null || result.affected === 0) return false;
 
         return result.affected > 0;
+    }
+
+    async findOneWithRolesAndPermissions(userId: string): Promise<APIResponse> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: {
+                organization: true,
+                roles: {
+                    organization: true,
+                    permissions: {
+                        organization: true,
+                    },
+                },
+            },
+        });
+
+        if (!user) throw new NotFoundException('User not found.');
+
+        return {
+            success: true,
+            data: user,
+            expired: false,
+            message: "User fetched successfully.",
+            statusCode: 200
+        };
     }
 }
