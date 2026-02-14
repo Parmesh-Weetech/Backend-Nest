@@ -93,7 +93,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
       userId,
       anotherUserId: data.anotherUserId,
       conversationId: conversation.id,
-      messages: messages.data ?? [],
+      messages: messages.data.reverse() ?? [],
     });
   }
 
