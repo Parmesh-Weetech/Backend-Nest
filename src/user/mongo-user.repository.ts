@@ -31,6 +31,22 @@ export class MongoUserRepository implements IUserRepository {
         return { id };
     }
 
+    private toPlain(document: any) {
+        if (!document) return null;
+
+        const raw = typeof document.toObject === 'function'
+            ? document.toObject()
+            : document;
+
+        const id = raw?._id?.toString?.() ?? String(raw._id ?? raw.id);
+        const { _id, __v, ...rest } = raw;
+
+        return {
+            ...rest,
+            id,
+        };
+    }
+
     private async loadOrganization(orgId: any) {
         const id = orgId?.toString?.() ?? orgId;
         if (!id) return null;
@@ -41,10 +57,7 @@ export class MongoUserRepository implements IUserRepository {
 
         if (!organization) return null;
 
-        return {
-            ...organization,
-            id: organization._id?.toString?.() ?? organization.id,
-        };
+        return this.toPlain(organization);
     }
 
     private async hydrateUser(user: any) {
@@ -64,40 +77,49 @@ export class MongoUserRepository implements IUserRepository {
                 const roleOrg = await this.loadOrganization(role.organization);
 
                 const hydratedPermissions = await Promise.all(
-                    permissions.map(async (permission: any) => ({
-                        ...permission,
-                        id: permission._id?.toString?.() ?? permission.id,
-                        organization: await this.loadOrganization(permission.organization),
-                    })),
+                    permissions.map(async (permission: any) => {
+                        const plainPermission = this.toPlain(permission);
+                        return {
+                            ...plainPermission,
+                            organization: await this.loadOrganization(plainPermission.organization),
+                        };
+                    }),
                 );
 
+                const plainRole = this.toPlain(role);
                 return {
-                    ...role,
-                    id: role._id?.toString?.() ?? role.id,
+                    ...plainRole,
                     organization: roleOrg,
                     permissions: hydratedPermissions,
                 };
             }),
         );
 
+        const plainUser = this.toPlain(user);
+        const { password, ...safeUser } = plainUser;
+
         return {
-            ...user,
-            id: user._id?.toString?.() ?? user.id,
-            organization: await this.loadOrganization(user.organization),
+            ...safeUser,
+            organization: await this.loadOrganization(plainUser.organization),
             roles: hydratedRoles,
         };
     }
 
     async create(data: any) {
-        return this.userModel.create(data);
+        const document = new this.userModel(data);
+        const saved = await document.save();
+        return this.hydrateUser(saved.toObject());
     }
 
     async findAll(userId: string) {
+        let users: any[] = [];
         if (Types.ObjectId.isValid(userId)) {
-            return this.userModel.find({ _id: { $ne: new Types.ObjectId(userId) } });
+            users = await this.userModel.find({ _id: { $ne: new Types.ObjectId(userId) } }).lean().exec();
+        } else {
+            users = await this.userModel.find({ id: { $ne: userId } }).lean().exec();
         }
 
-        return this.userModel.find({ id: { $ne: userId } });
+        return Promise.all(users.map((user: any) => this.hydrateUser(user)));
     }
 
     async findOne(id: string) {
@@ -106,7 +128,8 @@ export class MongoUserRepository implements IUserRepository {
     }
 
     async update(id: string, data: any) {
-        return this.userModel.findOneAndUpdate(this.byIdFilter(id), data, { new: true });
+        const user = await this.userModel.findOneAndUpdate(this.byIdFilter(id), data, { new: true }).lean().exec();
+        return this.hydrateUser(user);
     }
 
     async remove(id: string) {

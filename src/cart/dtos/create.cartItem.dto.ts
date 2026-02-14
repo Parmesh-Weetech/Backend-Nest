@@ -1,7 +1,7 @@
 import { ArrayNotEmpty, IsArray, IsInt, IsNumber, IsString, IsUUID, Min } from "class-validator";
 
 export class CreateCartItemDTO {
-    @IsUUID()
+    @IsString()
     productId: string;
 
     @IsInt()

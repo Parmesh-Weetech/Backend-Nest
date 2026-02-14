@@ -1,5 +1,6 @@
 import {
     IsEmail,
+    IsNotEmpty,
     IsOptional,
     IsString,
     IsUUID,
@@ -15,9 +16,8 @@ export class LoginDTO {
     password: string;
 
     @IsString()
-    @IsOptional()
-    @IsUUID("all", { each: true })
-    organizationId: string | null
+    @IsNotEmpty()
+    organizationId: string
 
     @IsString()
     hcaptchaToken: string

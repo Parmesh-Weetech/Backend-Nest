@@ -12,8 +12,25 @@ export class MongoPermissionRepository
         private readonly model: Model<PermissionDocument>,
     ) { }
 
-    findAll() {
-        return this.model.find();
+    private toPlain(document: any) {
+        if (!document) return null;
+
+        const raw = typeof document.toObject === 'function'
+            ? document.toObject()
+            : document;
+
+        const id = raw?._id?.toString?.() ?? String(raw._id ?? raw.id);
+        const { _id, __v, ...rest } = raw;
+
+        return {
+            ...rest,
+            id,
+        };
+    }
+
+    async findAll() {
+        const documents = await this.model.find({ deleted_at: null }).lean().exec();
+        return documents.map((document: any) => this.toPlain(document));
     }
 
     async findById(id: string) {
@@ -21,24 +38,42 @@ export class MongoPermissionRepository
             return null;
         }
 
-        return this.model.findOne({ _id: id });
+        const document = await this.model.findOne({ _id: id }).lean().exec();
+        return this.toPlain(document);
     }
 
-    findByEntityActionAndOrg(entity: string, action: string, organizationId: string) {
-        return this.model.findOne({
+    async findByKeyAndOrg(key: string, organizationId: string) {
+        const document = await this.model.findOne({
+            key,
+            organization: organizationId,
+        }).lean().exec();
+
+        return this.toPlain(document);
+    }
+
+    async findByEntityActionAndOrg(entity: string, action: string, organizationId: string) {
+        const document = await this.model.findOne({
             entity,
             action,
             organization: organizationId,
-            deleted_at: null,
-        });
+        }).lean().exec();
+
+        return this.toPlain(document);
     }
 
-    create(data: any) {
-        return this.model.create(data);
+    async create(data: any) {
+        const document = new this.model(data);
+        const saved = await document.save();
+        return this.toPlain(saved);
     }
 
-    update(id: string, data: any) {
-        return this.model.findByIdAndUpdate(id, data, { new: true });
+    async update(id: string, data: any) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
+        return this.toPlain(document);
     }
 
     async softDelete(id: string) {
@@ -48,10 +83,11 @@ export class MongoPermissionRepository
         return !!res;
     }
 
-    findByRoleId(roleId: string) {
-        return this.model.find({
+    async findByRoleId(roleId: string) {
+        const documents = await this.model.find({
             roles: { $in: [roleId] },
-            deleted_at: null,
-        });
+        }).lean().exec();
+
+        return documents.map((document: any) => this.toPlain(document));
     }
 }

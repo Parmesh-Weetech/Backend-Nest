@@ -30,6 +30,5 @@ export class UpdatePermissionDTO {
 
     @IsArray()
     @IsOptional()
-    @IsUUID('all', { each: true })
     organizationIds?: string[];
 }

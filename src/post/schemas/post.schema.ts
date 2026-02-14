@@ -11,5 +11,6 @@ export const PostSchema = new Schema(
             createdAt: 'created_at',
             updatedAt: 'updated_at',
         },
+        collection: 'posts',
     },
 );

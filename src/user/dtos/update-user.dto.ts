@@ -17,13 +17,11 @@ export class updateUserDTO {
     email?: string;
 
     @IsString()
-    @IsUUID('all', { each: true })
     @IsOptional()
     organizationId?: string;
 
     @IsArray()
     @IsOptional()
-    @IsUUID('all', { each: true })
     roleIds?: string[];
 
     @IsString()

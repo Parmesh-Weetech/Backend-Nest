@@ -3,6 +3,10 @@ export const PERMISSION_REPOSITORY = 'PERMISSION_REPOSITORY';
 export interface IPermissionRepository {
     findAll(): Promise<any[]>;
     findById(id: string): Promise<any | null>;
+    findByKeyAndOrg(
+        key: string,
+        organizationId: string,
+    ): Promise<any | null>;
 
     findByEntityActionAndOrg(
         entity: string,

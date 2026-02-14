@@ -48,13 +48,18 @@ dotenv.config();
         }),
       }),
     ] : []),
-    ...(process.env.DATABASE_PROVIDER === "mongodb" ? [MongooseModule.forRootAsync({
+    ...((process.env.DATABASE_PROVIDER === "mongodb" || process.env.DATABASE_PROVIDER === "mongo") ? [MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URL'),
-        dbName: "test"
-      }),
+      useFactory: (configService: ConfigService) => {
+        const uri = configService.get<string>('MONGO_URL');
+        const dbName = configService.get<string>('MONGO_DB_NAME');
+
+        return {
+          uri,
+          ...(dbName ? { dbName } : {}),
+        };
+      },
     }), MongodbModule] : []),
     BullModule.forRootAsync({
       imports: [ConfigModule],

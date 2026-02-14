@@ -31,8 +31,8 @@ export class Auth {
         return decodedPayload;
     }
 
-    async generateAccessToken(payload: { sub: string, email: string }): Promise<string> {
-        const access_token = await this.jwtService.signAsync({ sub: payload.sub, email: payload.email });
+    async generateAccessToken(payload: { sub: string, email: string, orgId: string }): Promise<string> {
+        const access_token = await this.jwtService.signAsync({ sub: payload.sub, email: payload.email, orgId: payload.orgId });
 
         return access_token;
     }

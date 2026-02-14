@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -46,15 +46,12 @@ export class PermissionService {
     }
 
     async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
-        const organization = await this.organizationService.findOne(orgId);
+        await this.organizationService.findOne(orgId);
 
-        const existingPermissions =
-            await this.permissionRepository.findByEntityActionAndOrg(
-                dto.entity,
-                dto.action,
-                orgId,
-            );
-        if (existingPermissions) throw new ForbiddenException("Permission already exists!");
+        const existingPermission = await this.permissionRepository.findByKeyAndOrg(dto.key, orgId);
+        if (existingPermission) {
+            throw new ConflictException('Permission already exists in this organization.');
+        }
 
         const newPermission =
             await this.permissionRepository.create({

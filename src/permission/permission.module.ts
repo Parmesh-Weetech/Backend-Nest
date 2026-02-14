@@ -29,7 +29,7 @@ import { MongoPermissionRepository } from './mongo-permission.repository';
     ? [TypeOrmModule.forFeature([Permission])]
     : []),
 
-  ...(process.env.DATABASE_PROVIDER === 'mongodb'
+  ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
     ? [
       MongooseModule.forFeature([
         {

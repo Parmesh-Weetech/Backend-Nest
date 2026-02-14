@@ -8,13 +8,14 @@ import { AccessEntityEnum } from '../common/enums/access-entity.enum';
 import { AccessActionEnum } from '../common/enums/access-action.enum';
 import { Permission as PermissionDecorator } from '../common/decorators/permission.decorator';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
+import { CurrentOrganizationGuard } from '../common/guards/currentOrganization.guard';
 
 import { PermissionService } from './permission.service';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto';
-import { CurrentUserGuard } from 'src/common/guards/currentUser.guard';
 
 @Controller('permissions')
-@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
+    @UseGuards(AuthGuard, CurrentUserGuard, CurrentOrganizationGuard, PermissionsGuard)
 export class PermissionController {
     constructor(
         private readonly permissionService: PermissionService

@@ -15,23 +15,22 @@ import { VideoSseController } from './videoSse.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { VideoDocument, VideoSchema } from './schemas/video.schema';
 import { VIDEO_REPOSITORY } from './video.interface.repository';
-import { PostgresVideoRepository } from './postgres-video.repository';
-import { MongoVideoRepository } from './mongo-video.repository';
 
 const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
 const isPostgres = databaseProvider === 'postgres';
 const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+const VideoRepositoryProvider = {
+  provide: VIDEO_REPOSITORY,
+  useClass: isPostgres
+    ? require('./postgres-video.repository').PostgresVideoRepository
+    : require('./mongo-video.repository').MongoVideoRepository,
+};
 
 @Module({
   providers: [
     VideoService,
     VideoSseService,
-    {
-      provide: VIDEO_REPOSITORY,
-      useClass: isPostgres
-        ? PostgresVideoRepository
-        : MongoVideoRepository,
-    },
+    VideoRepositoryProvider,
   ],
   controllers: [VideoController, VideoSseController],
   imports: [StorageModule, FfmpegModule, AuthModule, UserModule, ...(isPostgres

@@ -39,6 +39,7 @@ export class User {
     @OneToMany(() => Notification, notification => notification.sender)
     notifications: Notification[];
 
+    @Expose()
     @ManyToOne(() => Organization, org => org.users, {
         cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE"
     })

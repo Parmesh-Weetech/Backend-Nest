@@ -1,11 +1,8 @@
 import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { User } from '../user/entities/user.entity';
 
-import { Organization } from './entities/organization.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { type IOrganizationRepository, ORGANIZATION_REPOSITORY } from './organization.repository.interface';

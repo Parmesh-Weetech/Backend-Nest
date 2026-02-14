@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { RoleDocument } from "./schemas/role.schema";
 import { IRoleRepository } from "./role.repository.interface";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 @Injectable()
 export class MongoRoleRepository implements IRoleRepository {
@@ -11,27 +11,58 @@ export class MongoRoleRepository implements IRoleRepository {
         private readonly model: Model<RoleDocument>,
     ) { }
 
-    findAll() {
-        return this.model.find();
+    private toPlain(document: any) {
+        if (!document) return null;
+
+        const raw = typeof document.toObject === 'function'
+            ? document.toObject()
+            : document;
+
+        const id = raw?._id?.toString?.() ?? String(raw._id ?? raw.id);
+        const { _id, __v, ...rest } = raw;
+
+        return {
+            ...rest,
+            id,
+        };
     }
 
-    findById(id: string) {
-        return this.model.findOne({ _id: id });
+    async findAll() {
+        const documents = await this.model.find({ deleted_at: null }).lean().exec();
+        return documents.map((document: any) => this.toPlain(document));
     }
 
-    findByKeyAndOrganization(key: string, organizationId: string) {
-        return this.model.find({
+    async findById(id: string) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.model.findOne({ _id: id, deleted_at: null }).lean().exec();
+        return this.toPlain(document);
+    }
+
+    async findByKeyAndOrganization(key: string, organizationId: string) {
+        const documents = await this.model.find({
             key,
-            organization: organizationId
-        });
+            organization: organizationId,
+            deleted_at: null,
+        }).lean().exec();
+
+        return documents.map((document: any) => this.toPlain(document));
     }
 
-    create(data: any) {
-        return this.model.create(data);
+    async create(data: any) {
+        const document = await this.model.create(data);
+        return this.toPlain(document);
     }
 
-    update(id: string, data: any) {
-        return this.model.findByIdAndUpdate(id, data, { new: true });
+    async update(id: string, data: any) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
+        return this.toPlain(document);
     }
 
     async softDelete(id: string) {
@@ -41,10 +72,13 @@ export class MongoRoleRepository implements IRoleRepository {
         return !!res;
     }
 
-    findGlobalRoleByKey(key: string) {
-        return this.model.findOne({
+    async findGlobalRoleByKey(key: string) {
+        const document = await this.model.findOne({
             key,
-            organization: null
-        });
+            organization: null,
+            deleted_at: null,
+        }).lean().exec();
+
+        return this.toPlain(document);
     }
 }

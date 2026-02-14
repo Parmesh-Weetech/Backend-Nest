@@ -29,7 +29,7 @@ import { MongoRoleRepository } from './mongo-role.repository';
     ? [TypeOrmModule.forFeature([Role])]
     : []),
 
-  ...(process.env.DATABASE_PROVIDER === 'mongodb'
+  ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
     ? [
       MongooseModule.forFeature([
         { name: RoleDocument.name, schema: RoleSchema },

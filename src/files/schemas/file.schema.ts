@@ -23,5 +23,6 @@ export const FileSchema = new Schema(
             createdAt: 'created_at',
             updatedAt: 'updated_at',
         },
+        collection: 'files',
     },
 );

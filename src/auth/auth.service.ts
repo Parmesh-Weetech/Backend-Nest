@@ -73,8 +73,6 @@ export class AuthService {
             roles: [newRole.data]
         });
 
-        console.log(user);
-
         if (!user) throw new InternalServerErrorException({ message: "Something went wrong while processing user." });
 
         return {
@@ -87,10 +85,8 @@ export class AuthService {
     }
 
     async login(loginDTO: LoginDTO): Promise<TokenResponse> {
-        if (loginDTO.organizationId) {
-            const organization = await this.organizationService.findOne(loginDTO.organizationId);
-            if (!organization) throw new NotFoundException({ message: "Organization not found!" });
-        }
+        const organization = await this.organizationService.findOne(loginDTO.organizationId);
+        if (!organization) throw new NotFoundException({ message: "Organization not found!" });
 
         const user = await this.authRepository.findUserByEmail(loginDTO.email);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
@@ -98,7 +94,7 @@ export class AuthService {
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
         if (!checkPassword) throw new UnauthorizedException({ message: "Invalid Credentials!" });
 
-        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email });
+        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email, orgId: user.organization });
         const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
 
         const saveRefreshToken = this.authRepository.saveRefreshToken(
@@ -154,7 +150,7 @@ export class AuthService {
         const user = await this.authRepository.findUserById(decode.sub);
         if (!user) throw new NotFoundException({ message: "User not found!" });
 
-        const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email });
+        const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email, orgId: user.organization });
         const newRefreshToken = await this.auth.generateRefreshToken({ sub: decode.sub });
 
         if (!newAccessToken || !newRefreshToken) {

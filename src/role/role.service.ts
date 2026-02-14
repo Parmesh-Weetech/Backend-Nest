@@ -51,33 +51,10 @@ export class RoleService {
 
     async create(roleDTO: CreateRoleDTO, orgId: string): Promise<APIResponse> {
         const organization = await this.organizationService.findOne(orgId);
+        const existingRoles = await this.roleRepository.findByKeyAndOrganization(roleDTO.key, orgId);
 
-        const requestedPermissions = await Promise.all(
-            roleDTO.permissionIds.map(id => this.permissionService.findOne(id))
-        );
-
-        const requestedSignature = requestedPermissions
-            .map(p => `${p.data.entity}:${p.data.action}`)
-            .sort()
-            .join('|');
-
-        const existingRoles =
-            await this.roleRepository.findByKeyAndOrganization(
-                roleDTO.key,
-                orgId,
-            );
-
-        for (const role of existingRoles) {
-            const existingSignature = role.permissions
-                .map(p => `${p.entity}:${p.action}`)
-                .sort()
-                .join('|');
-
-            if (existingSignature === requestedSignature) {
-                throw new ConflictException(
-                    `Role "${roleDTO.key}" with same effective permissions already exists.`
-                );
-            }
+        if (existingRoles.length > 0) {
+            throw new ConflictException('Role already exists in this organization.');
         }
 
         const savedRole = await this.roleRepository.create({

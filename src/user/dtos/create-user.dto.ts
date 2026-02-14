@@ -17,7 +17,6 @@ export class CreateUserDTO {
     password: string;
 
     @IsArray()
-    @IsUUID('all', { each: true })
     @IsNotEmpty()
     roleIds: string[];
 }

@@ -1,4 +1,5 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Not, Repository } from 'typeorm';
@@ -31,6 +32,28 @@ export class UserService {
 
     private usersKey(userId: string) {
         return `users:${userId}`
+    }
+
+    private normalizeId(value: any): string | null {
+        if (!value) return null;
+        if (typeof value === 'string') return value;
+        if (typeof value === 'object') {
+            if (value.id) return String(value.id);
+            if (value._id?.toString) return value._id.toString();
+        }
+        return null;
+    }
+
+    private mapRolesForPersistence(roles: any[]): any[] {
+        if (!this.isMongoProvider) return roles;
+        return (Array.isArray(roles) ? roles : [])
+            .map((role: any) => this.normalizeId(role))
+            .filter((roleId: string | null): roleId is string => !!roleId);
+    }
+
+    private mapOrganizationForPersistence(organization: any): any {
+        if (!this.isMongoProvider) return organization;
+        return this.normalizeId(organization);
     }
 
     async findAllCachedUser(user: User): Promise<APIResponse> {
@@ -135,19 +158,32 @@ export class UserService {
     }
 
     async create(createUserDTO: CreateUserDTO, orgId: string): Promise<APIResponse> {
+        const uniqueRoleIds = [...new Set(createUserDTO.roleIds)];
+        if (uniqueRoleIds.length !== createUserDTO.roleIds.length) {
+            throw new ConflictException('Duplicate roles are not allowed for the same user in an organization.');
+        }
+
         const roles = await Promise.all(
-            createUserDTO.roleIds.map((roleId) => this.roleService.findOne(roleId))
+            uniqueRoleIds.map((roleId) => this.roleService.findOne(roleId))
         );
 
         const organization = await this.organizationService.findOne(orgId);
         if (!organization) throw new NotFoundException('Organization not found.');
+        const organizationId = this.normalizeId(organization.data);
+
+        for (const roleResponse of roles) {
+            const roleOrgId = this.normalizeId(roleResponse.data?.organization);
+            if (roleOrgId && organizationId && roleOrgId !== organizationId) {
+                throw new ConflictException('Role belongs to a different organization.');
+            }
+        }
 
         const newUser = {
             name: createUserDTO.name,
             email: createUserDTO.email,
-            password: createUserDTO.password,
-            roles: roles.map((role) => role.data),
-            organization: organization.data,
+            password: await bcrypt.hash(createUserDTO.password, 10),
+            roles: this.mapRolesForPersistence(roles.map((role) => role.data)),
+            organization: this.mapOrganizationForPersistence(organization.data),
         };
 
         const savedUser = await this.userRepository.create(newUser);
@@ -163,28 +199,60 @@ export class UserService {
     }
 
     async update(updateUserDTO: updateUserDTO): Promise<APIResponse> {
-        const user = await this.userRepository.findOne(updateUserDTO.id);
-        if (!user) throw new NotFoundException('User not found.');
+        const userRecord = await this.userRepository.findOne(updateUserDTO.id);
+        if (!userRecord) throw new NotFoundException('User not found.');
 
-        const roles = updateUserDTO.roleIds
-            ? await Promise.all(
-                updateUserDTO.roleIds.map((roleId) => this.roleService.findOne(roleId))
-            )
-            : user.data.roles;
+        const userData = (userRecord as any).data ?? userRecord;
 
-        const organization =
-            updateUserDTO.organizationId &&
-            (await this.organizationService.findOne(updateUserDTO.organizationId));
+        const organization = updateUserDTO.organizationId
+            ? await this.organizationService.findOne(updateUserDTO.organizationId)
+            : null;
 
-        if (!organization || organization.data === "") throw new NotFoundException({ message: "Organization not found while updating user " });
+        const targetOrganization = organization?.data ?? userData.organization;
+        const targetOrganizationId = this.normalizeId(targetOrganization);
+
+        let rolesData = userData.roles;
+
+        if (updateUserDTO.roleIds) {
+            const uniqueRoleIds = [...new Set(updateUserDTO.roleIds)];
+            if (uniqueRoleIds.length !== updateUserDTO.roleIds.length) {
+                throw new ConflictException('Duplicate roles are not allowed for the same user in an organization.');
+            }
+
+            const existingRoleIds = new Set(
+                (Array.isArray(userData.roles) ? userData.roles : [])
+                    .map((role: any) => this.normalizeId(role))
+                    .filter(Boolean),
+            );
+
+            const alreadyAssignedRoleIds = uniqueRoleIds.filter((roleId) => existingRoleIds.has(roleId));
+            if (alreadyAssignedRoleIds.length > 0) {
+                throw new ConflictException('One or more roles are already assigned to this user in the organization.');
+            }
+
+            const roles = await Promise.all(
+                uniqueRoleIds.map((roleId) => this.roleService.findOne(roleId)),
+            );
+
+            for (const roleResponse of roles) {
+                const roleOrgId = this.normalizeId(roleResponse.data?.organization);
+                if (roleOrgId && targetOrganizationId && roleOrgId !== targetOrganizationId) {
+                    throw new ConflictException('Role belongs to a different organization.');
+                }
+            }
+
+            rolesData = roles.map((role) => role.data);
+        }
 
         const updatedUserData = {
-            ...user.data,
-            name: updateUserDTO.name || user.data.name,
-            email: updateUserDTO.email || user.data.email,
-            password: updateUserDTO.password || user.data.password,
-            roles: roles || user.data.roles,
-            organization: organization.data || user.data.organization,
+            ...userData,
+            name: updateUserDTO.name || userData.name,
+            email: updateUserDTO.email || userData.email,
+            password: updateUserDTO.password
+                ? await bcrypt.hash(updateUserDTO.password, 10)
+                : userData.password,
+            roles: this.mapRolesForPersistence(rolesData),
+            organization: this.mapOrganizationForPersistence(targetOrganization),
         };
 
         const savedUser = await this.userRepository.update(updateUserDTO.id, updatedUserData);
@@ -218,11 +286,13 @@ export class UserService {
     async findOneWithRolesAndPermissions(userId: string): Promise<APIResponse> {
         const user = await this.userRepository.findOneWithRolesAndPermissions(userId)
 
-        if (!user) throw new NotFoundException('User not found.');
+        const userData = (user as any)?.data ?? user;
+
+        if (!userData) throw new NotFoundException('User not found.');
 
         return {
             success: true,
-            data: user,
+            data: userData,
             expired: false,
             message: "User fetched successfully.",
             statusCode: 200

@@ -10,6 +10,7 @@ import { Permission } from '../common/decorators/permission.decorator';
 import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator';
+import { CurrentOrganizationGuard } from '../common/guards/currentOrganization.guard';
 
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
@@ -17,7 +18,7 @@ import { CreateUserDTO } from './dtos/create-user.dto';
 import { updateUserDTO } from './dtos/update-user.dto';
 
 @Controller('user')
-@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
+@UseGuards(AuthGuard, CurrentUserGuard, CurrentOrganizationGuard, PermissionsGuard)
 export class UserController {
     constructor(
         private readonly userService: UserService

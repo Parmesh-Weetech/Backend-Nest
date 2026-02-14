@@ -7,14 +7,15 @@ import { AccessEntityEnum } from '../common/enums/access-entity.enum';
 import { AccessActionEnum } from '../common/enums/access-action.enum';
 import { Permission } from '../common/decorators/permission.decorator';
 import { CurrentOrganizationId } from '../common/decorators/currentOrganizationId.decorator';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
+import { CurrentOrganizationGuard } from '../common/guards/currentOrganization.guard';
 
 import { RoleService } from './role.service';
 import { CreateRoleDTO } from './dtos/create-role.dto';
 import { UpdateRoleDTO } from './dtos/update-role.dto';
-import { CurrentUserGuard } from 'src/common/guards/currentUser.guard';
 
 @Controller('roles')
-@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
+@UseGuards(AuthGuard, CurrentUserGuard, CurrentOrganizationGuard, PermissionsGuard)
 export class RoleController {
     constructor(
         private readonly roleService: RoleService
