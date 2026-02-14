@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { Product, ProductDocument } from './schemas/product.schema';
 import { IProductRepository } from './product.repository.interface';
@@ -11,6 +11,22 @@ export class MongoProductRepository implements IProductRepository {
         @InjectModel(Product.name)
         private readonly productModel: Model<ProductDocument>,
     ) { }
+
+    private toPlain(document: any) {
+        if (!document) return null;
+
+        const raw = typeof document.toObject === 'function'
+            ? document.toObject()
+            : document;
+
+        const id = raw?._id?.toString?.() ?? String(raw._id ?? raw.id);
+        const { _id, __v, ...rest } = raw;
+
+        return {
+            ...rest,
+            id,
+        };
+    }
 
     async findAll(
         skip: number,
@@ -49,27 +65,44 @@ export class MongoProductRepository implements IProductRepository {
             .find(query)
             .sort({ [sort]: order === 'ASC' ? 1 : -1 })
             .skip(skip)
-            .limit(take);
+            .limit(take)
+            .lean()
+            .exec();
 
-        return { items, total };
+        return { items: items.map((item: any) => this.toPlain(item)), total };
     }
 
     async findOne(id: string) {
-        return this.productModel.findOne({ _id: id });
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.productModel.findOne({ _id: id }).lean().exec();
+        return this.toPlain(document);
     }
 
     async create(data: any) {
-        return this.productModel.create(data);
+        const document = new this.productModel(data);
+        const saved = await document.save();
+        return this.toPlain(saved);
     }
 
     async insertBulk(data: any[]) {
-        return this.productModel.insertMany(data);
+        const docs = data.map((entry) => new this.productModel(entry));
+        const saved = await Promise.all(docs.map((doc) => doc.save()));
+        return saved.map((document) => this.toPlain(document));
     }
 
     async update(id: string, data: any) {
-        return this.productModel.findByIdAndUpdate(id, data, {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.productModel.findByIdAndUpdate(id, data, {
             new: true,
-        });
+        }).lean().exec();
+
+        return this.toPlain(document);
     }
 
     async softDeleteByUser(userId: string) {
@@ -82,6 +115,10 @@ export class MongoProductRepository implements IProductRepository {
     }
 
     async softDeleteById(id: string) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return false;
+        }
+
         const result = await this.productModel.findByIdAndUpdate(id, {
             deleted_at: new Date(),
         });

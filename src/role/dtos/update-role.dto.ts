@@ -20,11 +20,9 @@ export class UpdateRoleDTO {
 
     @IsArray()
     @IsOptional()
-    @IsUUID('all', { each: true })
     permissionIds?: string[]
 
     @IsArray()
     @IsOptional()
-    @IsUUID('all', { each: true })
     organizationIds?: string[];
 }

@@ -64,12 +64,13 @@ export class MongoWebsocketRepository implements IWebsocketRepository {
     }
 
     async createConversation(userId: string, otherUserId: string): Promise<WebsocketConversation> {
-        const conversation = await this.conversationModel.create({
+        const conversation = new this.conversationModel({
             user1Id: userId,
             user2Id: otherUserId,
         });
+        const saved = await conversation.save();
 
-        return this.mapConversation(conversation);
+        return this.mapConversation(saved);
     }
 
     async findMessages(conversationId: string, skip: number, take: number): Promise<WebsocketMessage[]> {
@@ -108,13 +109,14 @@ export class MongoWebsocketRepository implements IWebsocketRepository {
             existingMessage.attachments = message.attachments ?? existingMessage.attachments ?? [];
             persistedMessage = await existingMessage.save();
         } else {
-            persistedMessage = await this.messageModel.create({
+            const newMessage = new this.messageModel({
                 content: message.content ?? undefined,
                 type: message.type,
                 conversationId: message.conversation?.id,
                 senderId: message.sender?.id,
                 attachments: message.attachments ?? [],
             });
+            persistedMessage = await newMessage.save();
         }
 
         return this.mapMessage(persistedMessage);

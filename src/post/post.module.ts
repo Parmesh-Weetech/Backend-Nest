@@ -29,7 +29,7 @@ import { PostSchema } from './schemas/post.schema';
     ? [TypeOrmModule.forFeature([PostEntity])]
     : []),
 
-  ...(process.env.DATABASE_PROVIDER === 'mongodb'
+  ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
     ? [
       MongooseModule.forFeature([
         { name: 'Post', schema: PostSchema },

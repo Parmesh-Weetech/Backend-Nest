@@ -1,16 +1,19 @@
-import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
 import { CurrentUser } from '../common/decorators/currentUser.decorator';
 import { CurrentUserInterceptor } from '../common/interceptors/currentUser.interceptor';
 import { User } from '../user/entities/user.entity';
+import { CurrentUserGuard } from '../common/guards/currentUser.guard';
+import { AuthGuard } from '../common/guards/auth.guard';
 
 import { VideoService } from './video.service';
 import { APIResponse } from '../common/response/response.dto';
-import { Throttle } from '@nestjs/throttler';
 
 @Controller('video')
+@UseGuards(AuthGuard, CurrentUserGuard)
 export class VideoController {
 
     constructor(

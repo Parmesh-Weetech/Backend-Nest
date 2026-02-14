@@ -8,7 +8,7 @@ export class CurrentUserGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-
+        console.log(request.auth)
         if (!request.auth?.sub) {
             throw new UnauthorizedException('Auth payload missing');
         }
@@ -22,6 +22,8 @@ export class CurrentUserGuard implements CanActivate {
         }
 
         request.currentUser = user.data;
+
+        console.log(user.data)
 
         return true;
     }

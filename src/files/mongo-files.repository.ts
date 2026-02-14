@@ -12,29 +12,30 @@ export class MongoFilesRepository implements IFilesRepository {
     ) { }
 
     async create(data: any) {
-        return this.model.create({
+        const file = new this.model({
             ...data,
             userId: data.user?.id ?? null,
         });
+        return file.save();
     }
 
     async findById(id: string) {
-        return this.model.findById(id);
+        return this.model.findById(id).lean().exec();
     }
 
     async findByIdWithUser(id: string) {
-        return this.model.findById(id);
+        return this.model.findById(id).lean().exec();
     }
 
     async findByUser(userId: string) {
         return this.model.find({
             userId,
             status: { $nin: ['ORPHAN', 'PENDING'] },
-        });
+        }).lean().exec();
     }
 
     async update(id: string, data: any) {
-        return this.model.findByIdAndUpdate(id, data, { new: true });
+        return this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
     }
 
     async delete(id: string) {

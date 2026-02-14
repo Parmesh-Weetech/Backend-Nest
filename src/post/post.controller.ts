@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
 import { APIResponse } from '../common/response/response.dto';
@@ -34,24 +34,21 @@ export class PostController {
         return await this.postService.findOne(id);
     }
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.CREATE)
     @Post()
-    async create(@Body() createPostDTO: CreatePostDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.postService.create(createPostDTO, user);
+    async create(@Body() createPostDTO: CreatePostDTO, @Req() req): Promise<APIResponse> {
+        return await this.postService.create(createPostDTO, req.currentUser);
     }
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.UPDATE)
     @Put()
-    async update(@Body() updatePostDTO: UpdatePostDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.postService.update(updatePostDTO, user);
+    async update(@Body() updatePostDTO: UpdatePostDTO, @Req() req): Promise<APIResponse> {
+        return await this.postService.update(updatePostDTO, req.currentUser);
     }
 
-    @UseInterceptors(CurrentUserInterceptor)
     @Permission(AccessEntityEnum.POST, AccessActionEnum.DELETE)
     @Delete(":id")
-    async remove(@Param("id") id: string, @CurrentUser() user: User): Promise<APIResponse> {
-        return await this.postService.remove(id, user);
+    async remove(@Param("id") id: string, @Req() req): Promise<APIResponse> {
+        return await this.postService.remove(id, req.currentUser);
     }
 }

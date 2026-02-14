@@ -38,7 +38,6 @@ export class PermissionsGuard implements CanActivate {
             throw new UnauthorizedException('User organization not found');
         }
 
-        console.log(user.roles)
         for (const role of (user.roles ?? [])) {
             if (!role.organization) continue;
 
@@ -50,14 +49,14 @@ export class PermissionsGuard implements CanActivate {
             }
 
             const rolePermissions = role.permissions ?? [];
-
+            
             for (const permission of rolePermissions) {
                 const permissionOrgId = this.normalizeId(permission.organization);
 
                 if (
                     permissionOrgId === orgId &&
                     permission.entity === entity &&
-                    permission.action === action
+                    (permission.action === "all" || permission.action === action)
                 ) {
                     return true;
                 }

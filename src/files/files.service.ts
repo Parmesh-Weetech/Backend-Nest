@@ -122,7 +122,7 @@ export class FilesService {
         const file = await this.fileRepository.findById(fileId);
         if (!file) throw new NotFoundException('File not found');
 
-        const response = this.storageService.getSignedUrl(file.path);
+        const response = await this.storageService.getSignedUrl(file.path);
 
         return {
             data: response,

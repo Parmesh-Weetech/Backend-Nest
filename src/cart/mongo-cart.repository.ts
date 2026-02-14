@@ -20,20 +20,27 @@ export class MongoCartRepository implements ICartRepository {
         private readonly productModel: Model<ProductDocument>,
     ) { }
 
+    private cartItemIds(cart: any): any[] {
+        return (Array.isArray(cart?.items) ? cart.items : [])
+            .map((item: any) => item?._id ?? item)
+            .filter(Boolean);
+    }
+
     async findActiveCartByUser(userId: string) {
-        return this.cartModel.findOne({ userId, status: 'ACTIVE' });
+        return this.cartModel.findOne({ userId, status: 'ACTIVE' }).exec();
     }
 
     async findProductById(productId: string) {
-        return this.productModel.findById(productId);
+        return this.productModel.findById(productId).lean().exec();
     }
 
     async createCart(userId: string) {
-        return this.cartModel.create({
+        const cart = new this.cartModel({
             userId,
             items: [],
             status: 'ACTIVE',
         });
+        return cart.save();
     }
 
     async addCartItem(data: {
@@ -42,28 +49,30 @@ export class MongoCartRepository implements ICartRepository {
         quantity: number;
         price: number;
     }) {
-        const item = await this.cartItemModel.create({
+        const item = new this.cartItemModel({
             productId: data.productId,
             quantity: data.quantity,
             price: data.price,
             total_price: data.price * data.quantity,
         });
+        const savedItem = await item.save();
 
         await this.cartModel.findByIdAndUpdate(data.cartId, {
-            $push: { items: item._id },
+            $push: { items: savedItem._id },
         });
 
-        return item;
+        return savedItem;
     }
 
     async updateItemQuantity(productId: string, userId: string, quantity: number) {
         const cart = await this.findActiveCartByUser(userId);
         if (!cart) return false;
+        const itemIds = this.cartItemIds(cart);
 
         const item = await this.cartItemModel.findOne({
-            id: { $in: cart.items },
+            _id: { $in: itemIds },
             productId,
-        });
+        } as any).exec();
 
         if (!item) return false;
 
@@ -77,19 +86,23 @@ export class MongoCartRepository implements ICartRepository {
     async findCartItems(userId: string) {
         const cart = await this.findActiveCartByUser(userId);
         if (!cart) return [];
+        const itemIds = this.cartItemIds(cart);
 
         return this.cartItemModel
-            .find({ id: { $in: cart.items } })
-            .populate('productId');
+            .find({ _id: { $in: itemIds } } as any)
+            .populate('productId')
+            .exec();
     }
 
     async findCartItem(productId: string, userId: string) {
         const cart = await this.findActiveCartByUser(userId);
         if (!cart) return null;
+        const itemIds = this.cartItemIds(cart);
 
         return this.cartItemModel
-            .findOne({ id: { $in: cart.items }, productId })
-            .populate('productId');
+            .findOne({ _id: { $in: itemIds }, productId } as any)
+            .populate('productId')
+            .exec();
     }
 
     async removeItemsByIds(ids: string[], userId: string) {
@@ -102,9 +115,9 @@ export class MongoCartRepository implements ICartRepository {
         if (!cart) return false;
 
         const item = await this.cartItemModel.findOneAndDelete({
-            id: { $in: cart.items },
+            _id: { $in: this.cartItemIds(cart) },
             productId,
-        });
+        } as any).exec();
 
         if (!item) return false;
 

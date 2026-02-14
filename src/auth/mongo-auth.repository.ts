@@ -30,12 +30,30 @@ export class MongoAuthRepository implements IAuthRepository {
         return { id };
     }
 
-    findUserByEmail(email: string) {
-        return this.userModel.findOne({ email });
+    private toPlain(document: any) {
+        if (!document) return null;
+
+        const raw = typeof document.toObject === 'function'
+            ? document.toObject()
+            : document;
+
+        const id = raw?._id?.toString?.() ?? String(raw.id ?? raw._id);
+        const { _id, __v, ...rest } = raw;
+
+        return {
+            ...rest,
+            id,
+        };
     }
 
-    findUserById(id: string) {
-        return this.userModel.findOne(this.byIdFilter(id));
+    async findUserByEmail(email: string) {
+        const user = await this.userModel.findOne({ email }).lean().exec();
+        return this.toPlain(user);
+    }
+
+    async findUserById(id: string) {
+        const user = await this.userModel.findOne(this.byIdFilter(id)).lean().exec();
+        return this.toPlain(user);
     }
 
     async createUser(data: any) {
@@ -53,23 +71,27 @@ export class MongoAuthRepository implements IAuthRepository {
                 .filter(Boolean)
             : [];
 
-        return this.userModel.create({
+        const user = new this.userModel({
             ...data,
             organization: organizationId,
             roles: roleIds,
             password: hashedPassword,
         });
+        const saved = await user.save();
+        return this.toPlain(saved);
     }
 
     async saveRefreshToken(userId: string, token: string) {
-        await this.refreshModel.create({
+        const refreshToken = new this.refreshModel({
             userId,
             refresh_token: token,
         });
+        await refreshToken.save();
     }
 
-    findRefreshToken(token: string) {
-        return this.refreshModel.findOne({ refresh_token: token });
+    async findRefreshToken(token: string) {
+        const refresh = await this.refreshModel.findOne({ refresh_token: token }).lean().exec();
+        return this.toPlain(refresh);
     }
 
     async updateRefreshToken(id: string, newToken: string) {

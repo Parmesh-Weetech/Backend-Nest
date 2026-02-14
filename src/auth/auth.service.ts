@@ -97,12 +97,10 @@ export class AuthService {
         const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email, orgId: user.organization });
         const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
 
-        const saveRefreshToken = this.authRepository.saveRefreshToken(
+        await this.authRepository.saveRefreshToken(
             user.id,
             refresh_token
         );
-
-        if (!saveRefreshToken) throw new InternalServerErrorException({ message: "Something went wrong while processing your request." });
 
         return {
             success: true,

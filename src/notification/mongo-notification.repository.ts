@@ -16,9 +16,9 @@ export class MongoNotificationRepository implements INotificationRepository {
         private readonly notificationModel: Model<NotificationDocument>,
     ) { }
 
-    private mapNotification(notification: NotificationDocument): NotificationRecord {
+    private mapNotification(notification: any): NotificationRecord {
         return {
-            id: notification._id.toString(),
+            id: notification._id?.toString?.() ?? String(notification.id),
             sender: { id: notification.senderId },
             conversation: { id: notification.conversationId },
             message: notification.message,
@@ -32,7 +32,7 @@ export class MongoNotificationRepository implements INotificationRepository {
     }
 
     async create(data: CreateNotificationInput): Promise<NotificationRecord> {
-        const notification = await this.notificationModel.create({
+        const notification = new this.notificationModel({
             senderId: data.senderId,
             conversationId: data.conversationId,
             message: data.message,
@@ -41,12 +41,13 @@ export class MongoNotificationRepository implements INotificationRepository {
             timezone: data.timezone,
             sentAt: null,
         });
+        const saved = await notification.save();
 
-        return this.mapNotification(notification);
+        return this.mapNotification(saved);
     }
 
     async findById(notificationId: string): Promise<NotificationRecord | null> {
-        const notification = await this.notificationModel.findById(notificationId).exec();
+        const notification = await this.notificationModel.findById(notificationId).lean().exec();
 
         if (!notification) {
             return null;

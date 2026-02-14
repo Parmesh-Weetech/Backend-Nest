@@ -3,6 +3,9 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true, collection: 'videos' })
 export class VideoDocument extends Document {
+    @Prop({ required: true, unique: true, index: true })
+    id: string;
+
     @Prop({ required: true })
     path: string;
 

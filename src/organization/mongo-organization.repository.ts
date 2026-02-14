@@ -41,7 +41,6 @@ export class MongoOrganizationRepository
     }
 
     async findById(id: string) {
-        console.log(id);
         if (!id || !Types.ObjectId.isValid(id)) {
             console.log("document");
             return null;
@@ -52,8 +51,9 @@ export class MongoOrganizationRepository
     }
 
     async create(data: any) {
-        const document = await this.model.create(data);
-        return this.toPlain(document);
+        const organization = new this.model(data);
+        const saved = await organization.save();
+        return this.toPlain(saved);
     }
 
     async update(id: string, data: any) {

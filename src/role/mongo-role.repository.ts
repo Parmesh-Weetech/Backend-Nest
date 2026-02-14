@@ -52,8 +52,9 @@ export class MongoRoleRepository implements IRoleRepository {
     }
 
     async create(data: any) {
-        const document = await this.model.create(data);
-        return this.toPlain(document);
+        const role = new this.model(data);
+        const saved = await role.save();
+        return this.toPlain(saved);
     }
 
     async update(id: string, data: any) {

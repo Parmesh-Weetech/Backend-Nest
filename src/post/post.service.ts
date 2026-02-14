@@ -14,6 +14,17 @@ export class PostService {
         private readonly postRepository: IPostRepository,
     ) { }
 
+    private readonly isMongoProvider =
+        ['mongo', 'mongodb'].includes((process.env.DATABASE_PROVIDER ?? '').toLowerCase());
+
+    private getPostOwnerId(post: any): string | null {
+        if (!post) return null;
+        if (post.userId) return String(post.userId);
+        if (post.user?.id) return String(post.user.id);
+        if (post.user?._id?.toString) return post.user._id.toString();
+        return null;
+    }
+
     async findAll(user: User): Promise<APIResponse> {
         const posts = await this.postRepository.findAll(user.id);
         if (!posts || posts.length === 0) throw new NotFoundException('No posts found.');
@@ -44,7 +55,9 @@ export class PostService {
         const newPost = {
             name: createPostDTO.name,
             description: createPostDTO.description,
-            user: user,
+            ...(this.isMongoProvider
+                ? { userId: user.id }
+                : { user }),
         };
 
         const post = await this.postRepository.create(newPost);
@@ -63,7 +76,7 @@ export class PostService {
         const existingPost = await this.postRepository.findOne(updatePostDTO.id);
         if (!existingPost) throw new NotFoundException('Post not found.');
 
-        if (existingPost.user.id !== user.id)
+        if (this.getPostOwnerId(existingPost) !== user.id)
             throw new BadRequestException('You can only update your own posts.');
 
         const updatedPost = await this.postRepository.update(updatePostDTO.id, updatePostDTO);
@@ -83,7 +96,7 @@ export class PostService {
         const existingPost = await this.postRepository.findOne(id);
         if (!existingPost) throw new NotFoundException('Post not found.');
 
-        if (existingPost.user.id !== user.id)
+        if (this.getPostOwnerId(existingPost) !== user.id)
             throw new BadRequestException('You can only delete your own posts.');
 
         const result = await this.postRepository.remove(id);

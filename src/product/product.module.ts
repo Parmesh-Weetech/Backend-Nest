@@ -27,7 +27,7 @@ import { PostgresProductRepository } from './postgres-product.repository';
     ? [TypeOrmModule.forFeature([Product])]
     : []),
 
-    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+    ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
       ? [
         MongooseModule.forFeature([
           { name: MongoProduct.name, schema: ProductSchema },
