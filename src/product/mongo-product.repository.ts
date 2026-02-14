@@ -55,7 +55,7 @@ export class MongoProductRepository implements IProductRepository {
     }
 
     async findOne(id: string) {
-        return this.productModel.findOne({ _id: id, deleted_at: null });
+        return this.productModel.findOne({ _id: id });
     }
 
     async create(data: any) {

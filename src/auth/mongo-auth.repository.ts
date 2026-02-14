@@ -40,8 +40,23 @@ export class MongoAuthRepository implements IAuthRepository {
 
     async createUser(data: any) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
+
+        const organizationId = typeof data.organization === 'object'
+            ? data.organization?.id ?? data.organization?._id?.toString?.()
+            : data.organization;
+
+        const roleIds = Array.isArray(data.roles)
+            ? data.roles
+                .map((role: any) => (typeof role === 'object'
+                    ? role?.id ?? role?._id?.toString?.()
+                    : role))
+                .filter(Boolean)
+            : [];
+
         return this.userModel.create({
             ...data,
+            organization: organizationId,
+            roles: roleIds,
             password: hashedPassword,
         });
     }

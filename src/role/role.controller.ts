@@ -11,9 +11,10 @@ import { CurrentOrganizationId } from '../common/decorators/currentOrganizationI
 import { RoleService } from './role.service';
 import { CreateRoleDTO } from './dtos/create-role.dto';
 import { UpdateRoleDTO } from './dtos/update-role.dto';
+import { CurrentUserGuard } from 'src/common/guards/currentUser.guard';
 
 @Controller('roles')
-@UseGuards(AuthGuard, PermissionsGuard)
+@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
 export class RoleController {
     constructor(
         private readonly roleService: RoleService

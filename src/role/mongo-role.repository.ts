@@ -12,18 +12,17 @@ export class MongoRoleRepository implements IRoleRepository {
     ) { }
 
     findAll() {
-        return this.model.find({ deleted_at: null });
+        return this.model.find();
     }
 
     findById(id: string) {
-        return this.model.findOne({ _id: id, deleted_at: null });
+        return this.model.findOne({ _id: id });
     }
 
     findByKeyAndOrganization(key: string, organizationId: string) {
         return this.model.find({
             key,
-            organization: organizationId,
-            deleted_at: null,
+            organization: organizationId
         });
     }
 
@@ -45,8 +44,7 @@ export class MongoRoleRepository implements IRoleRepository {
     findGlobalRoleByKey(key: string) {
         return this.model.findOne({
             key,
-            organization: null,
-            deleted_at: null,
+            organization: null
         });
     }
 }

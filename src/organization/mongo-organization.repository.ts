@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import {
     IOrganizationRepository,
@@ -15,26 +15,61 @@ export class MongoOrganizationRepository
         private readonly model: Model<OrganizationDocument>,
     ) { }
 
+    private toPlain(document: any) {
+        if (!document) return null;
+
+        const raw = typeof document.toObject === 'function'
+            ? document.toObject()
+            : document;
+
+        const id = raw?._id?.toString?.() ?? String(raw._id ?? raw.id);
+
+        const { _id, __v, ...rest } = raw;
+
+        return {
+            ...rest,
+            id,
+        };
+    }
+
     async findAllByUser(userId: string) {
-        return this.model.find({
-            users: { $in: [userId] },
-            deleted_at: null,
-        });
+        const documents = await this.model.find({
+            users: { $in: [userId] }
+        }).lean().exec();
+
+        return documents.map((document: any) => this.toPlain(document));
     }
 
     async findById(id: string) {
-        return this.model.findOne({ _id: id, deleted_at: null });
+        console.log(id);
+        if (!id || !Types.ObjectId.isValid(id)) {
+            console.log("document");
+            return null;
+        }
+
+        const document = await this.model.findOne({ _id: id }).lean().exec();
+        return this.toPlain(document);
     }
 
     async create(data: any) {
-        return this.model.create(data);
+        const document = await this.model.create(data);
+        return this.toPlain(document);
     }
 
     async update(id: string, data: any) {
-        return this.model.findByIdAndUpdate(id, data, { new: true });
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
+        return this.toPlain(document);
     }
 
     async softDelete(id: string) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return false;
+        }
+
         const res = await this.model.findByIdAndUpdate(id, {
             deleted_at: new Date(),
         });

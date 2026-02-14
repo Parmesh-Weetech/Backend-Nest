@@ -13,7 +13,7 @@ export class MongoPermissionRepository
     ) { }
 
     findAll() {
-        return this.model.find({ deleted_at: null });
+        return this.model.find();
     }
 
     async findById(id: string) {
@@ -21,7 +21,7 @@ export class MongoPermissionRepository
             return null;
         }
 
-        return this.model.findOne({ _id: id, deleted_at: null });
+        return this.model.findOne({ _id: id });
     }
 
     findByEntityActionAndOrg(entity: string, action: string, organizationId: string) {

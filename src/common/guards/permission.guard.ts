@@ -5,6 +5,19 @@ import { Reflector } from "@nestjs/core";
 export class PermissionsGuard implements CanActivate {
     constructor(private reflector: Reflector) { }
 
+    private normalizeId(value: any): string | null {
+        if (!value) return null;
+
+        if (typeof value === 'string') return value;
+
+        if (typeof value === 'object') {
+            if (value.id) return String(value.id);
+            if (value._id?.toString) return value._id.toString();
+        }
+
+        return null;
+    }
+
     canActivate(context: ExecutionContext): boolean {
         const request = context.switchToHttp().getRequest();
 
@@ -19,20 +32,30 @@ export class PermissionsGuard implements CanActivate {
         if (!user) throw new UnauthorizedException("User not found in request");
 
         const { entity, action } = requiredPermission;
-        const orgId = user.organization.id;
+        const orgId = this.normalizeId(user.organization);
 
-        for (const role of user.roles) {
+        if (!orgId) {
+            throw new UnauthorizedException('User organization not found');
+        }
+
+        console.log(user.roles)
+        for (const role of (user.roles ?? [])) {
             if (!role.organization) continue;
 
-            if (role.organization.id !== orgId) continue;
+            const roleOrgId = this.normalizeId(role.organization);
+            if (!roleOrgId || roleOrgId !== orgId) continue;
 
             if (role.key === 'admin') {
                 return true;
             }
 
-            for (const permission of role.permissions) {
+            const rolePermissions = role.permissions ?? [];
+
+            for (const permission of rolePermissions) {
+                const permissionOrgId = this.normalizeId(permission.organization);
+
                 if (
-                    permission.organization?.id === orgId &&
+                    permissionOrgId === orgId &&
                     permission.entity === entity &&
                     permission.action === action
                 ) {

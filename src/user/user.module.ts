@@ -13,6 +13,9 @@ import { UserDocument, UserSchema } from './schemas/user.schema';
 import { PostgresUserRepository } from './postgres-user.repository';
 import { MongoUserRepository } from './mongo-user.repository';
 import { USERS_REPOSITORY } from './user.repository.interface';
+import { RoleDocument, RoleSchema } from '../role/schemas/role.schema';
+import { PermissionDocument, PermissionSchema } from '../permission/schemas/permission.schema';
+import { OrganizationDocument, OrganizationSchema } from '../organization/schemas/organization.schema';
 
 const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
 const isPostgres = databaseProvider === 'postgres';
@@ -34,6 +37,9 @@ const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
     ? [
       MongooseModule.forFeature([
         { name: UserDocument.name, schema: UserSchema },
+        { name: RoleDocument.name, schema: RoleSchema },
+        { name: PermissionDocument.name, schema: PermissionSchema },
+        { name: OrganizationDocument.name, schema: OrganizationSchema },
       ]),
     ]
     : []), forwardRef(() => AuthModule),

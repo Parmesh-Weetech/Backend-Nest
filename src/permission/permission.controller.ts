@@ -11,9 +11,10 @@ import { CurrentOrganizationId } from '../common/decorators/currentOrganizationI
 
 import { PermissionService } from './permission.service';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto';
+import { CurrentUserGuard } from 'src/common/guards/currentUser.guard';
 
 @Controller('permissions')
-@UseGuards(AuthGuard, PermissionsGuard)
+@UseGuards(AuthGuard, CurrentUserGuard, PermissionsGuard)
 export class PermissionController {
     constructor(
         private readonly permissionService: PermissionService
