@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { IWebsocketRepository } from './websocket.repository.interface';
+import { CreateAttachmentInput, CreateMessageInput, IWebsocketRepository, WebsocketMessage } from './websocket.repository.interface';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 import { MessageAttachment } from './entities/MessageAttachment.entity';
@@ -61,16 +61,21 @@ export class PostgresWebsocketRepository implements IWebsocketRepository {
         });
     }
 
-    async createMessage(data: Partial<Message>) {
+    async createMessage(data: CreateMessageInput) {
         return this.messageRepo.create(data);
     }
 
-    async saveMessage(message: Partial<Message>) {
+    async saveMessage(message: WebsocketMessage) {
         return this.messageRepo.save(message);
     }
 
-    async createAttachments(data: Partial<MessageAttachment>[]) {
-        return this.attachmentRepo.save(data);
+    async createAttachments(data: CreateAttachmentInput[]) {
+        const entities = data.map((attachment) => this.attachmentRepo.create({
+            ...attachment,
+            message: { id: attachment.message.id } as Message,
+        }));
+
+        return this.attachmentRepo.save(entities);
     }
 
     async findUserById(userId: string) {

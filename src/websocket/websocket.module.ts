@@ -20,20 +20,24 @@ import { WEBSOCKET_REPOSITORY } from './websocket.repository.interface';
 import { PostgresWebsocketRepository } from './postgres-websocket.repository';
 import { MongoWebsocketRepository } from './mongo-websocket.repository';
 
+const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
+const isPostgres = databaseProvider === 'postgres';
+const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+
 @Module({
   controllers: [WebsocketController],
   providers: [WebsocketService, Gateway, {
     provide: WEBSOCKET_REPOSITORY,
     useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
+      isPostgres
         ? PostgresWebsocketRepository
         : MongoWebsocketRepository,
   }],
-  imports: [...(process.env.DATABASE_PROVIDER === 'postgres'
+  imports: [...(isPostgres
     ? [TypeOrmModule.forFeature([Conversation, Message, MessageAttachment, User])]
     : []),
 
-  ...(process.env.DATABASE_PROVIDER === 'mongodb'
+  ...(isMongo
     ? [
       MongooseModule.forFeature([
         { name: ConversationDocument.name, schema: ConversationSchema },

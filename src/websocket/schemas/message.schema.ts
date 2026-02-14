@@ -17,6 +17,9 @@ export class MessageDocument extends Document {
 
     @Prop({ type: Array })
     attachments: any[];
+
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(MessageDocument);

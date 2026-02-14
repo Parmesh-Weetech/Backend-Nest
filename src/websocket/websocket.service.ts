@@ -1,29 +1,25 @@
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
-import { User } from '../user/entities/user.entity';
 import { FilesService } from '../files/files.service';
 import { VideoService } from '../video/video.service';
 import { NotificationService } from '../notification/notification.service';
 
 import { Message } from './entities/message.entity';
-import { Conversation } from './entities/conversation.entity';
 import { SendMessageDto } from './dtos/sendMessage.dto';
-import { MessageAttachment } from './entities/MessageAttachment.entity';
 import { getCurrentTimePlusSeconds, getTodayDate } from './util/notification.websocket.util';
-import { type IWebsocketRepository, WEBSOCKET_REPOSITORY } from './websocket.repository.interface';
+import {
+    type CreateAttachmentInput,
+    type IWebsocketRepository,
+    WEBSOCKET_REPOSITORY,
+    type WebsocketMessage,
+} from './websocket.repository.interface';
 
 @Injectable()
 export class WebsocketService {
     constructor(
         @Inject(WEBSOCKET_REPOSITORY)
         private readonly repo: IWebsocketRepository,
-
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-
         private readonly fileService: FilesService,
         private readonly videoService: VideoService,
         private readonly notificationService: NotificationService
@@ -102,16 +98,14 @@ export class WebsocketService {
     async sendMessage(
         sendMessageDto: SendMessageDto,
         senderId: string
-    ): Promise<Message> {
+    ): Promise<WebsocketMessage> {
         const conversation = await this.repo.findConversationById(sendMessageDto.conversationId);
 
         if (!conversation) {
             throw new Error('Conversation not found');
         }
 
-        const sender = await this.userRepository.findOne({
-            where: { id: senderId },
-        });
+        const sender = await this.repo.findUserById(senderId);
 
         if (!sender) {
             throw new Error('Sender not found');
@@ -128,11 +122,11 @@ export class WebsocketService {
 
         if (sendMessageDto.attachments?.length) {
 
-            const attachmentEntities: MessageAttachment[] = [];
+            const attachmentEntities: CreateAttachmentInput[] = [];
 
             for (let index = 0; index < sendMessageDto.attachments.length; index++) {
                 const media = sendMessageDto.attachments[index];
-                let attachment: MessageAttachment
+                let attachment: CreateAttachmentInput;
 
                 if (media.mediaType === "video") {
                     const video = await this.videoService.getVideoById(media.media.id);
@@ -141,13 +135,13 @@ export class WebsocketService {
                         throw new Error('Video not found');
                     }
 
-                    attachment = this.messageAttachmentRepository.create({
+                    attachment = {
                         message: savedMessage,
                         mediaType: media.mediaType,
                         mimeType: video.mimeType,
                         media: video,
                         order: index,
-                    });
+                    };
                 } else {
                     const file = await this.fileService.getFileById(media.media.id);
 
@@ -158,13 +152,13 @@ export class WebsocketService {
                     const signedUrlResponse = file ? await this.fileService.getSignedUrl(media.media.id) : "";
                     const url = typeof signedUrlResponse === 'string' ? signedUrlResponse : signedUrlResponse.data;
 
-                    attachment = this.repo.create({
+                    attachment = {
                         message: savedMessage,
                         mediaType: media.mediaType,
                         mimeType: file.mimeType,
                         media: file,
                         order: index,
-                    });
+                    };
 
                     attachment.url = url;
                 }
@@ -172,10 +166,10 @@ export class WebsocketService {
                 attachmentEntities.push(attachment);
             }
 
-            const savedAttachments =
-                await this.messageAttachmentRepository.save(attachmentEntities);
+            const savedAttachments = await this.repo.createAttachments(attachmentEntities);
 
             savedMessage.attachments = savedAttachments;
+            await this.repo.saveMessage(savedMessage);
         }
 
         await this.notificationService.create(
