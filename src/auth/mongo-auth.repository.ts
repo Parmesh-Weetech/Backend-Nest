@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 import { IAuthRepository } from './auth.repository.interface';
 import { UserDocument } from '../user/schemas/user.schema';
@@ -16,16 +17,33 @@ export class MongoAuthRepository implements IAuthRepository {
         private readonly refreshModel: Model<RefreshTokenDocument>,
     ) { }
 
+    private byIdFilter(id: string) {
+        if (Types.ObjectId.isValid(id)) {
+            return {
+                $or: [
+                    { _id: new Types.ObjectId(id) },
+                    { id },
+                ],
+            };
+        }
+
+        return { id };
+    }
+
     findUserByEmail(email: string) {
         return this.userModel.findOne({ email });
     }
 
     findUserById(id: string) {
-        return this.userModel.findById(id);
+        return this.userModel.findOne(this.byIdFilter(id));
     }
 
-    createUser(data: any) {
-        return this.userModel.create(data);
+    async createUser(data: any) {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        return this.userModel.create({
+            ...data,
+            password: hashedPassword,
+        });
     }
 
     async saveRefreshToken(userId: string, token: string) {

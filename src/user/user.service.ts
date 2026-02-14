@@ -22,6 +22,9 @@ export class UserService {
         private readonly cacheService: CacheService
     ) { }
 
+    private readonly isMongoProvider =
+        ['mongo', 'mongodb'].includes((process.env.DATABASE_PROVIDER ?? '').toLowerCase());
+
     private userKey(id: string) {
         return `user:${id}`;
     }
@@ -32,7 +35,31 @@ export class UserService {
 
     async findAllCachedUser(user: User): Promise<APIResponse> {
         const usersKey = this.usersKey(user.id);
-        let cachedUsers = await this.cacheService.get<User[]>(usersKey);
+        let cachedUsers: User[] | null = null;
+
+        if (this.isMongoProvider) {
+            const users = await this.userRepository.findAll(user.id);
+
+            if (!users || users.length === 0) throw new NotFoundException('Users not found.');
+
+            return {
+                success: true,
+                data: users.map((u) => ({
+                    id: u.id,
+                    name: u.name,
+                    email: u.email,
+                })),
+                expired: false,
+                message: 'Users fetched successfully.',
+                statusCode: 200,
+            };
+        }
+
+        try {
+            cachedUsers = await this.cacheService.get<User[]>(usersKey);
+        } catch {
+            cachedUsers = null;
+        }
 
         if (!cachedUsers) {
             const users = await this.userRepository.findAll(user.id);
@@ -40,7 +67,12 @@ export class UserService {
             if (!users || users.length === 0) throw new NotFoundException('Users not found.');
 
             cachedUsers = users;
-            await this.cacheService.set(usersKey, users, 600);
+
+            try {
+                await this.cacheService.set(usersKey, users, 600);
+            } catch {
+                // Fallback to DB-only flow when cache backend is unavailable.
+            }
         }
 
         return {
@@ -58,7 +90,26 @@ export class UserService {
 
     async findOne(id: string): Promise<APIResponse> {
         const cacheKey = this.userKey(id);
-        let cachedUser = await this.cacheService.get(cacheKey);
+        let cachedUser: any = null;
+
+        if (this.isMongoProvider) {
+            const fetchedUser = await this.userRepository.findOne(id);
+            if (!fetchedUser) throw new NotFoundException('User not found.');
+
+            return {
+                success: true,
+                data: fetchedUser,
+                expired: false,
+                message: 'User fetched successfully.',
+                statusCode: 200,
+            };
+        }
+
+        try {
+            cachedUser = await this.cacheService.get(cacheKey);
+        } catch {
+            cachedUser = null;
+        }
 
         if (!cachedUser) {
             const fetchedUser = await this.userRepository.findOne(id);
@@ -67,7 +118,11 @@ export class UserService {
 
             cachedUser = fetchedUser;
 
-            await this.cacheService.set(cacheKey, fetchedUser, 600); // Cache user for 10 minutes
+            try {
+                await this.cacheService.set(cacheKey, fetchedUser, 600); // Cache user for 10 minutes
+            } catch {
+                // Fallback to DB-only flow when cache backend is unavailable.
+            }
         }
 
         return {

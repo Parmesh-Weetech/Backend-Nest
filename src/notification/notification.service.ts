@@ -1,22 +1,20 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 
-import { Repository } from 'typeorm';
 import { Queue } from 'bullmq';
 import { DateTime } from "luxon";
 
-import { Notification } from './entities/notification.entity';
 import { APIResponse } from 'src/common/response/response.dto';
+import { NOTIFICATION_REPOSITORY } from './notification.repository.interface';
+import type { INotificationRepository } from './notification.repository.interface';
 
 @Injectable()
 export class NotificationService {
     constructor(
         @InjectQueue('notifications')
         private readonly queue: Queue,
-
-        @InjectRepository(Notification)
-        private readonly notificationRepository: Repository<Notification>,
+        @Inject(NOTIFICATION_REPOSITORY)
+        private readonly notificationRepository: INotificationRepository,
     ) { }
 
     async create(
@@ -34,17 +32,13 @@ export class NotificationService {
         const delay = scheduledAtUtc.diffNow().as('milliseconds');
         if (delay <= 0) throw new BadRequestException('Scheduled time must be in the future');
 
-        const notificationObject = this.notificationRepository.create({
-            sender: { id: senderId },
-            conversation: { id: conversationId },
+        const notification = await this.notificationRepository.create({
+            senderId,
+            conversationId,
             message: message,
             scheduledAt: scheduledAtUtc.toJSDate(),
-            sentAt: null,
-            status: "PENDING",
             timezone: timezone,
-        })
-
-        const notification = await this.notificationRepository.save(notificationObject);
+        });
 
         if(!notification) throw new InternalServerErrorException('Failed to create notification');
 

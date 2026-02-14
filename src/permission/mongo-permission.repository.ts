@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { IPermissionRepository } from "./permission.repository.interface";
 import { InjectModel } from "@nestjs/mongoose";
 import { PermissionDocument } from "./schemas/permission.schema";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 @Injectable()
 export class MongoPermissionRepository
@@ -16,7 +16,11 @@ export class MongoPermissionRepository
         return this.model.find({ deleted_at: null });
     }
 
-    findById(id: string) {
+    async findById(id: string) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
         return this.model.findOne({ _id: id, deleted_at: null });
     }
 

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
 
 import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
@@ -11,25 +13,33 @@ import { Product } from '../product/entities/product.entity';
 
 import { CartDocument, CartSchema } from './schemas/cart.schema';
 import { CartItemDocument, CartItemSchema } from './schemas/cart_item.schema';
+import { Product as ProductDocument, ProductSchema } from '../product/schemas/product.schema';
 
 import { CART_REPOSITORY } from './cart.repository.interface';
 import { PostgresCartRepository } from './postgres-cart.repository';
 import { MongoCartRepository } from './mongo-cart.repository';
 
+const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
+const isPostgres = databaseProvider === 'postgres';
+const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+
 @Module({
   imports: [
-    ...(process.env.DATABASE_PROVIDER === 'postgres'
+    ...(isPostgres
       ? [TypeOrmModule.forFeature([Cart, CartItem, Product])]
       : []),
 
-    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+    ...(isMongo
       ? [
         MongooseModule.forFeature([
           { name: CartDocument.name, schema: CartSchema },
           { name: CartItemDocument.name, schema: CartItemSchema },
+          { name: ProductDocument.name, schema: ProductSchema },
         ]),
       ]
       : []),
+    AuthModule,
+    UserModule,
   ],
   controllers: [CartController],
   providers: [
@@ -37,7 +47,7 @@ import { MongoCartRepository } from './mongo-cart.repository';
     {
       provide: CART_REPOSITORY,
       useClass:
-        process.env.DATABASE_PROVIDER === 'postgres'
+        isPostgres
           ? PostgresCartRepository
           : MongoCartRepository,
     },

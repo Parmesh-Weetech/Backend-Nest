@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 import { ICartRepository } from './cart.repository.interface';
 import { CartDocument } from './schemas/cart.schema';
 import { CartItemDocument } from './schemas/cart_item.schema';
-import { ProductDocument } from '../product/schemas/product.schema';
+import { Product, ProductDocument } from '../product/schemas/product.schema';
 
 @Injectable()
 export class MongoCartRepository implements ICartRepository {
@@ -16,7 +16,7 @@ export class MongoCartRepository implements ICartRepository {
         @InjectModel(CartItemDocument.name)
         private readonly cartItemModel: Model<CartItemDocument>,
 
-        @InjectModel('Product')
+        @InjectModel(Product.name)
         private readonly productModel: Model<ProductDocument>,
     ) { }
 

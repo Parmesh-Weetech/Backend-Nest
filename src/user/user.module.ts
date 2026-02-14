@@ -9,27 +9,31 @@ import { PermissionModule } from '../permission/permission.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { CacheModule } from '../cache/cache.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from './schemas/user.schema';
-import { PRODUCT_REPOSITORY } from 'src/product/product.repository.interface';
+import { UserDocument, UserSchema } from './schemas/user.schema';
 import { PostgresUserRepository } from './postgres-user.repository';
 import { MongoUserRepository } from './mongo-user.repository';
+import { USERS_REPOSITORY } from './user.repository.interface';
+
+const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
+const isPostgres = databaseProvider === 'postgres';
+const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
 
 @Module({
   providers: [UserService, {
-    provide: PRODUCT_REPOSITORY,
+    provide: USERS_REPOSITORY,
     useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
+      isPostgres
         ? PostgresUserRepository
         : MongoUserRepository,
   }],
-  imports: [...(process.env.DATABASE_PROVIDER === 'postgres'
+  imports: [...(isPostgres
     ? [TypeOrmModule.forFeature([User])]
     : []),
 
-  ...(process.env.DATABASE_PROVIDER === 'mongodb'
+  ...(isMongo
     ? [
       MongooseModule.forFeature([
-        { name: 'user', schema: UserSchema },
+        { name: UserDocument.name, schema: UserSchema },
       ]),
     ]
     : []), forwardRef(() => AuthModule),

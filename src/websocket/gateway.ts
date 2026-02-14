@@ -1,11 +1,9 @@
 import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketServer, MessageBody, ConnectedSocket, WsException } from '@nestjs/websockets';
-import { Injectable, Res } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { Repository } from 'typeorm';
 
 import { Auth } from '../common/util/auth';
-import { User } from '../user/entities/user.entity';
+import { UserService } from '../user/user.service';
 
 import { SendMessageDto } from './dtos/sendMessage.dto';
 import { WebsocketService } from './websocket.service';
@@ -25,8 +23,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   constructor(
     private readonly webSocketService: WebsocketService,
     private readonly auth: Auth,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userService: UserService
   ) { }
 
   @WebSocketServer() server: Server;
@@ -52,7 +49,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
       const decoded = await this.auth.decode(token);
       client.data.userId = decoded.sub;
 
-      const isUserExists = await this.userRepository.findOne({ where: { id: client.data.userId }});
+      const isUserExists = await this.userService.findOne(client.data.userId);
 
       if(!isUserExists) throw new WsException("user not found!");
 

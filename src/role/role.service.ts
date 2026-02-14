@@ -159,14 +159,31 @@ export class RoleService {
     }
 
     async findRoleByOrganizationName(key: string): Promise<APIResponse> {
-        const role =
-            await this.roleRepository.findGlobalRoleByKey(key);
+        const role = await this.roleRepository.findGlobalRoleByKey(key);
         if (!role) throw new NotFoundException('Role not found.');
+
+        const roleData = role as any;
+        if (
+            roleData.permissions === undefined &&
+            Array.isArray(roleData.permissionIds) &&
+            roleData.permissionIds.length > 0
+        ) {
+            const validPermissionIds = roleData.permissionIds
+                .map((permissionId: any) => String(permissionId ?? ''))
+                .filter((permissionId: string) => permissionId && permissionId !== 'undefined');
+
+            const permissions = await Promise.all(
+                validPermissionIds.map((permissionId: string) =>
+                    this.permissionService.findOne(permissionId).then((response) => response.data),
+                ),
+            );
+            roleData.permissions = permissions;
+        }
 
         return {
             success: true,
             message: "Role fetched successfully.",
-            data: role,
+            data: roleData,
             expired: false,
             statusCode: 200
         };

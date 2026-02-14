@@ -22,20 +22,24 @@ import { AUTH_REPOSITORY } from './auth.repository.interface';
 import { PostgresAuthRepository } from './postgres-auth.repository';
 import { MongoAuthRepository } from './mongo-auth.repository';
 
+const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
+const isPostgres = databaseProvider === 'postgres';
+const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+
 @Module({
   providers: [AuthService, AuthMiddleware, Auth, {
     provide: AUTH_REPOSITORY,
     useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
+      isPostgres
         ? PostgresAuthRepository
         : MongoAuthRepository,
   }],
   imports: [
-    ...(process.env.DATABASE_PROVIDER === 'postgres'
+    ...(isPostgres
       ? [TypeOrmModule.forFeature([User, Refresh_token])]
       : []),
 
-    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+    ...(isMongo
       ? [
         MongooseModule.forFeature([
           { name: UserDocument.name, schema: UserSchema },

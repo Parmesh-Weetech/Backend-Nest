@@ -1,40 +1,58 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { IUserRepository } from './user.repository.interface';
 import { User } from './entities/user.entity';
 import { APIResponse } from 'src/common/response/response.dto';
+import { UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class MongoUserRepository implements IUserRepository {
     constructor(
-        @InjectModel('User') private readonly userModel: Model<any>,
+        @InjectModel(UserDocument.name) private readonly userModel: Model<any>,
     ) { }
+
+    private byIdFilter(id: string) {
+        if (Types.ObjectId.isValid(id)) {
+            return {
+                $or: [
+                    { _id: new Types.ObjectId(id) },
+                    { id },
+                ],
+            };
+        }
+
+        return { id };
+    }
 
     async create(data: any) {
         return this.userModel.create(data);
     }
 
     async findAll(userId: string) {
-        return this.userModel.find({ _id: { $ne: userId } });
+        if (Types.ObjectId.isValid(userId)) {
+            return this.userModel.find({ _id: { $ne: new Types.ObjectId(userId) } });
+        }
+
+        return this.userModel.find({ id: { $ne: userId } });
     }
 
     async findOne(id: string) {
-        return this.userModel.findById(id).populate('roles organization');
+        return this.userModel.findOne(this.byIdFilter(id)).populate('roles organization');
     }
 
     async update(id: string, data: any) {
-        return this.userModel.findByIdAndUpdate(id, data, { new: true });
+        return this.userModel.findOneAndUpdate(this.byIdFilter(id), data, { new: true });
     }
 
     async remove(id: string) {
-        const result = await this.userModel.deleteOne({ _id: id });
+        const result = await this.userModel.deleteOne(this.byIdFilter(id));
         return result.deletedCount > 0;
     }
 
     async findOneWithRolesAndPermissions(userId: string): Promise<APIResponse> {
         const user = await this.userModel
-            .findById(userId)
+            .findOne(this.byIdFilter(userId))
             .populate({
                 path: 'roles',
                 populate: {

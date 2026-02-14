@@ -1,20 +1,19 @@
-import { InjectRepository } from '@nestjs/typeorm';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Inject, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
-import { Repository } from 'typeorm';
 import { Job } from 'bullmq';
 
-import { Notification } from './entities/notification.entity';
 import { NotificationSseService } from './notificationSse.service';
-import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { NOTIFICATION_REPOSITORY } from './notification.repository.interface';
+import type { INotificationRepository } from './notification.repository.interface';
 
 @Processor('notifications', {
     concurrency: 10
 })
 export class NotificationProcessor extends WorkerHost {
     constructor(
-        @InjectRepository(Notification)
-        private readonly repo: Repository<Notification>,
+        @Inject(NOTIFICATION_REPOSITORY)
+        private readonly repo: INotificationRepository,
         private readonly notificationSseService: NotificationSseService
     ) {
         super();
@@ -24,21 +23,12 @@ export class NotificationProcessor extends WorkerHost {
         const { notificationId } = job.data;
 
         try {
-            const notification = await this.repo.findOne({ where: { id: notificationId }, relations: ['sender', 'conversation'] });
+            const notification = await this.repo.findById(notificationId);
             if (!notification) throw new NotFoundException('Notification not found');
-            
-            const result = await this.repo
-                .createQueryBuilder()
-                .update(Notification)
-                .set({
-                    sentAt: () => 'NOW()',
-                    status: 'SENT',
-                })
-                .where('id = :id', { id: notificationId })
-                .andWhere('sentAt IS NULL')
-                .execute();
 
-            if (result.affected === 0) {
+            const markedAsSent = await this.repo.markAsSent(notificationId);
+
+            if (!markedAsSent) {
                 return;
             }
 
@@ -46,18 +36,14 @@ export class NotificationProcessor extends WorkerHost {
                 `Sending notification to ${notification.conversation}`,
             );
 
-            if (result.affected !== undefined && result.affected !== null && result.affected > 0) {
-                this.notificationSseService.sendSuccess(
-                    notificationId, notification.message, notification.sender.id, notification.createdAt, notification.conversation.id, "SENT"
-                );
-            }
+            this.notificationSseService.sendSuccess(
+                notificationId, notification.message, notification.sender.id, notification.createdAt, notification.conversation.id, "SENT"
+            );
 
         } catch (err) {
-            const updateNotificationStatus = await this.repo.update(notificationId, {
-                status: 'FAILED',
-            });
+            const updateNotificationStatus = await this.repo.markAsFailed(notificationId);
 
-            if (updateNotificationStatus.affected !== undefined && updateNotificationStatus.affected !== null && updateNotificationStatus.affected > 0) {
+            if (updateNotificationStatus) {
                 this.notificationSseService.sendError(
                     notificationId, err, "FAILED"
                 );

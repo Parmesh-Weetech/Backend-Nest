@@ -14,15 +14,31 @@ import { VideoSseService } from './videoSse.service';
 import { VideoSseController } from './videoSse.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { VideoDocument, VideoSchema } from './schemas/video.schema';
+import { VIDEO_REPOSITORY } from './video.interface.repository';
+import { PostgresVideoRepository } from './postgres-video.repository';
+import { MongoVideoRepository } from './mongo-video.repository';
+
+const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
+const isPostgres = databaseProvider === 'postgres';
+const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
 
 @Module({
-  providers: [VideoService, VideoSseService],
+  providers: [
+    VideoService,
+    VideoSseService,
+    {
+      provide: VIDEO_REPOSITORY,
+      useClass: isPostgres
+        ? PostgresVideoRepository
+        : MongoVideoRepository,
+    },
+  ],
   controllers: [VideoController, VideoSseController],
-  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, ...(process.env.DATABASE_PROVIDER === 'postgres'
+  imports: [StorageModule, FfmpegModule, AuthModule, UserModule, ...(isPostgres
     ? [TypeOrmModule.forFeature([Video])]
     : []),
 
-    ...(process.env.DATABASE_PROVIDER === 'mongodb'
+    ...(isMongo
       ? [
         MongooseModule.forFeature([
           { name: VideoDocument.name, schema: VideoSchema },
@@ -34,6 +50,6 @@ import { VideoDocument, VideoSchema } from './schemas/video.schema';
           url: "redis://localhost:6379"
         }
       })],
-  exports: [VideoSseService, VideoService]
+  exports: [VideoSseService, VideoService, VIDEO_REPOSITORY]
 })
 export class VideoModule { }

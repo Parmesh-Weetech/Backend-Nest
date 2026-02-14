@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 import { Cart } from "./cart.entity";
 import { Product } from "../../product/entities/product.entity";
 

@@ -6,8 +6,6 @@ import {
     NotFoundException,
     UnauthorizedException
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import bcrypt from "bcryptjs";
 
@@ -16,8 +14,6 @@ import { APIResponse } from '../common/response/response.dto';
 import { RoleService } from '../role/role.service';
 import { PermissionService } from '../permission/permission.service';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from '../user/entities/user.entity';
-import { Refresh_token } from '../user/entities/refresh_token.entity';
 
 import { SignupDTO } from './dtos/signup.dto';
 import { LoginDTO } from './dtos/login.dto';
@@ -29,9 +25,6 @@ export class AuthService {
     constructor(
         @Inject(AUTH_REPOSITORY)
         private readonly authRepository: IAuthRepository,
-
-        @InjectRepository(Refresh_token)
-        private readonly refresh_tokenRepository: Repository<Refresh_token>,
 
         private readonly roleService: RoleService,
         private readonly permissionService: PermissionService,
@@ -66,16 +59,21 @@ export class AuthService {
             key: existingAdminRole.data.key,
             label: existingAdminRole.data.label,
             description: existingAdminRole.data.description,
-            permissionIds: newPermissions.map(p => p.id)
+            permissionIds: newPermissions
+                .map((p: any) => p?.data)
+                .map((permission: any) => String(permission?.id ?? permission?._id))
+                .filter((id: string) => id && id !== 'undefined')
         }, newOrganization.data.id);
 
-        const user = this.authRepository.createUser({
+        const user = await this.authRepository.createUser({
             name: signupDTO.name,
             email: signupDTO.email,
             password: signupDTO.password,
             organization: newOrganization.data,
             roles: [newRole.data]
         });
+
+        console.log(user);
 
         if (!user) throw new InternalServerErrorException({ message: "Something went wrong while processing user." });
 
