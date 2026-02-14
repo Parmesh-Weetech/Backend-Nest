@@ -16,6 +16,7 @@ import { NotificationModule } from '../notification/notification.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConversationDocument, ConversationSchema } from './schemas/conversation.schema';
 import { MessageDocument, MessageSchema } from './schemas/message.schema';
+import { UserDocument, UserSchema } from '../user/schemas/user.schema';
 import { WEBSOCKET_REPOSITORY } from './websocket.repository.interface';
 import { PostgresWebsocketRepository } from './postgres-websocket.repository';
 import { MongoWebsocketRepository } from './mongo-websocket.repository';
@@ -42,6 +43,7 @@ const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
       MongooseModule.forFeature([
         { name: ConversationDocument.name, schema: ConversationSchema },
         { name: MessageDocument.name, schema: MessageSchema },
+        { name: UserDocument.name, schema: UserSchema },
       ]),
     ]
     : []), AuthModule, UserModule, FilesModule, CacheModule, VideoModule, NotificationModule],

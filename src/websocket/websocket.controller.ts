@@ -20,13 +20,13 @@ export class WebsocketController {
         @Param('otherUserId') otherUserId: string,
         @CurrentUser() user: User
     ): Promise<APIResponse> {
-        return await this.websocketService.findOrCreateConversation(otherUserId, user.id);
+        return await this.websocketService.findOrCreateConversation(user.id, otherUserId);
     }
 
     @Get('messages/:conversationId')
     async findMessages(
         @Param('conversationId') conversationId: string,
-        @Query('_start') start = '1',
+        @Query('_start') start = '0',
         @Query('_limit') limit = '15'
     ): Promise<APIResponse> {
         const skip = Math.max(parseInt(start, 10), 0);

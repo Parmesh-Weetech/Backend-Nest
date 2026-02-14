@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { CreateAttachmentInput, CreateMessageInput, IWebsocketRepository, WebsocketConversation, WebsocketMessage } from './websocket.repository.interface';
 import { ConversationDocument } from './schemas/conversation.schema';
 import { MessageDocument } from './schemas/message.schema';
 import { MessageAttachment } from './entities/MessageAttachment.entity';
+import { UserDocument } from '../user/schemas/user.schema';
 
 @Injectable()
 export class MongoWebsocketRepository implements IWebsocketRepository {
@@ -15,7 +16,23 @@ export class MongoWebsocketRepository implements IWebsocketRepository {
 
         @InjectModel(MessageDocument.name)
         private readonly messageModel: Model<MessageDocument>,
+
+        @InjectModel(UserDocument.name)
+        private readonly userModel: Model<UserDocument>,
     ) { }
+
+    private userByIdFilter(userId: string) {
+        if (Types.ObjectId.isValid(userId)) {
+            return {
+                $or: [
+                    { _id: new Types.ObjectId(userId) },
+                    { id: userId },
+                ],
+            };
+        }
+
+        return { id: userId };
+    }
 
     private mapConversation(conversation: ConversationDocument): WebsocketConversation {
         return {
@@ -126,7 +143,13 @@ export class MongoWebsocketRepository implements IWebsocketRepository {
         return data as MessageAttachment[];
     }
 
-    async findUserById(_userId: string) {
-        return null;
+    async findUserById(userId: string) {
+        const user = await this.userModel.findOne(this.userByIdFilter(userId)).lean().exec();
+        if (!user) return null;
+
+        return {
+            id: user._id?.toString?.() ?? String((user as any).id ?? userId),
+            name: user.name ?? '',
+        };
     }
 }

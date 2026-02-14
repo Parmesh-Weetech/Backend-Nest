@@ -42,7 +42,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
         throw new WsException('Invalid token');
       }
 
-      const isValid = this.auth.verify(token)
+      const isValid = await this.auth.verify(token)
 
       if (!isValid) throw new WsException("Token is expired!");
 
@@ -75,13 +75,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
   ) {
     const userId = client.data.userId;
 
-    if(!data._start || !data._limit) {
-      data._limit = 15
-      data._start = 1
-    }
+    const startValue = data._start ?? 0;
+    const limitValue = data._limit ?? 15;
 
-    const skip = Math.max(parseInt(data._start.toString(), 10), 0);
-    const take = Math.min(parseInt(data._limit.toString(), 10), 100);
+    const skip = Math.max(parseInt(startValue.toString(), 10), 0);
+    const take = Math.min(parseInt(limitValue.toString(), 10), 100);
 
     const conversationResponse = await this.webSocketService.findOrCreateConversation(userId, data.anotherUserId);
     const conversation = conversationResponse.data;
@@ -91,7 +89,12 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect, OnGate
 
     console.log(`Socket ${client.id} joined room ${conversation.id}`);
 
-    client.emit('joined', { userId: userId, anotherUserId: data.anotherUserId, conversationId: conversation.id, messages: messages.data.length === 0 ? [] : messages });
+    client.emit('joined', {
+      userId,
+      anotherUserId: data.anotherUserId,
+      conversationId: conversation.id,
+      messages: messages.data ?? [],
+    });
   }
 
   @SubscribeMessage("send_message")
