@@ -191,10 +191,9 @@ export class RoleService {
         };
     }
 
-    async findByOrgAndRole(orgId: string, roleId: string): Promise<APIResponse> {
-        const role = await this.roleRepository.findByOrgAndRole(orgId, roleId);
+    async findByOrgAndRole(roleId: string): Promise<APIResponse> {
+        const role = await this.roleRepository.findById(roleId);
 
-        console.log(role);
         if(!role) return {
             success: true,
             data: null,
@@ -206,10 +205,7 @@ export class RoleService {
 
         return {
             success: true,
-            data: {
-                ...role,
-                id: role.organization ?? role.organization.id
-            },
+            data: role,
             message: "Role Organization Mapping is there",
             expired: false,
             statusCode: 200
@@ -218,7 +214,7 @@ export class RoleService {
 
     async createDummyEntryWithOrg(orgId: string, role: any): Promise<APIResponse> {
         const newRole = await this.roleRepository.createDummyEntryWithOrg(orgId, role);
-        console.log(newRole)
+
         if(!newRole) return {
             success: false,
             data: null,

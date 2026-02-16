@@ -91,17 +91,6 @@ export class MongoRoleRepository implements IRoleRepository {
         return this.toPlain(document);
     }
 
-    async findByOrgAndRole(orgId: string, roleId: string) {
-        const role = await this.model.findOne({
-            organization:orgId,
-            _id: roleId
-        });
-
-        if(!role) return null;
-
-        return this.toPlain(role);
-    }
-
     async createDummyEntryWithOrg(orgId: string, role: any) {
         const permissions = role.data.permission.map(perm => perm.id);
 

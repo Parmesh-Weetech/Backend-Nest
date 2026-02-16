@@ -22,10 +22,12 @@ export class PostgresRoleRepository implements IRoleRepository {
         });
     }
 
-    findByIdAndOrganizationIsNull(id: string) {
-        return this.repo.findOne({
+    async findByIdAndOrganizationIsNull(id: string) {
+        const role = await this.repo.findOne({
             where: { id: id, organization: { id: IsNull() } },
         });
+
+        return role;
     }
 
     findByKeyAndOrganization(key: string, organizationId: string) {
@@ -68,25 +70,12 @@ export class PostgresRoleRepository implements IRoleRepository {
         });
     }
 
-    findByOrgAndRole(orgId: string, roleId: string): Promise<any> | null {
-        const role = this.repo.findOne({
-            where: { organization: { id: orgId }, id: roleId },
-            relations: ["organization"]
-        });
-
-        if (!role) {
-            return null;
-        }
-
-        return role;
-    }
-
     createDummyEntryWithOrg(orgId: string, role: any): Promise<any> {
         const newRole = this.repo.save({
-            id: role.id,
-            key: role.key,
-            description: role.description,
-            label: role.label,
+            id: role.data.id,
+            key: role.data.key,
+            description: role.data.description,
+            label: role.data.label,
             organization: { id: orgId },
         });
 

@@ -15,8 +15,6 @@ export interface IRoleRepository {
 
     findGlobalRoleByKey(key: string): Promise<any | null>;
 
-    findByOrgAndRole(orgId: string, roleId: string): Promise<any> | null;
-
     createDummyEntryWithOrg(orgId: string, roleId: string): Promise<any>;
 
     findByIdAndOrganizationIsNull(roleId: string): Promise<any>;
