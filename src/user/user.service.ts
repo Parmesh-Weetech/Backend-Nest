@@ -169,15 +169,14 @@ export class UserService {
         const roles = await Promise.all(
             uniqueRoleIds.map(async (roleId) => {
 
-                let role = await this.roleService.findByOrgAndRole(roleId);
-
+                let role = await this.roleService.findRoleByOrg(orgId, roleId);
                 if(!role.data || role.data === null) {
                     throw new NotFoundException(`Role ${roleId} not found`);
                 }
-                
+
                 if (role.data.organization === null || role.data.organization.id === null) {
                     throw new ForbiddenException(
-                        `Role ${role.data.name} is invalid: no organization assigned`
+                        `Role ${role.data.id} is invalid: no organization assigned`
                     );
                 }
 
@@ -200,7 +199,7 @@ export class UserService {
             name: createUserDTO.name,
             email: createUserDTO.email,
             password: await bcrypt.hash(createUserDTO.password, 10),
-            roles: this.mapRolesForPersistence(roles.map((role) => role.data)),
+            roles: this.mapRolesForPersistence(roles.map((role) => role)),
             organization: this.mapOrganizationForPersistence(organization.data),
         };
 

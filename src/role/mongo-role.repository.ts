@@ -95,15 +95,21 @@ export class MongoRoleRepository implements IRoleRepository {
         const permissions = role.data.permission.map(perm => perm.id);
 
         const dummyRole = new this.model({
-            _id: role.data.id, 
+            _id: role.data.id,
             key: role.data.key,
             label: role.data.label,
             description: role.data.description,
             organization: orgId,
-            permissions: permissions, 
+            permissions: permissions,
         });
 
         const savedRole = await dummyRole.save();
         return this.toPlain(savedRole);
+    }
+
+    async findRoleByOrg(orgId: string, roleId: string) {
+        const role = await this.model.find({ _id: roleId, organization: orgId });
+
+        return this.toPlain(role);
     }
 }

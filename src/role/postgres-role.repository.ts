@@ -81,4 +81,13 @@ export class PostgresRoleRepository implements IRoleRepository {
 
         return newRole;
     }
+
+    findRoleByOrg(orgId: string, roleId: string): Promise<any> {
+        const role = this.repo.findOne({
+            where: { id: roleId, organization: { id: orgId }},
+            relations: ['permissions', 'organization']
+        })
+        
+        return role;
+    }
 }

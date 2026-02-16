@@ -232,8 +232,9 @@ export class RoleService {
         }
     }
 
-    async findByIdAndOrganizationIsNull(roleId: string): Promise<APIResponse> {
-        const role = await this.roleRepository.findByIdAndOrganizationIsNull(roleId);
+    async findRoleByOrg(orgId: string, roleId: string): Promise<APIResponse> {
+        const role = await this.roleRepository.findRoleByOrg(orgId, roleId);
+
         if(!role || role === null) {
             return {
                 success: false,
@@ -246,7 +247,7 @@ export class RoleService {
 
         return {
             success: true,
-            data: null,
+            data: role,
             expired: false,
             message: "Role fetched successfully",
             statusCode: 200

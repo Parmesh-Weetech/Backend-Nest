@@ -18,4 +18,6 @@ export interface IRoleRepository {
     createDummyEntryWithOrg(orgId: string, roleId: string): Promise<any>;
 
     findByIdAndOrganizationIsNull(roleId: string): Promise<any>;
+
+    findRoleByOrg(orgId: string, roleId: string): Promise<any>;
 }
