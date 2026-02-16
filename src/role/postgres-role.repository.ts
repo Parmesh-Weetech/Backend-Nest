@@ -22,6 +22,12 @@ export class PostgresRoleRepository implements IRoleRepository {
         });
     }
 
+    findByIdAndOrganizationIsNull(id: string) {
+        return this.repo.findOne({
+            where: { id: id, organization: { id: IsNull() } },
+        });
+    }
+
     findByKeyAndOrganization(key: string, organizationId: string) {
         return this.repo.find({
             where: {
@@ -60,5 +66,30 @@ export class PostgresRoleRepository implements IRoleRepository {
             },
             relations: ['permissions'],
         });
+    }
+
+    findByOrgAndRole(orgId: string, roleId: string): Promise<any> | null {
+        const role = this.repo.findOne({
+            where: { organization: { id: orgId }, id: roleId },
+            relations: ["organization"]
+        });
+
+        if (!role) {
+            return null;
+        }
+
+        return role;
+    }
+
+    createDummyEntryWithOrg(orgId: string, role: any): Promise<any> {
+        const newRole = this.repo.save({
+            id: role.id,
+            key: role.key,
+            description: role.description,
+            label: role.label,
+            organization: { id: orgId },
+        });
+
+        return newRole;
     }
 }

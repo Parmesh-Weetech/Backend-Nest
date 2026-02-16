@@ -153,4 +153,30 @@ export class MongoUserRepository implements IUserRepository {
             statusCode: 200
         };
     }
+
+    async findByOrgAndEmail(orgId: string, email: string): Promise<APIResponse> {
+        const filter = {
+            organizationId: orgId,
+            email: email.toLowerCase()
+        };
+
+        let user = await this.userModel.findOne(filter).exec();
+        user = await this.hydrateUser(user);
+        
+        if(!user) return {
+            success: true,
+            expired: false,
+            data: null,
+            message: "No user exists with this email in this organization",
+            statusCode: 200
+        }
+
+        return {
+            success: false,
+            expired: false,
+            data: null,
+            message: "User already exists with this email in this organization!",
+            statusCode: 409
+        }
+    }
 }

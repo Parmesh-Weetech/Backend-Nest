@@ -190,4 +190,71 @@ export class RoleService {
             statusCode: 200
         };
     }
+
+    async findByOrgAndRole(orgId: string, roleId: string): Promise<APIResponse> {
+        const role = await this.roleRepository.findByOrgAndRole(orgId, roleId);
+        
+        console.log(role);
+        if(!role) return {
+            success: true,
+            data: null,
+            expired: false,
+            message: "No Role Organization Mapping is there",
+            statusCode: 200
+        }
+
+
+        return {
+            success: true,
+            data: {
+                ...role,
+                id: role.organization ?? role.organization.id
+            },
+            message: "Role Organization Mapping is there",
+            expired: false,
+            statusCode: 200
+        }
+    }
+
+    async createDummyEntryWithOrg(orgId: string, role: any): Promise<APIResponse> {
+        const newRole = await this.roleRepository.createDummyEntryWithOrg(orgId, role);
+        console.log(newRole)
+        if(!newRole) return {
+            success: false,
+            data: null,
+            expired: false,
+            message: "Error while creating dummy entry",
+            statusCode: 500
+        }
+
+        return {
+            success: true,
+            data: newRole,
+            expired: false,
+            message: "New dummy role created successfully",
+            statusCode: 201
+        }
+    }
+
+    async findByIdAndOrganizationIsNull(roleId: string): Promise<APIResponse> {
+        const role = await this.roleRepository.findByIdAndOrganizationIsNull(roleId);
+
+        if(!role || role === null) {
+            return {
+                success: false,
+                expired: false,
+                data: null,
+                message: "Role not found",
+                statusCode: 404
+            }
+        }
+
+        return {
+            success: true,
+            data: null,
+            expired: false,
+            message: "Role fetched successfully",
+            statusCode: 200
+        }
+    }
 }

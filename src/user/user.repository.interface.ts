@@ -9,4 +9,5 @@ export interface IUserRepository {
     update(id: string, data: any): Promise<any>;
     remove(id: string): Promise<boolean>;
     findOneWithRolesAndPermissions(userId: string): Promise<APIResponse>;
+    findByOrgAndEmail(orgId: string, email: string): Promise<APIResponse>;
 }

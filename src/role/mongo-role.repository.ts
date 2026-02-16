@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { RoleDocument } from "./schemas/role.schema";
+import { RoleDocument, RoleSchema } from "./schemas/role.schema";
 import { IRoleRepository } from "./role.repository.interface";
 import { Model, Types } from "mongoose";
 
@@ -38,6 +38,15 @@ export class MongoRoleRepository implements IRoleRepository {
         }
 
         const document = await this.model.findOne({ _id: id, deleted_at: null }).lean().exec();
+        return this.toPlain(document);
+    }
+
+    async findByIdAndOrganizationIsNull(id: string) {
+        if (!id || !Types.ObjectId.isValid(id)) {
+            return null;
+        }
+
+        const document = await this.model.findOne({ _id: id, organization: null }).lean().exec();
         return this.toPlain(document);
     }
 
@@ -80,5 +89,32 @@ export class MongoRoleRepository implements IRoleRepository {
         }).lean().exec();
 
         return this.toPlain(document);
+    }
+
+    async findByOrgAndRole(orgId: string, roleId: string) {
+        const role = await this.model.findOne({
+            organization:orgId,
+            _id: roleId
+        });
+
+        if(!role) return null;
+
+        return this.toPlain(role);
+    }
+
+    async createDummyEntryWithOrg(orgId: string, role: any) {
+        const permissions = role.data.permission.map(perm => perm.id);
+
+        const dummyRole = new this.model({
+            _id: role.data.id, 
+            key: role.data.key,
+            label: role.data.label,
+            description: role.data.description,
+            organization: orgId,
+            permissions: permissions, 
+        });
+
+        const savedRole = await dummyRole.save();
+        return this.toPlain(savedRole);
     }
 }

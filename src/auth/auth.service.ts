@@ -34,9 +34,6 @@ export class AuthService {
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<APIResponse> {
-        const isUserExists = await this.authRepository.findUserByEmail(signupDTO.email);
-        if (isUserExists) throw new ConflictException({ message: "User with this email already exists!" });
-
         const newOrganization = await this.organizationService.create({ name: "Default" });
         if (!newOrganization) throw new InternalServerErrorException({ message: "Something went wrong while processing your request" });
 

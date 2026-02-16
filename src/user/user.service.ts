@@ -158,24 +158,42 @@ export class UserService {
     }
 
     async create(createUserDTO: CreateUserDTO, orgId: string): Promise<APIResponse> {
+        const isUserExists = await this.userRepository.findByOrgAndEmail(orgId, createUserDTO.email);
+        if (!isUserExists.success) throw new ConflictException({ message: isUserExists.message });
+
         const uniqueRoleIds = [...new Set(createUserDTO.roleIds)];
         if (uniqueRoleIds.length !== createUserDTO.roleIds.length) {
             throw new ConflictException('Duplicate roles are not allowed for the same user in an organization.');
         }
 
-        console.log(uniqueRoleIds)
         const roles = await Promise.all(
-            uniqueRoleIds.map((roleId) => this.roleService.findOne(roleId))
+            uniqueRoleIds.map((roleId) => this.roleService.findByIdAndOrganizationIsNull(roleId))
         );
 
         const organization = await this.organizationService.findOne(orgId);
         if (!organization) throw new NotFoundException('Organization not found.');
-        const organizationId = this.normalizeId(organization.data);
+        const organizationId = this.normalizeId(organization.data.id);
 
         for (const roleResponse of roles) {
-            const roleOrgId = this.normalizeId(roleResponse.data?.organization.id);
-            if (roleOrgId && organizationId && roleOrgId !== organizationId) {
-                throw new ConflictException('Role belongs to a different organization.');
+            console.log(roleResponse)
+            if(roleResponse.data.organization === null) {
+                const role = await this.roleService.findByOrgAndRole(orgId, roleResponse.data.id);
+
+                if(role.data === null) {
+                    const newRole = await this.roleService.createDummyEntryWithOrg(orgId, roleResponse.data);
+                    console.log(newRole.data);
+                    const roleOrgId = this.normalizeId(newRole.data.id);
+                    if (roleOrgId && organizationId && roleOrgId !== organizationId) {
+                        throw new ConflictException('Role belongs to a different organization.');
+                    }
+                } else {
+                    console.log("in esle")
+                    console.log(role.data);
+                    const roleOrgId = this.normalizeId(role.data.organization.id);
+                    if (roleOrgId && organizationId && roleOrgId !== organizationId) {
+                        throw new ConflictException('Role belongs to a different organization.');
+                    }
+                }
             }
         }
 

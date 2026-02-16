@@ -62,4 +62,24 @@ export class PostgresUserRepository implements IUserRepository {
             statusCode: 200
         };
     }
+
+    async findByOrgAndEmail(orgId: string, email: string): Promise<APIResponse> {
+        const user = await this.userRepository.findOne({ where: { organization: { id: orgId }, email: email }});
+
+        if(user) return {
+            success: false,
+            data: null,
+            expired: false,
+            message: "User already exists with this email in this organization!",
+            statusCode: 409
+        }
+
+        return {
+            success: true,
+            data: null,
+            expired: false,
+            message: "No user found with this email in this organization.",
+            statusCode: 200
+        }
+    }
 }
