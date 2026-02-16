@@ -193,7 +193,7 @@ export class RoleService {
 
     async findByOrgAndRole(orgId: string, roleId: string): Promise<APIResponse> {
         const role = await this.roleRepository.findByOrgAndRole(orgId, roleId);
-        
+
         console.log(role);
         if(!role) return {
             success: true,
@@ -238,7 +238,6 @@ export class RoleService {
 
     async findByIdAndOrganizationIsNull(roleId: string): Promise<APIResponse> {
         const role = await this.roleRepository.findByIdAndOrganizationIsNull(roleId);
-
         if(!role || role === null) {
             return {
                 success: false,
