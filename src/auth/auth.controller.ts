@@ -11,13 +11,13 @@ import { HcaptchaGuard } from '../common/guards/h-captcha.guard';
 import { APIResponse } from '../common/response/response.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { RefreshTokenRequest } from '../common/decorators/refreshToken.decorator';
+import { LogoutRequest } from '../common/decorators/logout.decorator';
 
 import { User } from '../user/entities/user.entity';
 import { Serialize } from './interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dtos/login.dto';
 import { SignupDTO } from './dtos/signup.dto';
-import { LogoutRequest } from 'src/common/decorators/logout.decorator';
 
 @Controller('auth')
 export class AuthController {

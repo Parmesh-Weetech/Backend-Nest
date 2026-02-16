@@ -41,6 +41,7 @@ export class AuthService {
         if (!newOrganization) throw new InternalServerErrorException({ message: "Something went wrong while processing your request" });
 
         const existingAdminRole = await this.roleService.findRoleByOrganizationName('admin');
+        console.log(existingAdminRole);
         if (!existingAdminRole) throw new NotFoundException({ message: "Admin role not found." });
 
         const newPermissions = await Promise.all(

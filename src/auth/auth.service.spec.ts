@@ -15,6 +15,7 @@ describe('AuthService (real DB)', () => {
   let module: TestingModule;
   let service: AuthService;
   let testEmail: string;
+  let organizationId: string;
   let testPassword = 'password123';
   let refreshToken: string;
 
@@ -79,6 +80,8 @@ describe('AuthService (real DB)', () => {
         password: testPassword,
       });
 
+      organizationId = result.data.organization.id;
+
       expect(result.data.id).toBeDefined();
     });
 
@@ -98,7 +101,7 @@ describe('AuthService (real DB)', () => {
       const result = await service.login({
         email: testEmail,
         password: testPassword,
-        organizationId: null,
+        organizationId: organizationId,
         hcaptchaToken: "10000000-aaaa-bbbb-cccc-000000000001",
       });
 
@@ -112,7 +115,7 @@ describe('AuthService (real DB)', () => {
         service.login({
           email: testEmail,
           password: 'wrong-password',
-          organizationId: null,
+          organizationId: organizationId,
           hcaptchaToken: '10000000-aaaa-bbbb-cccc-000000000001',
         }),
       ).rejects.toThrow();
@@ -138,7 +141,7 @@ describe('AuthService (real DB)', () => {
       const loginResult = await service.login({
         email: testEmail,
         password: testPassword,
-        organizationId: null,
+        organizationId: organizationId,
         hcaptchaToken: "10000000-aaaa-bbbb-cccc-000000000001",
       });
 
