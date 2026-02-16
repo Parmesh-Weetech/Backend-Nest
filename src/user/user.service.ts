@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -171,8 +171,14 @@ export class UserService {
 
                 let role = await this.roleService.findByOrgAndRole(roleId);
 
-                if(!role.data || role.data === null || role.data.organization === null || role.data.organization.id === null) {
-                    role = await this.roleService.createDummyEntryWithOrg(orgId, role);
+                if(!role.data || role.data === null) {
+                    throw new NotFoundException(`Role ${roleId} not found`);
+                }
+                
+                if (role.data.organization === null || role.data.organization.id === null) {
+                    throw new ForbiddenException(
+                        `Role ${role.data.name} is invalid: no organization assigned`
+                    );
                 }
 
                 return role.data;
