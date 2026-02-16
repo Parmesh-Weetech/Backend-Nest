@@ -23,6 +23,9 @@ export class RoleService {
         private readonly organizationService: OrganizationService,
     ) { }
 
+    private readonly isMongoProvider =
+        ['mongo', 'mongodb'].includes((process.env.DATABASE_PROVIDER ?? '').toLowerCase());
+
     async findAll(): Promise<APIResponse> {
         const roles = await this.roleRepository.findAll();
         if (!roles) throw new NotFoundException('No roles found.');
@@ -57,12 +60,23 @@ export class RoleService {
             throw new ConflictException('Role already exists in this organization.');
         }
 
+        const permissions = await Promise.all(
+            roleDTO.permissionIds.map((permissionId) => this.permissionService.findOne(permissionId)),
+        );
+
         const savedRole = await this.roleRepository.create({
             key: roleDTO.key,
             label: roleDTO.label,
             description: roleDTO.description,
-            organization: organization.data.id,
-            permissionIds: roleDTO.permissionIds,
+            ...(this.isMongoProvider
+                ? {
+                    organization: organization.data.id,
+                    permissionIds: roleDTO.permissionIds,
+                }
+                : {
+                    organization: { id: organization.data.id },
+                    permissions: permissions.map((permission) => ({ id: permission.data.id })),
+                }),
         });
         if (!savedRole) throw new InternalServerErrorException('Failed to create role.');
 
@@ -106,8 +120,19 @@ export class RoleService {
             key: dto.key,
             label: dto.label,
             description: dto.description,
-            permissionIds: dto.permissionIds,
-            organization: dto.organizationIds?.[0],
+            ...(this.isMongoProvider
+                ? {
+                    permissionIds: dto.permissionIds,
+                    organization: dto.organizationIds?.[0],
+                }
+                : {
+                    ...(dto.permissionIds
+                        ? { permissions: dto.permissionIds.map((permissionId) => ({ id: permissionId })) }
+                        : {}),
+                    ...(dto.organizationIds?.[0]
+                        ? { organization: { id: dto.organizationIds[0] } }
+                        : {}),
+                }),
         });
         if (!updatedRole) throw new InternalServerErrorException('Failed to update role.');
 

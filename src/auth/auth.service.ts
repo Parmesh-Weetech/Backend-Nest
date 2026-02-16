@@ -91,6 +91,8 @@ export class AuthService {
         const user = await this.authRepository.findUserByEmail(loginDTO.email);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
 
+        console.log(user)
+        console.log(loginDTO)
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
         if (!checkPassword) throw new UnauthorizedException({ message: "Invalid Credentials!" });
 

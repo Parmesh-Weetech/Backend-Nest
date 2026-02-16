@@ -42,7 +42,6 @@ export class MongoOrganizationRepository
 
     async findById(id: string) {
         if (!id || !Types.ObjectId.isValid(id)) {
-            console.log("document");
             return null;
         }
 

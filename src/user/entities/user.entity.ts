@@ -68,13 +68,4 @@ export class User {
 
     @DeleteDateColumn({ type: 'timestamptz', nullable: true })
     deleted_at?: Date;
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    async hashpassword() {
-        if (this.password) {
-            const salt = await bcrypt.genSalt(10);
-            this.password = await bcrypt.hash(this.password, 10);
-        }
-    }
 }

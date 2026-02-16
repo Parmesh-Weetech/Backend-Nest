@@ -36,7 +36,6 @@ export class AuthGuard implements CanActivate {
 
         const authHeader = request.headers.authorization;
 
-        console.log(authHeader)
         if (!authHeader) {
             throw new UnauthorizedException('Authorization header missing');
         }

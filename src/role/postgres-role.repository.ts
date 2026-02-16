@@ -38,7 +38,12 @@ export class PostgresRoleRepository implements IRoleRepository {
     }
 
     async update(id: string, data: Partial<Role>) {
-        await this.repo.update(id, data);
+        const role = await this.findById(id);
+        if (!role) return null;
+
+        Object.assign(role, data);
+        await this.repo.save(role);
+
         return this.findById(id);
     }
 

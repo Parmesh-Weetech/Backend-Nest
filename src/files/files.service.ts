@@ -160,7 +160,7 @@ export class FilesService {
 
         return {
             data: {
-                uploadUrl: signedUrl,
+                signedUrl: signedUrl,
                 fileId: file.id,
             },
             success: true,
