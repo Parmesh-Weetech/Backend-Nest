@@ -42,10 +42,10 @@ export class MongoPermissionRepository
         return this.toPlain(document);
     }
 
-    async findByKeyAndOrg(key: string, organizationId: string) {
+    async findByEntityAndOrg(entity: string, organizationId: string) {
         const document = await this.model.findOne({
-            key,
             organization: organizationId,
+            entity: entity,
         }).lean().exec();
 
         return this.toPlain(document);

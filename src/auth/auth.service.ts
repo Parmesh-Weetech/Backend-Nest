@@ -41,7 +41,6 @@ export class AuthService {
         if (!newOrganization) throw new InternalServerErrorException({ message: "Something went wrong while processing your request" });
 
         const existingAdminRole = await this.roleService.findRoleByOrganizationName('admin');
-        console.log(existingAdminRole);
         if (!existingAdminRole) throw new NotFoundException({ message: "Admin role not found." });
 
         const newPermissions = await Promise.all(
@@ -66,10 +65,12 @@ export class AuthService {
                 .filter((id: string) => id && id !== 'undefined')
         }, newOrganization.data.id);
 
+        const hashPassword = bcrypt.hashSync(signupDTO.password, 10)
+
         const user = await this.authRepository.createUser({
             name: signupDTO.name,
             email: signupDTO.email,
-            password: signupDTO.password,
+            password: hashPassword,
             organization: newOrganization.data,
             roles: [newRole.data]
         });
@@ -92,12 +93,10 @@ export class AuthService {
         const user = await this.authRepository.findUserByEmail(loginDTO.email);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
 
-        console.log(user)
-        console.log(loginDTO)
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
         if (!checkPassword) throw new UnauthorizedException({ message: "Invalid Credentials!" });
 
-        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email, orgId: user.organization });
+        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email, orgId: user.organization.id });
         const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
 
         await this.authRepository.saveRefreshToken(
@@ -151,7 +150,7 @@ export class AuthService {
         const user = await this.authRepository.findUserById(decode.sub);
         if (!user) throw new NotFoundException({ message: "User not found!" });
 
-        const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email, orgId: user.organization });
+        const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email, orgId: user.organization.id });
         const newRefreshToken = await this.auth.generateRefreshToken({ sub: decode.sub });
 
         if (!newAccessToken || !newRefreshToken) {

@@ -76,8 +76,7 @@ export class MongoRoleRepository implements IRoleRepository {
     async findGlobalRoleByKey(key: string) {
         const document = await this.model.findOne({
             key,
-            organization: null,
-            deleted_at: null,
+            organization: null
         }).lean().exec();
 
         return this.toPlain(document);

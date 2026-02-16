@@ -17,11 +17,11 @@ export class PostgresAuthRepository implements IAuthRepository {
     ) { }
 
     findUserByEmail(email: string) {
-        return this.userRepo.findOne({ where: { email } });
+        return this.userRepo.findOne({ where: { email }, relations: ['organization'] });
     }
 
     findUserById(id: string) {
-        return this.userRepo.findOne({ where: { id } });
+        return this.userRepo.findOne({ where: { id }, relations: ['organization'] });
     }
 
     async createUser(data: any) {

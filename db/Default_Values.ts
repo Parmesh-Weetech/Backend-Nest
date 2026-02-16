@@ -4,11 +4,6 @@ export const ROLES = [
         label: 'Admin',
         description: 'Full system access',
     },
-    {
-        key: 'user',
-        label: 'User',
-        description: 'Standard user access',
-    },
 ];
 
 export const PERMISSIONS = [
@@ -53,17 +48,11 @@ export const PERMISSIONS = [
         description: 'Admin can do everything in permission.'
     },
     {
-        key: 'user.read.self',
-        label: 'Read Own Profile',
-        entity: 'user',
-        action: 'read',
-        roles: ['user'],
+        key: 'admin',
+        label: 'Admin',
+        entity: 'product',
+        action: 'all',
+        roles: ['admin'],
+        description: 'Admin can do everything in product.'
     },
-    {
-        key: 'user.update.self',
-        label: 'Update Own Profile',
-        entity: 'user',
-        action: 'update',
-        roles: ['user'],
-    }
 ]

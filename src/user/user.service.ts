@@ -163,6 +163,7 @@ export class UserService {
             throw new ConflictException('Duplicate roles are not allowed for the same user in an organization.');
         }
 
+        console.log(uniqueRoleIds)
         const roles = await Promise.all(
             uniqueRoleIds.map((roleId) => this.roleService.findOne(roleId))
         );
@@ -172,7 +173,7 @@ export class UserService {
         const organizationId = this.normalizeId(organization.data);
 
         for (const roleResponse of roles) {
-            const roleOrgId = this.normalizeId(roleResponse.data?.organization);
+            const roleOrgId = this.normalizeId(roleResponse.data?.organization.id);
             if (roleOrgId && organizationId && roleOrgId !== organizationId) {
                 throw new ConflictException('Role belongs to a different organization.');
             }
