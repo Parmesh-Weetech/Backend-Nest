@@ -239,29 +239,29 @@ export class UserService {
                 throw new ConflictException('Duplicate roles are not allowed for the same user in an organization.');
             }
 
+            const existingRoles = Array.isArray(userData.roles) ? userData.roles : [];
             const existingRoleIds = new Set(
-                (Array.isArray(userData.roles) ? userData.roles : [])
+                existingRoles
                     .map((role: any) => this.normalizeId(role))
                     .filter(Boolean),
             );
 
-            const alreadyAssignedRoleIds = uniqueRoleIds.filter((roleId) => existingRoleIds.has(roleId));
-            if (alreadyAssignedRoleIds.length > 0) {
-                throw new ConflictException('One or more roles are already assigned to this user in the organization.');
-            }
+            const roleIdsToAssign = uniqueRoleIds.filter((roleId) => !existingRoleIds.has(roleId));
 
-            const roles = await Promise.all(
-                uniqueRoleIds.map((roleId) => this.roleService.findOne(roleId)),
-            );
+            if (roleIdsToAssign.length > 0) {
+                const roles = await Promise.all(
+                    roleIdsToAssign.map((roleId) => this.roleService.findOne(roleId)),
+                );
 
-            for (const roleResponse of roles) {
-                const roleOrgId = this.normalizeId(roleResponse.data?.organization);
-                if (roleOrgId && targetOrganizationId && roleOrgId !== targetOrganizationId) {
-                    throw new ConflictException('Role belongs to a different organization.');
+                for (const roleResponse of roles) {
+                    const roleOrgId = this.normalizeId(roleResponse.data?.organization);
+                    if (roleOrgId && targetOrganizationId && roleOrgId !== targetOrganizationId) {
+                        throw new ConflictException('Role belongs to a different organization.');
+                    }
                 }
-            }
 
-            rolesData = roles.map((role) => role.data);
+                rolesData = [...existingRoles, ...roles.map((role) => role.data)];
+            }
         }
 
         const updatedUserData = {

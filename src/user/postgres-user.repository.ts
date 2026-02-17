@@ -26,7 +26,24 @@ export class PostgresUserRepository implements IUserRepository {
     }
 
     async update(id: string, data: any) {
-        await this.userRepository.update({ id }, data);
+        const user = await this.userRepository.findOne({
+            where: { id },
+            relations: ['roles', 'organization'],
+        });
+        if (!user) return null;
+
+        const { roles, organization, ...rest } = data ?? {};
+        Object.assign(user, rest);
+
+        if (roles !== undefined) {
+            user.roles = roles;
+        }
+
+        if (organization !== undefined) {
+            user.organization = organization;
+        }
+
+        await this.userRepository.save(user);
         return this.findOne(id);
     }
 

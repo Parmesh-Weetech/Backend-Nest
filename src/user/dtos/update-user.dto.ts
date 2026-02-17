@@ -3,7 +3,6 @@ import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, I
 export class updateUserDTO {
     @IsString()
     @IsNotEmpty()
-    @IsUUID('all')
     id: string;
 
     @MinLength(3)
