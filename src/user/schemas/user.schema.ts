@@ -6,7 +6,7 @@ export class UserDocument extends Document {
     @Prop({ required: true })
     name: string;
 
-    @Prop({ required: true, unique: true })
+    @Prop({ required: true, lowercase: true, trim: true })
     email: string;
 
     @Prop({ required: true })
@@ -20,3 +20,4 @@ export class UserDocument extends Document {
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserDocument);
+UserSchema.index({ organization: 1, email: 1 }, { unique: true, name: 'organization_1_email_1' });

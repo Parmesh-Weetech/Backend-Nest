@@ -28,6 +28,7 @@ import { MainSeeder } from '../db/seeders/main.seed';
 import { ROLES, PERMISSIONS } from '../db/Default_Values';
 import { RoleDocument } from './role/schemas/role.schema';
 import { PermissionDocument } from './permission/schemas/permission.schema';
+import { UserDocument } from './user/schemas/user.schema';
 
 dotenv.config();
 
@@ -100,6 +101,30 @@ async function seedMongoData(
   console.log('✅ Mongo seed ready. Roles and permissions seeded.');
 }
 
+async function ensureMongoUserIndexes(app: NestExpressApplication) {
+  const userModel = app.get<Model<any>>(getModelToken(UserDocument.name));
+
+  try {
+    const indexes = await userModel.collection.indexes();
+    const hasLegacyEmailIndex = indexes.some((index: any) => index?.name === 'email_1');
+
+    if (hasLegacyEmailIndex) {
+      await userModel.collection.dropIndex('email_1');
+      console.log('🧹 Dropped legacy Mongo index: users.email_1');
+    }
+  } catch (error: any) {
+    // Ignore "index not found" and proceed with creating target index.
+    if (error?.codeName !== 'IndexNotFound') {
+      throw error;
+    }
+  }
+
+  await userModel.collection.createIndex(
+    { organization: 1, email: 1 },
+    { unique: true, name: 'organization_1_email_1' },
+  );
+}
+
 async function bootstrap() {
   try {
     const { AppModule } = await import('./app.module.js');
@@ -133,6 +158,11 @@ async function bootstrap() {
       } else {
         console.log('🌱 Skipping relational seeders for non-postgres provider');
       }
+    }
+
+    const databaseProvider = (process.env.DATABASE_PROVIDER ?? '').toLowerCase();
+    if (databaseProvider === 'mongo' || databaseProvider === 'mongodb') {
+      await ensureMongoUserIndexes(app);
     }
 
     /* -------------------- BULL BOARD -------------------- */

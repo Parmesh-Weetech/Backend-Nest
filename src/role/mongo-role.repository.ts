@@ -108,8 +108,13 @@ export class MongoRoleRepository implements IRoleRepository {
     }
 
     async findRoleByOrg(orgId: string, roleId: string) {
-        const role = await this.model.find({ _id: roleId, organization: orgId });
+        const role = await this.model.findOne({ _id: roleId, organization: orgId }).lean();
 
-        return this.toPlain(role);
+        const data = {
+            ...role,
+            organization: { id: role?.organization }
+        }
+
+        return this.toPlain(data);
     }
 }

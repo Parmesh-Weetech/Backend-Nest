@@ -168,8 +168,8 @@ export class UserService {
 
         const roles = await Promise.all(
             uniqueRoleIds.map(async (roleId) => {
-
                 let role = await this.roleService.findRoleByOrg(orgId, roleId);
+
                 if (!role.data || role.data === null) {
                     throw new NotFoundException(`Role ${roleId} not found`);
                 }

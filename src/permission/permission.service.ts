@@ -46,7 +46,6 @@ export class PermissionService {
     }
 
     async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
-        console.log(orgId, dto.entity)
 
         await this.organizationService.findOne(orgId);
 

@@ -156,13 +156,13 @@ export class MongoUserRepository implements IUserRepository {
 
     async findByOrgAndEmail(orgId: string, email: string): Promise<APIResponse> {
         const filter = {
-            organizationId: orgId,
+            organization: orgId,
             email: email.toLowerCase()
         };
 
         let user = await this.userModel.findOne(filter).exec();
         user = await this.hydrateUser(user);
-        
+
         if(!user) return {
             success: true,
             expired: false,
