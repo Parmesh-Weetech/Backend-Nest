@@ -3,6 +3,7 @@ import { IPermissionRepository } from "./permission.repository.interface";
 import { InjectModel } from "@nestjs/mongoose";
 import { PermissionDocument } from "./schemas/permission.schema";
 import { Model, Types } from "mongoose";
+import { RoleDocument } from "../role/schemas/role.schema";
 
 @Injectable()
 export class MongoPermissionRepository
@@ -10,6 +11,8 @@ export class MongoPermissionRepository
     constructor(
         @InjectModel(PermissionDocument.name)
         private readonly model: Model<PermissionDocument>,
+        @InjectModel(RoleDocument.name)
+        private readonly roleModel: Model<RoleDocument>,
     ) { }
 
     private toPlain(document: any) {
@@ -95,17 +98,49 @@ export class MongoPermissionRepository
 
     async findGlobalPermissionByKey(key: string): Promise<any> {
         const documents = await this.model
-            .find({ key, organization: null })
-            .populate({
-                path: 'roles',
-                match: { organization: null },
-            })
+            .find({ key, organization: null, deleted_at: null })
             .lean()
             .exec();
 
+        const roleIds = Array.from(
+            new Set(
+                documents
+                    .flatMap((doc: any) => (Array.isArray(doc.roles) ? doc.roles : []))
+                    .map((roleId: any) => String(roleId ?? ''))
+                    .filter((roleId: string) => Types.ObjectId.isValid(roleId)),
+            ),
+        );
+
+        const roles = roleIds.length > 0
+            ? await this.roleModel.find({
+                _id: { $in: roleIds },
+                organization: null,
+                deleted_at: null,
+            }).lean().exec()
+            : [];
+
+        const roleById = new Map<string, any>(
+            roles.map((role: any) => [
+                role._id.toString(),
+                {
+                    id: role._id.toString(),
+                    key: role.key,
+                    label: role.label,
+                    description: role.description,
+                },
+            ]),
+        );
+
         return documents.map((doc: any) => {
-            const filteredRoles = doc.roles?.length ? doc.roles : undefined;
-            return this.toPlain({ ...doc, roles: filteredRoles });
+            const firstRoleId = Array.isArray(doc.roles) && doc.roles.length > 0
+                ? String(doc.roles[0])
+                : '';
+            const role = roleById.get(firstRoleId);
+
+            return this.toPlain({
+                ...doc,
+                roles: role,
+            });
         });
     }
 }

@@ -16,6 +16,7 @@ import { PERMISSION_REPOSITORY } from './permission.repository.interface';
 import { PostgresPermissionRepository } from './postgres-permission.repository';
 import { MongoPermissionRepository } from './mongo-permission.repository';
 import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
+import { RoleDocument, RoleSchema } from '../role/schemas/role.schema';
 
 @Module({
   controllers: [PermissionController],
@@ -36,6 +37,10 @@ import { createDatabaseRepositoryProvider } from '../common/providers/repository
       {
         name: PermissionDocument.name,
         schema: PermissionSchema,
+      },
+      {
+        name: RoleDocument.name,
+        schema: RoleSchema,
       },
     ]),
     forwardRef(() => RoleModule),

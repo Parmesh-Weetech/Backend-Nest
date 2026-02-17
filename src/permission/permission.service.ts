@@ -48,26 +48,12 @@ export class PermissionService {
         };;
     }
 
-    async create(
-        dto: CreatePermissionDTO,
-        orgId: string,
-        options?: { allowExisting?: boolean },
-    ): Promise<APIResponse> {
+    async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
 
         await this.organizationService.findOne(orgId);
 
         const existingPermission = await this.permissionRepository.findByPermissionAndOrg(dto.key, dto.label, dto.entity, dto.action, orgId);
         if (existingPermission) {
-            if (options?.allowExisting) {
-                return {
-                    success: true,
-                    expired: false,
-                    message: "Permission already exists in this organization.",
-                    statusCode: 200,
-                    data: existingPermission,
-                };
-            }
-
             throw new ConflictException('Permission already exists in this organization.');
         }
 

@@ -41,25 +41,28 @@ export class AuthService {
         });
         if (!newOrganization) throw new InternalServerErrorException({ message: "Something went wrong while processing your request" });
 
-        const existingAdminRole = await this.roleService.findRoleByOrganizationName('admin');
-        if (!existingAdminRole?.data) throw new NotFoundException({ message: "Admin role not found." });
+        const existingAdminPermissions = await this.permissionService.findGlobalPermissionByKey('admin');
+        if (!existingAdminPermissions) throw new NotFoundException({ message: "Admin permissions not found." });
+
+        console.log(existingAdminPermissions)
 
         const newPermissions = await Promise.all(
-            (existingAdminRole.data.permissions ?? []).map(async (permission: any) =>
-                this.permissionService.create({
+            existingAdminPermissions.data.map(async permission => {
+                return await this.permissionService.create({
                     key: permission.key,
                     label: permission.label,
                     description: permission.description,
                     entity: permission.entity,
                     action: permission.action
-                }, newOrganization.data.id, { allowExisting: true }),
+                }, newOrganization.data.id)
+            }
             )
         );
 
         const newRole = await this.roleService.create({
-            key: existingAdminRole.data.key,
-            label: existingAdminRole.data.label,
-            description: existingAdminRole.data.description,
+            key: existingAdminPermissions.data[0].roles.key,
+            label: existingAdminPermissions.data[0].roles.label,
+            description: existingAdminPermissions.data[0].roles.description,
             permissionIds: newPermissions
                 .map((p: any) => p?.data)
                 .map((permission: any) => String(permission?.id ?? permission?._id))
