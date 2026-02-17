@@ -14,7 +14,7 @@ export class MongoFilesRepository implements IFilesRepository {
     async create(data: any) {
         const file = new this.model({
             ...data,
-            userId: data.user?.id ?? null,
+            userId: data.userId ?? data.user?.id ?? null,
         });
         return file.save();
     }

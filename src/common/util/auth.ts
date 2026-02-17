@@ -31,14 +31,35 @@ export class Auth {
         return decodedPayload;
     }
 
-    async generateAccessToken(payload: { sub: string, email: string, orgId: string }): Promise<string> {
-        const access_token = await this.jwtService.signAsync({ sub: payload.sub, email: payload.email, orgId: payload.orgId });
+    async generateAccessToken(payload: {
+        sub: string;
+        email: string;
+        orgId: string;
+        orgProvider?: 'postgres' | 'mongodb';
+    }): Promise<string> {
+        const access_token = await this.jwtService.signAsync({
+            sub: payload.sub,
+            email: payload.email,
+            orgId: payload.orgId,
+            orgProvider: payload.orgProvider ?? 'postgres',
+        });
 
         return access_token;
     }
 
-    async generateRefreshToken(payload: { sub: string }): Promise<string> {
-        const refresh_token = await this.jwtService.signAsync({ sub: payload.sub }, { expiresIn: "1d" });
+    async generateRefreshToken(payload: {
+        sub: string;
+        orgId?: string;
+        orgProvider?: 'postgres' | 'mongodb';
+    }): Promise<string> {
+        const refresh_token = await this.jwtService.signAsync(
+            {
+                sub: payload.sub,
+                orgId: payload.orgId,
+                orgProvider: payload.orgProvider ?? 'postgres',
+            },
+            { expiresIn: "1d" },
+        );
 
         return refresh_token;
     }

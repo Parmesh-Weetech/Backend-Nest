@@ -15,7 +15,11 @@ export class Organization {
     @Expose()
     name: string;
 
-    @Column({ type: 'jsonb', nullable: true })
+    @Column({
+        type: 'jsonb',
+        nullable: false,
+        default: () => "'{\"database_provider\":\"postgres\",\"postEnabled\":true}'::jsonb",
+    })
     config: Record<string, any>;
 
     @OneToMany(() => User, user => user.organization)

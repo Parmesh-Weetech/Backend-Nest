@@ -45,7 +45,15 @@ export class OrganizationService {
   }
 
   async create(createOrganizationDto: CreateOrganizationDto): Promise<APIResponse> {
-    const organization = await this.organizationRepository.create(createOrganizationDto);
+    const config = {
+      database_provider: createOrganizationDto.database_provider ?? 'postgres',
+      postEnabled: createOrganizationDto.postEnabled ?? true,
+    };
+
+    const organization = await this.organizationRepository.create({
+      name: createOrganizationDto.name,
+      config,
+    });
 
     if (!organization) throw new InternalServerErrorException('Failed to create organization.');
 
@@ -59,9 +67,26 @@ export class OrganizationService {
   }
 
   async update(updateOrganizationDto: UpdateOrganizationDto): Promise<APIResponse> {
+    const existing = await this.organizationRepository.findById(updateOrganizationDto.id);
+    if (!existing) throw new NotFoundException('Organization not found.');
+
+    const mergedConfig = {
+      database_provider:
+        updateOrganizationDto.database_provider ??
+        existing.config?.database_provider ??
+        'postgres',
+      postEnabled:
+        updateOrganizationDto.postEnabled ??
+        existing.config?.postEnabled ??
+        true,
+    };
+
     const organization = await this.organizationRepository.update(
       updateOrganizationDto.id,
-      { name: updateOrganizationDto.name }
+      {
+        name: updateOrganizationDto.name,
+        config: mergedConfig,
+      }
     );
     if (!organization) throw new InternalServerErrorException('Failed to update organization.');
 

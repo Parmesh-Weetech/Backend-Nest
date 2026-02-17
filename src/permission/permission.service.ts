@@ -1,11 +1,9 @@
 import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { OrganizationService } from '../organization/organization.service';
+import { DatabaseResolver } from '../common/resolvers/database.resolver';
 
-import { Permission } from './entities/permission.entity';
 import { UpdatePermissionDTO } from './dtos/update-permission.dto';
 import { CreatePermissionDTO } from './dtos/create-permission.dto';
 import { type IPermissionRepository, PERMISSION_REPOSITORY } from './permission.repository.interface';
@@ -16,7 +14,12 @@ export class PermissionService {
         @Inject(PERMISSION_REPOSITORY)
         private readonly permissionRepository: IPermissionRepository,
         private readonly organizationService: OrganizationService,
+        private readonly databaseResolver: DatabaseResolver,
     ) { }
+
+    private get isMongoProvider() {
+        return this.databaseResolver.provider === 'mongodb';
+    }
 
     async findAll(): Promise<APIResponse> {
         const permissions = await this.permissionRepository.findAll();
@@ -45,19 +48,33 @@ export class PermissionService {
         };;
     }
 
-    async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
+    async create(
+        dto: CreatePermissionDTO,
+        orgId: string,
+        options?: { allowExisting?: boolean },
+    ): Promise<APIResponse> {
 
         await this.organizationService.findOne(orgId);
 
         const existingPermission = await this.permissionRepository.findByPermissionAndOrg(dto.key, dto.label, dto.entity, dto.action, orgId);
         if (existingPermission) {
+            if (options?.allowExisting) {
+                return {
+                    success: true,
+                    expired: false,
+                    message: "Permission already exists in this organization.",
+                    statusCode: 200,
+                    data: existingPermission,
+                };
+            }
+
             throw new ConflictException('Permission already exists in this organization.');
         }
 
         const newPermission =
             await this.permissionRepository.create({
                 ...dto,
-                organization: orgId,
+                organization: this.isMongoProvider ? orgId : { id: orgId },
             });
         if (!newPermission) throw new InternalServerErrorException('Failed to create permission');
 
@@ -132,5 +149,19 @@ export class PermissionService {
             data: permissions,
             expired: false
         }
+    }
+
+    async findGlobalPermissionByKey(key: string): Promise<APIResponse> {
+        const permission = await this.permissionRepository.findGlobalPermissionByKey(key);
+
+        if (!permission) throw new NotFoundException('Role not found.');
+
+        return {
+            success: true,
+            message: "Role fetched successfully.",
+            data: permission,
+            expired: false,
+            statusCode: 200
+        };
     }
 }

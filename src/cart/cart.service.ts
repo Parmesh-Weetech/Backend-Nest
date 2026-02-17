@@ -1,13 +1,9 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { User } from '../user/entities/user.entity';
-import { Product } from '../product/entities/product.entity';
+import { DatabaseResolver } from '../common/resolvers/database.resolver';
 
-import { Cart } from './entities/cart.entity';
-import { CartItem } from './entities/cart.item.entity';
 import { CreateCartItemDTO, RemoveCartItemDTO } from './dtos/create.cartItem.dto';
 import { CART_REPOSITORY, type ICartRepository } from './cart.repository.interface';
 
@@ -16,7 +12,12 @@ export class CartService {
     constructor(
         @Inject(CART_REPOSITORY)
         private readonly cartRepository: ICartRepository,
+        private readonly databaseResolver: DatabaseResolver,
     ) { }
+
+    private get isMongoProvider() {
+        return this.databaseResolver.provider === 'mongodb';
+    }
 
     async addToCart(createCartItemDTO: CreateCartItemDTO, user: User): Promise<APIResponse> {
         let cart = await this.cartRepository.findActiveCartByUser(user.id);
@@ -40,7 +41,7 @@ export class CartService {
         return {
             success: true,
             data: {
-                id: cart.id,
+                id: this.isMongoProvider ? cart._id?.toString?.() ?? cart.id : cart.id,
                 productId: createCartItemDTO.productId,
                 quantity: createCartItemDTO.quantity,
                 price: createCartItemDTO.price,
@@ -68,8 +69,12 @@ export class CartService {
         return {
             success: true,
             data: {
-                id: cartItem.data.cart.id,
-                productId: cartItem.data.product.id,
+                id: this.isMongoProvider
+                    ? cartItem.data.cart._id?.toString?.() ?? cartItem.data.cart.id
+                    : cartItem.data.cart.id,
+                productId: this.isMongoProvider
+                    ? cartItem.data.product._id?.toString?.() ?? cartItem.data.product.id
+                    : cartItem.data.product.id,
                 quantity: cartItem.data.quantity,
                 price: cartItem.data.price,
                 image: cartItem.data.product.image,
@@ -100,13 +105,14 @@ export class CartService {
         }
 
         const formattedCartItems = cartItems.map((item) => {
-            const { product, ...rest } = item;
+            const { product, productId, ...rest } = item;
+            const resolvedProduct = this.isMongoProvider ? productId : product;
             return {
                 ...rest,
-                productId: product.id,
-                image: product.image,
-                name: product.name,
-                mealType: product.mealType,
+                productId: resolvedProduct.id ?? resolvedProduct._id?.toString?.(),
+                image: resolvedProduct.image,
+                name: resolvedProduct.name,
+                mealType: resolvedProduct.mealType,
             };
         });
 
@@ -126,13 +132,17 @@ export class CartService {
         return {
             success: true,
             data: {
-                id: cartItem.cart.id,
-                productId: cartItem.product.id,
-                name: cartItem.product.name,
-                image: cartItem.product.image,
+                id: this.isMongoProvider
+                    ? cartItem.cart?._id?.toString?.() ?? cartItem.cart?.id
+                    : cartItem.cart.id,
+                productId: this.isMongoProvider
+                    ? cartItem.productId?._id?.toString?.() ?? cartItem.productId?.id
+                    : cartItem.product.id,
+                name: this.isMongoProvider ? cartItem.productId?.name : cartItem.product.name,
+                image: this.isMongoProvider ? cartItem.productId?.image : cartItem.product.image,
                 quantity: cartItem.quantity,
                 price: cartItem.price,
-                mealType: cartItem.product.mealType
+                mealType: this.isMongoProvider ? cartItem.productId?.mealType : cartItem.product.mealType
             },
             expired: false,
             message: "Cart Item fetch successfully.",

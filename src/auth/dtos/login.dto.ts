@@ -1,5 +1,6 @@
 import {
     IsEmail,
+    IsIn,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -18,6 +19,10 @@ export class LoginDTO {
     @IsString()
     @IsNotEmpty()
     organizationId: string
+
+    @IsOptional()
+    @IsIn(['postgres', 'mongodb'])
+    database_provider?: 'postgres' | 'mongodb';
 
     @IsString()
     hcaptchaToken: string

@@ -22,8 +22,6 @@ import dotenv from 'dotenv';
 
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { HttpErrorFilter } from './common/exceptions/global.exception';
-import { AuthMiddleware } from './common/middlewares/auth.middleware';
-import { PermissionsMiddleware } from './common/middlewares/permission.middleware';
 import { MainSeeder } from '../db/seeders/main.seed';
 import { ROLES, PERMISSIONS } from '../db/Default_Values';
 import { RoleDocument } from './role/schemas/role.schema';
@@ -136,34 +134,22 @@ async function bootstrap() {
 
     const configService = app.get(ConfigService);
 
-    const authMiddleware = app.get(AuthMiddleware);
-    const permissionsMiddleware = app.get(PermissionsMiddleware);
-
     /* -------------------- DB SEEDING -------------------- */
     if (configService.get('AUTO_SEED')) {
-      const databaseProvider = (process.env.DATABASE_PROVIDER ?? '').toLowerCase();
-
-      if (databaseProvider === 'postgres') {
-        const dataSource = app.get(DataSource);
-        if (!dataSource.isInitialized) {
-          await dataSource.initialize();
-        }
-
-        console.log('🌱 Running database seeders...');
-        await new MainSeeder().run(dataSource);
-        console.log('✅ Database seeding completed');
-      } else if (databaseProvider === 'mongo' || databaseProvider === 'mongodb') {
-        console.log('🌱 Running MongoDB seeders...');
-        await seedMongoData(app);
-      } else {
-        console.log('🌱 Skipping relational seeders for non-postgres provider');
+      const dataSource = app.get(DataSource);
+      if (!dataSource.isInitialized) {
+        await dataSource.initialize();
       }
+
+      console.log('🌱 Running Postgres seeders...');
+      await new MainSeeder().run(dataSource);
+      console.log('✅ Postgres seeding completed');
+
+      console.log('🌱 Running MongoDB seeders...');
+      await seedMongoData(app);
     }
 
-    const databaseProvider = (process.env.DATABASE_PROVIDER ?? '').toLowerCase();
-    if (databaseProvider === 'mongo' || databaseProvider === 'mongodb') {
-      await ensureMongoUserIndexes(app);
-    }
+    await ensureMongoUserIndexes(app);
 
     /* -------------------- BULL BOARD -------------------- */
     const serverAdapter = new ExpressAdapter();
@@ -185,8 +171,7 @@ async function bootstrap() {
     app.use(helmet());
 
     app.use('/admin/queues',
-      // authMiddleware.use.bind(authMiddleware),
-      // permissionsMiddleware.use.bind(permissionsMiddleware),
+      // Resolve request-scoped middlewares per request if re-enabled.
       serverAdapter.getRouter()
     );
 

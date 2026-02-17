@@ -15,30 +15,34 @@ import { PermissionDocument, PermissionSchema } from './schemas/permission.schem
 import { PERMISSION_REPOSITORY } from './permission.repository.interface';
 import { PostgresPermissionRepository } from './postgres-permission.repository';
 import { MongoPermissionRepository } from './mongo-permission.repository';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   controllers: [PermissionController],
-  providers: [PermissionService, PermissionsMiddleware, {
-    provide: PERMISSION_REPOSITORY,
-    useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
-        ? PostgresPermissionRepository
-        : MongoPermissionRepository,
-  }],
-  imports: [...(process.env.DATABASE_PROVIDER === 'postgres'
-    ? [TypeOrmModule.forFeature([Permission])]
-    : []),
-
-  ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
-    ? [
-      MongooseModule.forFeature([
-        {
-          name: PermissionDocument.name,
-          schema: PermissionSchema,
-        },
-      ]),
-    ]
-    : []), forwardRef(() => RoleModule), forwardRef(() => OrganizationModule), forwardRef(() => UserModule), forwardRef(() => AuthModule)],
+  providers: [
+    PermissionService,
+    PermissionsMiddleware,
+    PostgresPermissionRepository,
+    MongoPermissionRepository,
+    createDatabaseRepositoryProvider(
+      PERMISSION_REPOSITORY,
+      PostgresPermissionRepository,
+      MongoPermissionRepository,
+    ),
+  ],
+  imports: [
+    TypeOrmModule.forFeature([Permission]),
+    MongooseModule.forFeature([
+      {
+        name: PermissionDocument.name,
+        schema: PermissionSchema,
+      },
+    ]),
+    forwardRef(() => RoleModule),
+    forwardRef(() => OrganizationModule),
+    forwardRef(() => UserModule),
+    forwardRef(() => AuthModule),
+  ],
   exports: [PermissionService]
 })
 export class PermissionModule { }

@@ -6,7 +6,13 @@ export class OrganizationDocument extends Document {
     @Prop({ required: true })
     name: string;
 
-    @Prop({ type: Object })
+    @Prop({
+        type: Object,
+        default: {
+            database_provider: 'postgres',
+            postEnabled: true,
+        },
+    })
     config: Record<string, any>;
 
     @Prop({ type: [String], default: [] })

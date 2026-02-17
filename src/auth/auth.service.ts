@@ -34,21 +34,25 @@ export class AuthService {
     ) { }
 
     async signup(signupDTO: SignupDTO): Promise<APIResponse> {
-        const newOrganization = await this.organizationService.create({ name: "Default" });
+        const newOrganization = await this.organizationService.create({
+            name: signupDTO.organizationName ?? "Default",
+            database_provider: signupDTO.database_provider ?? 'postgres',
+            postEnabled: signupDTO.postEnabled ?? true,
+        });
         if (!newOrganization) throw new InternalServerErrorException({ message: "Something went wrong while processing your request" });
 
         const existingAdminRole = await this.roleService.findRoleByOrganizationName('admin');
-        if (!existingAdminRole) throw new NotFoundException({ message: "Admin role not found." });
+        if (!existingAdminRole?.data) throw new NotFoundException({ message: "Admin role not found." });
 
         const newPermissions = await Promise.all(
-            existingAdminRole.data.permissions.map(permission =>
+            (existingAdminRole.data.permissions ?? []).map(async (permission: any) =>
                 this.permissionService.create({
                     key: permission.key,
                     label: permission.label,
                     description: permission.description,
                     entity: permission.entity,
                     action: permission.action
-                }, newOrganization.data.id)
+                }, newOrganization.data.id, { allowExisting: true }),
             )
         );
 
@@ -86,6 +90,9 @@ export class AuthService {
     async login(loginDTO: LoginDTO): Promise<TokenResponse> {
         const organization = await this.organizationService.findOne(loginDTO.organizationId);
         if (!organization) throw new NotFoundException({ message: "Organization not found!" });
+        const orgProvider = organization.data?.config?.database_provider === 'mongodb'
+            ? 'mongodb'
+            : 'postgres';
 
         const user = await this.authRepository.findUserByEmailAndOrg(loginDTO.email, loginDTO.organizationId);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
@@ -93,8 +100,17 @@ export class AuthService {
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);
         if (!checkPassword) throw new UnauthorizedException({ message: "Invalid Credentials!" });
 
-        const access_token = await this.auth.generateAccessToken({ sub: user.id, email: user.email, orgId: user.organization.id });
-        const refresh_token = await this.auth.generateRefreshToken({ sub: user.id });
+        const access_token = await this.auth.generateAccessToken({
+            sub: user.id,
+            email: user.email,
+            orgId: user.organization.id,
+            orgProvider,
+        });
+        const refresh_token = await this.auth.generateRefreshToken({
+            sub: user.id,
+            orgId: user.organization.id,
+            orgProvider,
+        });
 
         await this.authRepository.saveRefreshToken(
             user.id,
@@ -147,8 +163,20 @@ export class AuthService {
         const user = await this.authRepository.findUserById(decode.sub);
         if (!user) throw new NotFoundException({ message: "User not found!" });
 
-        const newAccessToken = await this.auth.generateAccessToken({ sub: decode.sub, email: user.email, orgId: user.organization.id });
-        const newRefreshToken = await this.auth.generateRefreshToken({ sub: decode.sub });
+        const orgId = decode.orgId ?? user.organization.id;
+        const orgProvider = decode.orgProvider ?? 'postgres';
+
+        const newAccessToken = await this.auth.generateAccessToken({
+            sub: decode.sub,
+            email: user.email,
+            orgId,
+            orgProvider,
+        });
+        const newRefreshToken = await this.auth.generateRefreshToken({
+            sub: decode.sub,
+            orgId,
+            orgProvider,
+        });
 
         if (!newAccessToken || !newRefreshToken) {
             await this.logout(refreshToken)

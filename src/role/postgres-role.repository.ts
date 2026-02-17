@@ -61,7 +61,7 @@ export class PostgresRoleRepository implements IRoleRepository {
     }
 
     findGlobalRoleByKey(key: string) {
-        return this.repo.findOne({
+        return this.repo.find({
             where: {
                 key,
                 organization: IsNull(),

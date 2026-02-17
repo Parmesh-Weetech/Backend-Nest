@@ -29,26 +29,26 @@ import { QueueModule } from './queue/queue.module';
 import { VideoModule } from './video/video.module';
 import { CartModule } from './cart/cart.module';
 import { MongodbModule } from './mongodb/mongodb.module';
+import { CommonModule } from './common/common.module';
 
 dotenv.config();
 
 @Module({
   imports: [
+    CommonModule,
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
       load: [AppConfig, DatabaseConfig]
     }),
-    ...(process.env.DATABASE_PROVIDER === "postgres" ? [
-      TypeOrmModule.forRootAsync({
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: (configService: ConfigService) => ({
-          ...configService.get('database'),
-        }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ...configService.get('database'),
       }),
-    ] : []),
-    ...((process.env.DATABASE_PROVIDER === "mongodb" || process.env.DATABASE_PROVIDER === "mongo") ? [MongooseModule.forRootAsync({
+    }),
+    MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -60,7 +60,8 @@ dotenv.config();
           ...(dbName ? { dbName } : {}),
         };
       },
-    }), MongodbModule] : []),
+    }),
+    MongodbModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

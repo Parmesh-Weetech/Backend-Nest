@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { IPermissionRepository } from "./permission.repository.interface";
 import { Permission } from "./entities/permission.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
 
 @Injectable()
 export class PostgresPermissionRepository
@@ -65,5 +65,26 @@ export class PostgresPermissionRepository
             .innerJoin('permission.roles', 'role')
             .where('role.id = :roleId', { roleId })
             .getMany();
+    }
+
+    async findGlobalPermissionByKey(key: string) {
+        const permissions = await this.repo.find({
+            where: { key, organization: { id: IsNull() } },
+            relations: {
+                roles: {
+                    organization: true,
+                },
+            },
+        });
+
+        const filteredPermissions = permissions.map(permission => {
+            const globalRoles = permission.roles?.filter(role => !role.organization) ?? [];
+            return {
+                ...permission,
+                roles: globalRoles.length > 0 ? globalRoles?.[0] : undefined,
+            };
+        });
+
+        return filteredPermissions;
     }
 }

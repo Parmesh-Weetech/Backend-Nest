@@ -1,15 +1,13 @@
 import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
 
 import { APIResponse } from '../common/response/response.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { PermissionService } from '../permission/permission.service';
 
-import { Role } from './entities/role.entity';
 import { CreateRoleDTO } from './dtos/create-role.dto';
 import { UpdateRoleDTO } from './dtos/update-role.dto';
 import { type IRoleRepository, ROLE_REPOSITORY } from './role.repository.interface';
+import { DatabaseResolver } from '../common/resolvers/database.resolver';
 
 @Injectable()
 export class RoleService {
@@ -21,10 +19,12 @@ export class RoleService {
         private readonly permissionService: PermissionService,
 
         private readonly organizationService: OrganizationService,
+        private readonly databaseResolver: DatabaseResolver,
     ) { }
 
-    private readonly isMongoProvider =
-        ['mongo', 'mongodb'].includes((process.env.DATABASE_PROVIDER ?? '').toLowerCase());
+    private get isMongoProvider() {
+        return this.databaseResolver.provider === 'mongodb';
+    }
 
     async findAll(): Promise<APIResponse> {
         const roles = await this.roleRepository.findAll();
@@ -166,6 +166,7 @@ export class RoleService {
 
         const roleData = role as any;
         if (
+            this.isMongoProvider &&
             roleData.permissions === undefined &&
             Array.isArray(roleData.permissionIds) &&
             roleData.permissionIds.length > 0
@@ -179,6 +180,7 @@ export class RoleService {
                     this.permissionService.findOne(permissionId).then((response) => response.data),
                 ),
             );
+            
             roleData.permissions = permissions;
         }
 

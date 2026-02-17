@@ -7,16 +7,14 @@ import {
     NotFoundException
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Not, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
 
 import { APIResponse } from '../common/response/response.dto';
 import { User } from '../user/entities/user.entity';
 import { StorageService } from '../storage/storage.service';
+import { DatabaseResolver } from '../common/resolvers/database.resolver';
 
-import { Files } from './entities/File.entity';
 import { FILES_REPOSITORY, type IFilesRepository } from './files.repository.interface';
 
 @Injectable()
@@ -25,8 +23,20 @@ export class FilesService {
         @Inject(FILES_REPOSITORY)
         private readonly fileRepository: IFilesRepository,
         private readonly storageService: StorageService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly databaseResolver: DatabaseResolver,
     ) { }
+
+    private get isMongoProvider() {
+        return this.databaseResolver.provider === 'mongodb';
+    }
+
+    private getFileOwnerId(file: any): string | null {
+        if (!file) return null;
+        if (file.userId) return String(file.userId);
+        if (file.user?.id) return String(file.user.id);
+        return null;
+    }
 
     async uploadFile(file: Express.Multer.File, user: User): Promise<APIResponse> {
         if (!file) throw new BadRequestException('File missing');
@@ -42,7 +52,7 @@ export class FilesService {
 
         try {
             const savedFile = await this.fileRepository.create({
-                user: user,
+                ...(this.isMongoProvider ? { userId: user.id } : { user }),
                 path,
                 mimeType: file.mimetype,
                 originalFileName: file.originalname,
@@ -81,7 +91,7 @@ export class FilesService {
             mimeType: file.mimeType,
             status: file.status,
             bucket: file.bucket,
-            user: file.user ? { id: file.user.id, } : null,
+            user: this.getFileOwnerId(file) ? { id: this.getFileOwnerId(file) } : null,
             created_at: file.created_at,
             updated_at: file.updated_at,
         }));
@@ -150,7 +160,7 @@ export class FilesService {
         const { signedUrl } = await this.storageService.createSignedUploadUrl(path);
 
         const file = await this.fileRepository.create({
-            user: user,
+            ...(this.isMongoProvider ? { userId: user.id } : { user }),
             path: path,
             status: "PENDING",
             originalFileName: filename,
@@ -205,7 +215,7 @@ export class FilesService {
             throw new NotFoundException('File not found');
         }
 
-        if (file.user.id !== user.id) {
+        if (this.getFileOwnerId(file) !== user.id) {
             throw new ForbiddenException('Access denied');
         }
 

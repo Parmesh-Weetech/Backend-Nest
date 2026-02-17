@@ -15,27 +15,30 @@ import { RoleDocument, RoleSchema } from './schemas/role.schema';
 import { ROLE_REPOSITORY } from './role.repository.interface';
 import { PostgresRoleRepository } from './postgres-role.repository';
 import { MongoRoleRepository } from './mongo-role.repository';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   controllers: [RoleController],
-  providers: [RoleService, {
-    provide: ROLE_REPOSITORY,
-    useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
-        ? PostgresRoleRepository
-        : MongoRoleRepository,
-  }],
-  imports: [...(process.env.DATABASE_PROVIDER === 'postgres'
-    ? [TypeOrmModule.forFeature([Role])]
-    : []),
-
-  ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
-    ? [
-      MongooseModule.forFeature([
-        { name: RoleDocument.name, schema: RoleSchema },
-      ]),
-    ]
-    : []), forwardRef(() => UserModule), forwardRef(() => PermissionModule), OrganizationModule, forwardRef(() => AuthModule)],
+  providers: [
+    RoleService,
+    PostgresRoleRepository,
+    MongoRoleRepository,
+    createDatabaseRepositoryProvider(
+      ROLE_REPOSITORY,
+      PostgresRoleRepository,
+      MongoRoleRepository,
+    ),
+  ],
+  imports: [
+    TypeOrmModule.forFeature([Role]),
+    MongooseModule.forFeature([
+      { name: RoleDocument.name, schema: RoleSchema },
+    ]),
+    forwardRef(() => UserModule),
+    forwardRef(() => PermissionModule),
+    OrganizationModule,
+    forwardRef(() => AuthModule),
+  ],
   exports: [RoleService]
 })
 export class RoleModule { }

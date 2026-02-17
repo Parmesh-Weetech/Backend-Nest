@@ -15,26 +15,30 @@ import { PostgresPostRepository } from './postgres-post.repository';
 import { MongoPostRepository } from './mongo-post.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PostSchema } from './schemas/post.schema';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   controllers: [PostController],
-  providers: [PostService, {
-    provide: POSTS_REPOSITORY,
-    useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
-        ? PostgresPostRepository
-        : MongoPostRepository,
-  }],
-  imports: [...(process.env.DATABASE_PROVIDER === 'postgres'
-    ? [TypeOrmModule.forFeature([PostEntity])]
-    : []),
-
-  ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
-    ? [
-      MongooseModule.forFeature([
-        { name: 'Post', schema: PostSchema },
-      ]),
-    ]
-    : []), AuthModule, UserModule, PermissionModule, RoleModule, OrganizationModule]
+  providers: [
+    PostService,
+    PostgresPostRepository,
+    MongoPostRepository,
+    createDatabaseRepositoryProvider(
+      POSTS_REPOSITORY,
+      PostgresPostRepository,
+      MongoPostRepository,
+    ),
+  ],
+  imports: [
+    TypeOrmModule.forFeature([PostEntity]),
+    MongooseModule.forFeature([
+      { name: 'Post', schema: PostSchema },
+    ]),
+    AuthModule,
+    UserModule,
+    PermissionModule,
+    RoleModule,
+    OrganizationModule,
+  ]
 })
 export class PostModule { }

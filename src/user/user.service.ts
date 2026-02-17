@@ -10,6 +10,7 @@ import { OrganizationService } from '../organization/organization.service';
 import { APIResponse } from '../common/response/response.dto';
 import { CacheService } from '../cache/cache.service';
 import { type IUserRepository } from './user.repository.interface';
+import { DatabaseResolver } from '../common/resolvers/database.resolver';
 
 @Injectable()
 export class UserService {
@@ -20,11 +21,13 @@ export class UserService {
 
         @Inject(forwardRef(() => OrganizationService))
         private readonly organizationService: OrganizationService,
-        private readonly cacheService: CacheService
+        private readonly cacheService: CacheService,
+        private readonly databaseResolver: DatabaseResolver,
     ) { }
 
-    private readonly isMongoProvider =
-        ['mongo', 'mongodb'].includes((process.env.DATABASE_PROVIDER ?? '').toLowerCase());
+    private get isMongoProvider() {
+        return this.databaseResolver.provider === 'mongodb';
+    }
 
     private userKey(id: string) {
         return `user:${id}`;

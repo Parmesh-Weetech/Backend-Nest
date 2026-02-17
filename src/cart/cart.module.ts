@@ -18,39 +18,29 @@ import { Product as ProductDocument, ProductSchema } from '../product/schemas/pr
 import { CART_REPOSITORY } from './cart.repository.interface';
 import { PostgresCartRepository } from './postgres-cart.repository';
 import { MongoCartRepository } from './mongo-cart.repository';
-
-const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
-const isPostgres = databaseProvider === 'postgres';
-const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   imports: [
-    ...(isPostgres
-      ? [TypeOrmModule.forFeature([Cart, CartItem, Product])]
-      : []),
-
-    ...(isMongo
-      ? [
-        MongooseModule.forFeature([
-          { name: CartDocument.name, schema: CartSchema },
-          { name: CartItemDocument.name, schema: CartItemSchema },
-          { name: ProductDocument.name, schema: ProductSchema },
-        ]),
-      ]
-      : []),
+    TypeOrmModule.forFeature([Cart, CartItem, Product]),
+    MongooseModule.forFeature([
+      { name: CartDocument.name, schema: CartSchema },
+      { name: CartItemDocument.name, schema: CartItemSchema },
+      { name: ProductDocument.name, schema: ProductSchema },
+    ]),
     AuthModule,
     UserModule,
   ],
   controllers: [CartController],
   providers: [
     CartService,
-    {
-      provide: CART_REPOSITORY,
-      useClass:
-        isPostgres
-          ? PostgresCartRepository
-          : MongoCartRepository,
-    },
+    PostgresCartRepository,
+    MongoCartRepository,
+    createDatabaseRepositoryProvider(
+      CART_REPOSITORY,
+      PostgresCartRepository,
+      MongoCartRepository,
+    ),
   ],
 })
 export class CartModule { }

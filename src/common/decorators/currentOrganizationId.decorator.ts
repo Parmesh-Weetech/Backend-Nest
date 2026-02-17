@@ -4,6 +4,6 @@ export const CurrentOrganizationId = createParamDecorator(
     (_data: never, context: ExecutionContext) => {
         const request = context.switchToHttp().getRequest();
 
-        return request.organization;
+        return request.organization?.id ?? request.organization;
     }
 )

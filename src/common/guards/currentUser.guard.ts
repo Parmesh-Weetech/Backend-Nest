@@ -22,6 +22,7 @@ export class CurrentUserGuard implements CanActivate {
         }
 
         request.currentUser = user.data;
+        request.organization = user.data?.organization ?? request.organization;
 
         return true;
     }

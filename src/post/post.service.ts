@@ -6,16 +6,19 @@ import { User } from '../user/entities/user.entity';
 import { CreatePostDTO } from './dtos/create-post.dto';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { type IPostRepository, POSTS_REPOSITORY } from './post.repository.interface';
+import { DatabaseResolver } from '../common/resolvers/database.resolver';
 
 @Injectable()
 export class PostService {
     constructor(
         @Inject(POSTS_REPOSITORY)
         private readonly postRepository: IPostRepository,
+        private readonly databaseResolver: DatabaseResolver,
     ) { }
 
-    private readonly isMongoProvider =
-        ['mongo', 'mongodb'].includes((process.env.DATABASE_PROVIDER ?? '').toLowerCase());
+    private get isMongoProvider() {
+        return this.databaseResolver.provider === 'mongodb';
+    }
 
     private getPostOwnerId(post: any): string | null {
         if (!post) return null;

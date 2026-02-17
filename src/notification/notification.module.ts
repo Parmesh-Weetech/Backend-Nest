@@ -16,32 +16,28 @@ import { NotificationDocument, NotificationSchema } from './schemas/notification
 import { MongoNotificationRepository } from './mongo-notification.repository';
 import { PostgresNotificationRepository } from './postgres-notification.repository';
 import { NOTIFICATION_REPOSITORY } from './notification.repository.interface';
-
-const databaseProvider = (process.env.DATABASE_PROVIDER ?? 'postgres').toLowerCase();
-const isPostgres = databaseProvider === 'postgres';
-const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   providers: [
     NotificationService,
     NotificationSseService,
     CurrentUserInterceptor,
-    {
-      provide: NOTIFICATION_REPOSITORY,
-      useClass: isPostgres
-        ? PostgresNotificationRepository
-        : MongoNotificationRepository,
-    }
+    PostgresNotificationRepository,
+    MongoNotificationRepository,
+    createDatabaseRepositoryProvider(
+      NOTIFICATION_REPOSITORY,
+      PostgresNotificationRepository,
+      MongoNotificationRepository,
+    ),
   ],
   controllers: [NotificationController, NotificationSseController],
   exports: [NotificationService, NotificationSseService, NOTIFICATION_REPOSITORY],
   imports: [
     AuthModule,
     UserModule,
-    ...(isPostgres ? [TypeOrmModule.forFeature([Notification])] : []),
-    ...(isMongo
-      ? [MongooseModule.forFeature([{ name: NotificationDocument.name, schema: NotificationSchema }])]
-      : []),
+    TypeOrmModule.forFeature([Notification]),
+    MongooseModule.forFeature([{ name: NotificationDocument.name, schema: NotificationSchema }]),
     BullModule.registerQueue({
       name: 'notifications',
       connection: {

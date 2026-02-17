@@ -92,4 +92,20 @@ export class MongoPermissionRepository
 
         return documents.map((document: any) => this.toPlain(document));
     }
+
+    async findGlobalPermissionByKey(key: string): Promise<any> {
+        const documents = await this.model
+            .find({ key, organization: null })
+            .populate({
+                path: 'roles',
+                match: { organization: null },
+            })
+            .lean()
+            .exec();
+
+        return documents.map((doc: any) => {
+            const filteredRoles = doc.roles?.length ? doc.roles : undefined;
+            return this.toPlain({ ...doc, roles: filteredRoles });
+        });
+    }
 }

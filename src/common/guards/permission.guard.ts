@@ -32,6 +32,12 @@ export class PermissionsGuard implements CanActivate {
         if (!user) throw new UnauthorizedException("User not found in request");
         const { entity, action } = requiredPermission;
 
+        const organizationConfig =
+            request.organization?.config ?? user.organization?.config ?? {};
+        if (entity === 'post' && organizationConfig.postEnabled === false) {
+            throw new UnauthorizedException('Post feature is disabled for this organization');
+        }
+
         const orgId = this.normalizeId(user.organization.id);
         if (!orgId) {
             throw new UnauthorizedException('User organization not found');

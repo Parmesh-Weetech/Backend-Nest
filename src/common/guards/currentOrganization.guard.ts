@@ -21,7 +21,7 @@ export class CurrentOrganizationGuard implements CanActivate {
             throw new NotFoundException('User not found');
         }
 
-        request.organization = organization.data.id;
+        request.organization = organization.data;
 
         return true;
     }

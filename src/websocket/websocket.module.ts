@@ -20,33 +20,35 @@ import { UserDocument, UserSchema } from '../user/schemas/user.schema';
 import { WEBSOCKET_REPOSITORY } from './websocket.repository.interface';
 import { PostgresWebsocketRepository } from './postgres-websocket.repository';
 import { MongoWebsocketRepository } from './mongo-websocket.repository';
-
-const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
-const isPostgres = databaseProvider === 'postgres';
-const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   controllers: [WebsocketController],
-  providers: [WebsocketService, Gateway, {
-    provide: WEBSOCKET_REPOSITORY,
-    useClass:
-      isPostgres
-        ? PostgresWebsocketRepository
-        : MongoWebsocketRepository,
-  }],
-  imports: [...(isPostgres
-    ? [TypeOrmModule.forFeature([Conversation, Message, MessageAttachment, User])]
-    : []),
-
-  ...(isMongo
-    ? [
-      MongooseModule.forFeature([
-        { name: ConversationDocument.name, schema: ConversationSchema },
-        { name: MessageDocument.name, schema: MessageSchema },
-        { name: UserDocument.name, schema: UserSchema },
-      ]),
-    ]
-    : []), AuthModule, UserModule, FilesModule, CacheModule, VideoModule, NotificationModule],
+  providers: [
+    WebsocketService,
+    Gateway,
+    PostgresWebsocketRepository,
+    MongoWebsocketRepository,
+    createDatabaseRepositoryProvider(
+      WEBSOCKET_REPOSITORY,
+      PostgresWebsocketRepository,
+      MongoWebsocketRepository,
+    ),
+  ],
+  imports: [
+    TypeOrmModule.forFeature([Conversation, Message, MessageAttachment, User]),
+    MongooseModule.forFeature([
+      { name: ConversationDocument.name, schema: ConversationSchema },
+      { name: MessageDocument.name, schema: MessageSchema },
+      { name: UserDocument.name, schema: UserSchema },
+    ]),
+    AuthModule,
+    UserModule,
+    FilesModule,
+    CacheModule,
+    VideoModule,
+    NotificationModule,
+  ],
   exports: [WebsocketService]
 })
 export class WebsocketModule { }

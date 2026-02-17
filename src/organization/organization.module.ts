@@ -13,37 +13,28 @@ import { PostgresOrganizationRepository } from './postgres-organization.reposito
 import { MongoOrganizationRepository } from './mongo-organization.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { OrganizationDocument, OrganizationSchema } from './schemas/organization.schema';
-
-const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
-const isPostgres = databaseProvider === 'postgres';
-const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
   controllers: [OrganizationController],
   providers: [
     OrganizationService,
-    {
-      provide: ORGANIZATION_REPOSITORY,
-      useClass:
-        isPostgres
-          ? PostgresOrganizationRepository
-          : MongoOrganizationRepository,
-    },
+    PostgresOrganizationRepository,
+    MongoOrganizationRepository,
+    createDatabaseRepositoryProvider(
+      ORGANIZATION_REPOSITORY,
+      PostgresOrganizationRepository,
+      MongoOrganizationRepository,
+    ),
   ],
   imports: [
-    ...(isPostgres
-      ? [TypeOrmModule.forFeature([Organization])]
-      : []),
-    ...(isMongo
-      ? [
-        MongooseModule.forFeature([
-          {
-            name: OrganizationDocument.name,
-            schema: OrganizationSchema,
-          },
-        ]),
-      ]
-      : []),
+    TypeOrmModule.forFeature([Organization]),
+    MongooseModule.forFeature([
+      {
+        name: OrganizationDocument.name,
+        schema: OrganizationSchema,
+      },
+    ]),
     forwardRef(() => PermissionModule),
     forwardRef(() => AuthModule),
     forwardRef(() => UserModule),

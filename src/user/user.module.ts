@@ -16,33 +16,28 @@ import { USERS_REPOSITORY } from './user.repository.interface';
 import { RoleDocument, RoleSchema } from '../role/schemas/role.schema';
 import { PermissionDocument, PermissionSchema } from '../permission/schemas/permission.schema';
 import { OrganizationDocument, OrganizationSchema } from '../organization/schemas/organization.schema';
-
-const databaseProvider = process.env.DATABASE_PROVIDER?.toLowerCase();
-const isPostgres = databaseProvider === 'postgres';
-const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+import { createDatabaseRepositoryProvider } from '../common/providers/repository-selector.provider';
 
 @Module({
-  providers: [UserService, {
-    provide: USERS_REPOSITORY,
-    useClass:
-      isPostgres
-        ? PostgresUserRepository
-        : MongoUserRepository,
-  }],
-  imports: [...(isPostgres
-    ? [TypeOrmModule.forFeature([User])]
-    : []),
-
-  ...(isMongo
-    ? [
-      MongooseModule.forFeature([
-        { name: UserDocument.name, schema: UserSchema },
-        { name: RoleDocument.name, schema: RoleSchema },
-        { name: PermissionDocument.name, schema: PermissionSchema },
-        { name: OrganizationDocument.name, schema: OrganizationSchema },
-      ]),
-    ]
-    : []), forwardRef(() => AuthModule),
+  providers: [
+    UserService,
+    PostgresUserRepository,
+    MongoUserRepository,
+    createDatabaseRepositoryProvider(
+      USERS_REPOSITORY,
+      PostgresUserRepository,
+      MongoUserRepository,
+    ),
+  ],
+  imports: [
+  TypeOrmModule.forFeature([User]),
+  MongooseModule.forFeature([
+    { name: UserDocument.name, schema: UserSchema },
+    { name: RoleDocument.name, schema: RoleSchema },
+    { name: PermissionDocument.name, schema: PermissionSchema },
+    { name: OrganizationDocument.name, schema: OrganizationSchema },
+  ]),
+  forwardRef(() => AuthModule),
   forwardRef(() => RoleModule),
   forwardRef(() => PermissionModule),
   forwardRef(() => OrganizationModule), CacheModule],

@@ -20,5 +20,7 @@ export interface IPermissionRepository {
     update(id: string, data: Partial<any>): Promise<any>;
     softDelete(id: string): Promise<boolean>;
 
+    findGlobalPermissionByKey(key: string): Promise<any>;
+
     findByRoleId(roleId: string): Promise<any[]>;
 }

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateOrganizationDto {
@@ -11,4 +11,12 @@ export class UpdateOrganizationDto {
     @MinLength(3)
     @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
     name: string;
+
+    @IsOptional()
+    @IsIn(['postgres', 'mongodb'])
+    database_provider?: 'postgres' | 'mongodb';
+
+    @IsOptional()
+    @IsBoolean()
+    postEnabled?: boolean;
 }
