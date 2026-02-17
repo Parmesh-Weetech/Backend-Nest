@@ -20,6 +20,10 @@ export class PostgresAuthRepository implements IAuthRepository {
         return this.userRepo.findOne({ where: { email }, relations: ['organization'] });
     }
 
+    findUserByEmailAndOrg(email: string, orgId: string): Promise<any> {
+        return this.userRepo.findOne({ where: { email, organization: { id: orgId } }, relations: ['organization'] });
+    }
+
     findUserById(id: string) {
         return this.userRepo.findOne({ where: { id }, relations: ['organization'] });
     }

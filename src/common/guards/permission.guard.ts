@@ -33,13 +33,13 @@ export class PermissionsGuard implements CanActivate {
         const { entity, action } = requiredPermission;
 
         const orgId = this.normalizeId(user.organization.id);
-
         if (!orgId) {
             throw new UnauthorizedException('User organization not found');
         }
-        
+
         for (const role of (user.roles ?? [])) {
             if (!role.organization) continue;
+
             const roleOrgId = this.normalizeId(role.organization);
             if (!roleOrgId || roleOrgId !== orgId) continue;
 

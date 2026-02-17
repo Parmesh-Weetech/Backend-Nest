@@ -87,7 +87,7 @@ export class AuthService {
         const organization = await this.organizationService.findOne(loginDTO.organizationId);
         if (!organization) throw new NotFoundException({ message: "Organization not found!" });
 
-        const user = await this.authRepository.findUserByEmail(loginDTO.email);
+        const user = await this.authRepository.findUserByEmailAndOrg(loginDTO.email, loginDTO.organizationId);
         if (!user) throw new NotFoundException({ message: "User with this email not found!" });
 
         const checkPassword = await bcrypt.compare(loginDTO.password, user.password);

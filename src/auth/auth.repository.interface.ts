@@ -2,6 +2,7 @@ export const AUTH_REPOSITORY = 'AUTH_REPOSITORY';
 
 export interface IAuthRepository {
     findUserByEmail(email: string): Promise<any | null>;
+    findUserByEmailAndOrg(email: string, orgId: string): Promise<any>;
     findUserById(id: string): Promise<any | null>;
     createUser(data: any): Promise<any>;
 

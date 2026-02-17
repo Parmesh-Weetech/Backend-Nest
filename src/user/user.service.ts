@@ -170,7 +170,7 @@ export class UserService {
             uniqueRoleIds.map(async (roleId) => {
 
                 let role = await this.roleService.findRoleByOrg(orgId, roleId);
-                if(!role.data || role.data === null) {
+                if (!role.data || role.data === null) {
                     throw new NotFoundException(`Role ${roleId} not found`);
                 }
 
@@ -182,7 +182,7 @@ export class UserService {
 
                 return role.data;
             }
-        ));
+            ));
 
         const organization = await this.organizationService.findOne(orgId);
         if (!organization) throw new NotFoundException('Organization not found.');
