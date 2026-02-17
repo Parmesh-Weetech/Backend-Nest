@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import dotenv from 'dotenv';
 
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
@@ -13,21 +14,23 @@ import { PRODUCT_REPOSITORY } from './product.repository.interface';
 import { MongoProductRepository } from './mongo-product.repository';
 import { PostgresProductRepository } from './postgres-product.repository';
 
+dotenv.config();
+const databaseProvider = (process.env.DATABASE_PROVIDER ?? '').toLowerCase();
+const isMongo = databaseProvider === 'mongo' || databaseProvider === 'mongodb';
+
 @Module({
   controllers: [ProductController],
   providers: [ProductService, {
     provide: PRODUCT_REPOSITORY,
     useClass:
-      process.env.DATABASE_PROVIDER === 'postgres'
-        ? PostgresProductRepository
-        : MongoProductRepository,
+      isMongo ? MongoProductRepository : PostgresProductRepository,
   }],
   exports: [ProductService],
-  imports: [UserModule, ...(process.env.DATABASE_PROVIDER === 'postgres'
+  imports: [UserModule, ...(!isMongo
     ? [TypeOrmModule.forFeature([Product])]
     : []),
 
-    ...((process.env.DATABASE_PROVIDER === 'mongodb' || process.env.DATABASE_PROVIDER === 'mongo')
+    ...(isMongo
       ? [
         MongooseModule.forFeature([
           { name: MongoProduct.name, schema: ProductSchema },

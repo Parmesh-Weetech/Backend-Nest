@@ -51,8 +51,10 @@ export class MongoPermissionRepository
         return this.toPlain(document);
     }
 
-    async findByEntityActionAndOrg(entity: string, action: string, organizationId: string) {
+    async findByPermissionAndOrg(key: string, label: string, entity: string, action: string, organizationId: string) {
         const document = await this.model.findOne({
+            key,
+            label,
             entity,
             action,
             organization: organizationId,

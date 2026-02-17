@@ -38,14 +38,14 @@ export class PermissionsGuard implements CanActivate {
         }
 
         for (const role of (user.roles ?? [])) {
+            if (role.key === 'admin') {
+                return true;
+            }
+
             if (!role.organization) continue;
 
             const roleOrgId = this.normalizeId(role.organization);
             if (!roleOrgId || roleOrgId !== orgId) continue;
-
-            if (role.key === 'admin') {
-                return true;
-            }
 
             const rolePermissions = role.permissions ?? [];
             

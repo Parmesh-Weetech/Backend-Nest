@@ -46,9 +46,11 @@ export class PermissionService {
     }
 
     async create(dto: CreatePermissionDTO, orgId: string): Promise<APIResponse> {
+        console.log(orgId, dto.entity)
+
         await this.organizationService.findOne(orgId);
 
-        const existingPermission = await this.permissionRepository.findByEntityAndOrg(dto.entity, orgId);
+        const existingPermission = await this.permissionRepository.findByPermissionAndOrg(dto.key, dto.label, dto.entity, dto.action, orgId);
         if (existingPermission) {
             throw new ConflictException('Permission already exists in this organization.');
         }

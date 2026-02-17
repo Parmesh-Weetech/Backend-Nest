@@ -4,11 +4,13 @@ export interface IPermissionRepository {
     findAll(): Promise<any[]>;
     findById(id: string): Promise<any | null>;
     findByEntityAndOrg(
-        key: string,
+        entity: string,
         organizationId: string,
     ): Promise<any | null>;
 
-    findByEntityActionAndOrg(
+    findByPermissionAndOrg(
+        key: string,
+        label: string,
         entity: string,
         action: string,
         organizationId: string, 

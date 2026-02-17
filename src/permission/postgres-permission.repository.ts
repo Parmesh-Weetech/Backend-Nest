@@ -23,18 +23,20 @@ export class PostgresPermissionRepository
         });
     }
 
-    findByEntityAndOrg(key: string, organizationId: string) {
+    findByEntityAndOrg(entity: string, organizationId: string) {
         return this.repo.findOne({
             where: {
-                key,
+                entity: entity,
                 organization: { id: organizationId },
             },
         });
     }
 
-    findByEntityActionAndOrg(entity: string, action: string, organizationId: string) {
+    findByPermissionAndOrg(key: string, label: string, entity: string, action: string, organizationId: string) {
         return this.repo.findOne({
             where: {
+                key,
+                label,
                 entity,
                 action,
                 organization: { id: organizationId },

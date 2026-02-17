@@ -53,8 +53,15 @@ export class MongoAuthRepository implements IAuthRepository {
 
     async findUserByEmailAndOrg(email: string, orgId: string): Promise<any> {
         const user = await this.userModel.findOne({ email, organization: orgId }).lean().exec();
-
-        return this.toPlain(user);
+        
+        const data = {
+            ...user,
+            organization: {
+                id: user?.organization
+            }
+        }
+        
+        return this.toPlain(data);
     }
 
     async findUserById(id: string) {
