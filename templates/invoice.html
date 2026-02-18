@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <style>
+      body { font-family: Arial; padding: 40px; }
+      h1 { color: #333; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background: #f4f4f4; }
+      .total { margin-top: 20px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h1>Invoice</h1>
+
+    <p><strong>Cart ID:</strong> {{cartId}}</p>
+    <p><strong>User Name:</strong> {{userName}}</p>
+    <p><strong>User Email:</strong> {{userEmail}}</p>
+    <p><strong>Cart Status:</strong> {{cartStatus}}</p>
+    <p><strong>Created At:</strong> {{cartCreatedAt}}</p>
+    <p><strong>Updated At:</strong> {{cartUpdatedAt}}</p>
+
+    <table>
+      <tr>
+        <th>Item Name</th>
+        <th>Meal Type</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Total Price</th>
+      </tr>
+      {{itemsRows}}
+    </table>
+
+    <p class="total">Total Amount: ${{totalAmount}}</p>
+  </body>
+</html>
