@@ -10,9 +10,9 @@ export class PdfProcessor extends WorkerHost {
         super();
     }
 
-    async process(job: Job<{ userId: string, token: string }>): Promise<any> {
-        const { userId, token } = job.data;
+    async process(job: Job<{ userId: string }>): Promise<any> {
+        const { userId } = job.data;
 
-        return await this.pdfService.generatePdf(userId, token);
+        return await this.pdfService.generatePdf(userId);
     }
 }

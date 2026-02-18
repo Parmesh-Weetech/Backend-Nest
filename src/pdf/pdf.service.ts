@@ -13,7 +13,7 @@ export class PdfService {
         private readonly configService: ConfigService
     ) { }
 
-    async generatePdf(userId: string, token: string): Promise<string> {
+    async generatePdf(userId: string): Promise<string> {
         const MAIN_SERVER_URL = this.configService.get<string>("MAIN_SERVER_URL");
         const secret = this.configService.get<string>("SECRET");
 
