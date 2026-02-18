@@ -69,17 +69,13 @@ export class CartService {
         return {
             success: true,
             data: {
-                id: this.isMongoProvider
-                    ? cartItem.data.cart._id?.toString?.() ?? cartItem.data.cart.id
-                    : cartItem.data.cart.id,
-                productId: this.isMongoProvider
-                    ? cartItem.data.product._id?.toString?.() ?? cartItem.data.product.id
-                    : cartItem.data.product.id,
+                id: cartItem.data.id,
+                productId: cartItem.data.productId,
                 quantity: cartItem.data.quantity,
                 price: cartItem.data.price,
-                image: cartItem.data.product.image,
-                mealType: cartItem.data.product.mealType,
-                name: cartItem.data.product.name
+                image: cartItem.data.image,
+                mealType: cartItem.data.mealType,
+                name: cartItem.data.name
             },
             expired: false,
             message: "Quantity Updated Successfully.",

@@ -43,9 +43,7 @@ export class AuthService {
 
         const existingAdminPermissions = await this.permissionService.findGlobalPermissionByKey('admin');
         if (!existingAdminPermissions) throw new NotFoundException({ message: "Admin permissions not found." });
-
-        console.log(existingAdminPermissions)
-
+        
         const newPermissions = await Promise.all(
             existingAdminPermissions.data.map(async permission => {
                 return await this.permissionService.create({
