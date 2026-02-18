@@ -16,8 +16,8 @@ export class CartController {
     constructor(private readonly cartService: CartService) {}
 
     @Post("add")
-    async addToCart(@Body() createCartItemDTO: CreateCartItemDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return this.cartService.addToCart(createCartItemDTO, user);
+    async addToCart(@Body() createCartItemDTO: CreateCartItemDTO, @Req() req): Promise<APIResponse> {
+        return this.cartService.addToCart(createCartItemDTO, req.currentUser.id);
     }
 
     @Patch("/product/:productId")
@@ -26,8 +26,8 @@ export class CartController {
     }
 
     @Get()
-    async findCart(@CurrentUser() user: User): Promise<APIResponse> {
-        return this.cartService.findCart(user);
+    async findCart(@Req() req): Promise<APIResponse> {
+        return this.cartService.findCart(req.currentUser.id);
     }
 
     @Get(":productId")
@@ -36,8 +36,8 @@ export class CartController {
     }
 
     @Delete()
-    async removeCartItem(@Body() removeCartItemDTO: RemoveCartItemDTO, @CurrentUser() user: User): Promise<APIResponse> {
-        return this.cartService.removeCartItem(removeCartItemDTO, user)
+    async removeCartItem(@Body() removeCartItemDTO: RemoveCartItemDTO, @Req() req): Promise<APIResponse> {
+        return this.cartService.removeCartItem(removeCartItemDTO, req.currentUser.id);
     }
 
     @Delete(":productId")

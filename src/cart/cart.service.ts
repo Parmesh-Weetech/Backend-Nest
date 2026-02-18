@@ -1,11 +1,15 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 
 import { APIResponse } from '../common/response/response.dto';
 import { User } from '../user/entities/user.entity';
 import { DatabaseResolver } from '../common/resolvers/database.resolver';
+import { CacheService } from '../cache/cache.service';
 
 import { CreateCartItemDTO, RemoveCartItemDTO } from './dtos/create.cartItem.dto';
 import { CART_REPOSITORY, type ICartRepository } from './cart.repository.interface';
+import { Cart } from './entities/cart.entity';
+import { CartDocument } from './schemas/cart.schema';
 
 @Injectable()
 export class CartService {
@@ -13,21 +17,21 @@ export class CartService {
         @Inject(CART_REPOSITORY)
         private readonly cartRepository: ICartRepository,
         private readonly databaseResolver: DatabaseResolver,
+        private readonly cacheService: CacheService
     ) { }
 
     private get isMongoProvider() {
         return this.databaseResolver.provider === 'mongodb';
     }
 
-    async addToCart(createCartItemDTO: CreateCartItemDTO, user: User): Promise<APIResponse> {
-        let cart = await this.cartRepository.findActiveCartByUser(user.id);
+    async addToCart(createCartItemDTO: CreateCartItemDTO, userId: string): Promise<APIResponse> {
+        let cart = await this.cartRepository.findActiveCartByUser(userId);
+        if (!cart) cart = await this.cartRepository.createCart(userId);
 
-        if (!cart) {
-            cart = await this.cartRepository.createCart(user.id);
-        }
+        if (!cart) throw new InternalServerErrorException({ message: "Internal Server Error while processing cart. " });
 
         const product = await this.cartRepository.findProductById(createCartItemDTO.productId);
-        if(!product) throw new BadRequestException({ message: "Product is not exists in db" });
+        if (!product) throw new BadRequestException({ message: "Product is not exists in db" });
 
         const cartItem = await this.cartRepository.addCartItem({
             cartId: cart.id || cart._id,
@@ -83,11 +87,11 @@ export class CartService {
         }
     }
 
-    async findCart(user: User): Promise<APIResponse> {
-        const cartItems = await this.cartRepository.findCartItems(user.id);
+    async findCart(userId: string): Promise<APIResponse> {
+        const cartItems = await this.cartRepository.findCartItems(userId);
 
         if (!cartItems || cartItems.length == 0) {
-            const cart = await this.cartRepository.findActiveCartByUser(user.id);
+            const cart = await this.cartRepository.findActiveCartByUser(userId);
 
             if (!cart) throw new NotFoundException("Cart or CartItem not found.");
 
@@ -146,10 +150,10 @@ export class CartService {
         };
     }
 
-    async removeCartItem(removeCartItemDTO: RemoveCartItemDTO, user: User): Promise<APIResponse> {
+    async removeCartItem(removeCartItemDTO: RemoveCartItemDTO, userId: string): Promise<APIResponse> {
         await this.cartRepository.removeItemsByIds(
             removeCartItemDTO.ids,
-            user.id
+            userId
         );
 
         return {
