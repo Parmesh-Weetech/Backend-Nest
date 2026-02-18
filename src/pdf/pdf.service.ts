@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
-import * as fs from 'fs';
 import * as path from 'path';
+import * as ejs from 'ejs';
 
 import { CartService } from '../cart/cart.service';
 
@@ -11,55 +11,28 @@ export class PdfService {
   constructor(private readonly cartService: CartService) { }
 
   async createPdf(user: any): Promise<Buffer> {
-    // Fetch all cart items for the user
+    // Fetch all cart items
     const cartItems = await this.cartService.findCart(user);
+    if (!cartItems || cartItems.data.length === 0) throw new Error('No cart items found');
 
-    if (!cartItems || cartItems.data.length === 0) {
-      throw new Error('No cart items found');
-    }
-
-    // Get cart info from the first cartItem (all belong to same cart)
     const cart = cartItems.data[0].cart;
 
-    // Build dynamic table rows
-    const itemsRows = cartItems.data
-      .map(
-        (item: any) => `
-          <tr>
-            <td>${item.name}</td>
-            <td>${item.mealType.join(', ')}</td>
-            <td>${item.quantity}</td>
-            <td>₹ ${item.price}</td>
-            <td>₹ ${item.total_price}</td>
-          </tr>
-        `
-      )
-      .join('');
-
+    // Calculate total amount
     const totalAmount = cartItems.data.reduce((sum, item) => sum + item.total_price, 0);
 
-    // Load HTML template
-    const templatePath = path.join(process.cwd(), 'templates', 'invoice.html');
-    let html = fs.readFileSync(templatePath, 'utf8');
+    // Path to EJS template
+    const templatePath = path.join(process.cwd(), 'templates', 'cart.ejs');
 
-    // Replace placeholders with cart + user data
-    html = html.replace('{{cartId}}', cart.id)
-      .replace('{{userName}}', cart.user.name)
-      .replace('{{userEmail}}', cart.user.email)
-      .replace('{{cartStatus}}', cart.status)
-      .replace('{{cartCreatedAt}}', new Date(cart.created_at).toLocaleString())
-      .replace('{{cartUpdatedAt}}', new Date(cart.updated_at).toLocaleString())
-      .replace('{{itemsRows}}', itemsRows)
-      .replace('{{totalAmount}}', totalAmount.toString());
+    // Render HTML from EJS
+    const html = await ejs.renderFile(templatePath, { cart, cartItems, totalAmount });
 
-    // Launch Puppeteer
+    // Launch Puppeteer and generate PDF
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     const page = await browser.newPage();
-
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
     const pdfBuffer = await page.pdf({
@@ -68,7 +41,6 @@ export class PdfService {
     });
 
     await browser.close();
-
     return Buffer.from(pdfBuffer);
   }
 

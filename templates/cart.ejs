@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <style>
+      body { font-family: Arial; padding: 40px; }
+      h1 { color: #333; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background: #f4f4f4; }
+      .total { margin-top: 20px; font-weight: bold; }
+      img { width: 60px; height: 60px; object-fit: cover; }
+    </style>
+  </head>
+  <body>
+    <h1>Invoice</h1>
+
+    <p><strong>Cart ID:</strong> <%= cart.id %></p>
+    <p><strong>User Name:</strong> <%= cart.user.name %></p>
+    <p><strong>User Email:</strong> <%= cart.user.email %></p>
+    <p><strong>Cart Status:</strong> <%= cart.status %></p>
+    <p><strong>Created At:</strong> <%= new Date(cart.created_at).toLocaleString() %></p>
+
+    <table>
+      <tr>
+        <th>Item Name</th>
+        <th>Meal Type</th>
+        <th>Quantity</th>
+        <th>Price / Quantity</th>
+        <th>Total Price</th>
+      </tr>
+      <% cartItems.data.forEach(item => { %>
+      <tr>
+        <td><%= item.name %></td>
+        <td><%= item.mealType.join(', ') %></td>
+        <td><%= item.quantity %></td>
+        <td>₹ <%= item.price %></td>
+        <td>₹ <%= item.total_price %></td>
+      </tr>
+      <% }) %>
+    </table>
+
+    <p class="total">Total Amount: ₹ <%= totalAmount %></p>
+  </body>
+</html>
