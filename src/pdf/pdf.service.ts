@@ -1,41 +1,61 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
-import * as path from 'path';
-import * as ejs from 'ejs';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 import { CartService } from '../cart/cart.service';
-import { BrowserService } from './browser.service';
+import { APIResponse } from '../common/response/response.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class PdfService {
 
   constructor(
     private readonly cartService: CartService,
-    private readonly browserService: BrowserService
+    private readonly userService: UserService,
+
+    @InjectQueue("pdf")
+    private readonly pdfQueue: Queue
   ) { }
 
-  async createPdf(user: any): Promise<Buffer> {
-    const cartItems = await this.cartService.findCart(user);
-    if (!cartItems || cartItems.data.length === 0) throw new Error('No cart items found');
+  async createPdf(user: any) {
+    const job = await this.pdfQueue.add(
+      'process',
+      { userId: user.id },
+      {
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnFail: {
+          age: 24 * 60 * 60,
+          count: 1000
+        },
+        removeOnComplete: {
+          age: 60 * 60,
+          count: 10
+        },
+      }
+    )
 
-    const cart = cartItems.data[0].cart;
-    const totalAmount = cartItems.data.reduce((sum, item) => sum + item.total_price, 0);
+    return {
+      jobId: job.id
+    }
+  }
 
-    const templatePath = path.join(process.cwd(), 'templates', 'cart.ejs');
-    const html = await ejs.renderFile(templatePath, { cart, cartItems, totalAmount });
+  async fetchCartForPdf(userId: string): Promise<APIResponse> {
+    const user = await this.userService.findOne(userId);
 
-    const browser = await this.browserService.getBrowser();
-    const page = await browser.newPage();
+    if (!user) throw new NotFoundException({ message: "User not found." });
 
-    await page.setContent(html, { waitUntil: 'domcontentloaded' });
+    const cartItem = await this.cartService.findCart(user.data);
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-    });
+    if (!cartItem) throw new InternalServerErrorException({ message: "Internal Server Error while fetching cart items" });
 
-    await page.close();
-    return Buffer.from(pdfBuffer);
+    return {
+      success: true,
+      data: cartItem.data,
+      expired: false,
+      message: "Cart Item fetched successfully",
+      statusCode: 200
+    }
   }
 
   async createScreenShot(): Promise<Buffer> {

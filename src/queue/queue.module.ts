@@ -11,6 +11,7 @@ import { Video } from '../video/entities/video.entity';
 import { VideoModule } from '../video/video.module';
 import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
 import { StorageModule } from '../storage/storage.module';
+import { PdfModule } from '../pdf/pdf.module';
 
 @Module({
     imports: [
@@ -18,9 +19,10 @@ import { StorageModule } from '../storage/storage.module';
         VideoModule,
         FfmpegModule,
         StorageModule,
+        PdfModule,
         TypeOrmModule.forFeature([Notification, Video]),
-        BullModule.registerQueue({ name: 'notifications' }, { name: 'video-processing' }),
+        BullModule.registerQueue({ name: 'notifications' }, { name: 'video-processing' }, { name: "pdf" }),
     ],
     providers: [NotificationService, NotificationProcessor, VideoProcessor],
 })
-export class QueueModule {}
+export class QueueModule { }

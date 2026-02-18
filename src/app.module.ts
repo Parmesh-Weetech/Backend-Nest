@@ -49,7 +49,7 @@ import { PdfModule } from './pdf/pdf.module';
         const redisUrl = configService.get<string>('REDIS_URL');
         const redisHost = configService.get<string>('REDIS_HOST', 'localhost');
         const redisPort = configService.get<number>('REDIS_PORT', 6379);
-
+        console.log("Redis config:", redisUrl || `${redisHost}:${redisPort}`);
         return {
           connection: redisUrl
             ? { url: redisUrl }

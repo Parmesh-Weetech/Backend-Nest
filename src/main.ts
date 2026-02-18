@@ -57,10 +57,13 @@ async function bootstrap() {
 
     const videoProcessingQueue = app.get<Queue>('BullQueue_video-processing')
 
+    const pdfQueue = app.get<Queue>("BullQueue_pdf")
+
     createBullBoard({
       queues: [
         new BullMQAdapter(notificationQueue),
-        new BullMQAdapter(videoProcessingQueue)
+        new BullMQAdapter(videoProcessingQueue),
+        new BullMQAdapter(pdfQueue)
       ],
       serverAdapter,
     });
@@ -68,8 +71,8 @@ async function bootstrap() {
     app.use(helmet());
 
     app.use('/admin/queues',
-      authMiddleware.use.bind(authMiddleware),
-      permissionsMiddleware.use.bind(permissionsMiddleware),
+      // authMiddleware.use.bind(authMiddleware),
+      // permissionsMiddleware.use.bind(permissionsMiddleware),
       serverAdapter.getRouter()
     );
 

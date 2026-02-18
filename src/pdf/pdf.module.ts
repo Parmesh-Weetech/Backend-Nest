@@ -6,11 +6,16 @@ import { AuthModule } from '../auth/auth.module';
 
 import { PdfService } from './pdf.service';
 import { PdfController } from './pdf.controller';
-import { BrowserService } from './browser.service';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   controllers: [PdfController],
-  providers: [PdfService, BrowserService],
-  imports: [CartModule, UserModule, AuthModule]
+  providers: [PdfService],
+  imports: [CartModule, UserModule, AuthModule, BullModule.registerQueue({
+    name: 'pdf',
+    connection: {
+      url: "redis://localhost:6379"
+    }
+  })]
 })
-export class PdfModule {}
+export class PdfModule { }
