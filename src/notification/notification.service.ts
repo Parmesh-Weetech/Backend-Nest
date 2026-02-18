@@ -46,7 +46,7 @@ export class NotificationService {
 
         const notification = await this.notificationRepository.save(notificationObject);
 
-        if(!notification) throw new InternalServerErrorException('Failed to create notification');
+        if (!notification) throw new InternalServerErrorException('Failed to create notification');
 
         await this.queue.add(
             'send-notification',
@@ -63,7 +63,7 @@ export class NotificationService {
                     age: 24 * 60 * 60,
                     count: 1000
                 },
-                
+
             },
         );
 
@@ -77,5 +77,25 @@ export class NotificationService {
             statusCode: 201,
             message: "Notification Created Successfully."
         };
+    }
+
+    async fetchNotificationById(notificationId: string): Promise<APIResponse> {
+        const notification = await this.notificationRepository.findOne({ where: { id: notificationId }, relations: ['sender', 'conversation'] });
+
+        if(!notification) return {
+            success: false,
+            data: null,
+            expired: false,
+            message: "Notification Not Found",
+            statusCode: 404
+        }
+
+        return {
+            success: true,
+            data: notification,
+            expired: false,
+            message: "Notification found successfully",
+            statusCode: 200
+        }
     }
 }
