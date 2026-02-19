@@ -11,6 +11,7 @@ import { Notification } from "../../notification/entities/notification.entity";
 import { Cart } from "../../cart/entities/cart.entity";
 
 import { Refresh_token } from "./refresh_token.entity";
+import { Pdf } from "src/pdf/entities/pdf.entity";
 
 @Entity("user")
 export class User {
@@ -38,6 +39,9 @@ export class User {
 
     @OneToMany(() => Notification, notification => notification.sender)
     notifications: Notification[];
+
+    @OneToMany(() => Pdf, pdf => pdf.user)
+    pdfs: Pdf[];
 
     @ManyToOne(() => Organization, org => org.users, {
         cascade: true, onDelete: "CASCADE", onUpdate: "CASCADE"

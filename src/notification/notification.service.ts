@@ -82,7 +82,7 @@ export class NotificationService {
     async fetchNotificationById(notificationId: string): Promise<APIResponse> {
         const notification = await this.notificationRepository.findOne({ where: { id: notificationId }, relations: ['sender', 'conversation'] });
 
-        if(!notification) return {
+        if (!notification) return {
             success: false,
             data: null,
             expired: false,
@@ -97,5 +97,35 @@ export class NotificationService {
             message: "Notification found successfully",
             statusCode: 200
         }
+    }
+
+    async updateNotificationById(notificationId: string, status: "SENT" | "FAILED" | "PENDING"): Promise<APIResponse> {
+        const result = await this.notificationRepository.createQueryBuilder()
+            .update(Notification)
+            .set({
+                sentAt: () => 'NOW()',
+                status: status,
+            })
+            .where('id = :id', { id: notificationId })
+            .andWhere('sentAt IS NULL')
+            .execute();
+
+        if (result.affected === 0) {
+            return {
+                success: false,
+                data: null,
+                expired: false,
+                message: "Internal Server Error while updating notification",
+                statusCode: 500
+            }
+        }
+
+        return {
+            success: true,
+            data: null,
+            expired: false,
+            message: "Notification updated successfully",
+            statusCode: 200
+        };
     }
 }

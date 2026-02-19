@@ -6,6 +6,9 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { CartService } from '../cart/cart.service';
 import { APIResponse } from '../common/response/response.dto';
 import { UserService } from '../user/user.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Pdf } from './entities/pdf.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class PdfService {
@@ -14,11 +17,14 @@ export class PdfService {
     private readonly cartService: CartService,
     private readonly userService: UserService,
 
+    @InjectRepository(Pdf)
+    private readonly pdfRepository: Repository<Pdf>,
+
     @InjectQueue("pdf")
     private readonly pdfQueue: Queue
   ) { }
 
-  async createPdf(user: any) {
+  async createPdf(user: any): Promise<APIResponse> {
     const job = await this.pdfQueue.add(
       'process',
       { userId: user.id },
@@ -35,8 +41,26 @@ export class PdfService {
       }
     )
 
+    if (!job.id) {
+      throw new InternalServerErrorException({ message: "Failed to create pdf" })
+    }
+
+    const pdfRecord = await this.pdfRepository.save({
+      status: "PROCESSING",
+      user: user
+    });
+
+    if (!pdfRecord) throw new InternalServerErrorException({ message: "Internal Server Error while processing pdf " });
+
     return {
-      jobId: job.id
+      success: true,
+      data: {
+        jobId: job.id,
+        id: pdfRecord.id
+      },
+      expired: false,
+      message: "Pdf generation is under way. Please wait few seconds...",
+      statusCode: 201
     }
   }
 

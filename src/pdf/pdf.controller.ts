@@ -8,6 +8,7 @@ import { PdfService } from './pdf.service';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
+import { APIResponse } from 'src/common/response/response.dto';
 
 @Controller('pdf')
 export class PdfController {
@@ -22,12 +23,8 @@ export class PdfController {
   @UseGuards(AuthGuard)
   @UseInterceptors(CurrentUserInterceptor)
   @Post()
-  async createPdf(@Req() req) {
-    const job = await this.pdfService.createPdf(req.currentUser);
-
-    return {
-      jobId: job.jobId
-    }
+  async createPdf(@Req() req): Promise<APIResponse> {
+    return await this.pdfService.createPdf(req.currentUser);
   }
 
   @Get("/internal/:userId")

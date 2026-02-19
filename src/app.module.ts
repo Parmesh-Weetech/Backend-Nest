@@ -82,7 +82,7 @@ import { PdfModule } from './pdf/pdf.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard
-    }
+    },
   ],
 })
 export class AppModule {

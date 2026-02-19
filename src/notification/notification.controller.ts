@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Put, UnauthorizedException, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../common/guards/auth.guard';
 
@@ -33,5 +33,13 @@ export class NotificationController {
         if (secret !== secret_code) throw new UnauthorizedException({ message: "Unauthorized access!" });
 
         return await this.notificationService.fetchNotificationById(notificationId)
+    }
+
+    @Put(":notificationId")
+    async updateNotificationById(@Body() data: { status: "SENT" | "FAILED" | "PENDING" }, @Param("notificationId") notificationId: string, @Headers("x-internal-secret") secret: string): Promise<APIResponse> {
+        const secret_code = this.configService.get<string>("SECRET");
+        if (secret !== secret_code) throw new UnauthorizedException({ message: "Unauthorized access!" });
+
+        return await this.notificationService.updateNotificationById(notificationId, data.status);
     }
 }
