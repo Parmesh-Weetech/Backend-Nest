@@ -13,6 +13,8 @@ export class PdfProcessor extends WorkerHost {
     async process(job: Job<{ userId: string }>): Promise<any> {
         const { userId } = job.data;
 
-        return await this.pdfService.generatePdf(userId);
+        if (!userId) throw new Error('UserId is required to generate PDF');
+
+        return await this.pdfService.generatePdf(userId, job.id!);
     }
 }

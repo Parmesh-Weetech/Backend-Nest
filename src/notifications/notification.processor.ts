@@ -1,8 +1,9 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
-import { InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { Job } from "bullmq";
+import Redis from "ioredis";
 
 @Processor('notifications', {
     concurrency: 10
@@ -29,45 +30,57 @@ export class NotificationProcessor extends WorkerHost {
                 }
             );
 
-            if (!notification.data) throw new NotFoundException('Notification not found');
+            if (!notification.data.data) {
+                throw new NotFoundException('Notification not found');
+            }
 
-            const result = await this.repo
-                .createQueryBuilder()
-                .update(Notification)
-                .set({
-                    sentAt: () => 'NOW()',
-                    status: 'SENT',
-                })
-                .where('id = :id', { id: notificationId })
-                .andWhere('sentAt IS NULL')
-                .execute();
+            if (notification.data.data.status !== "PROCESSING") {
+                throw new BadRequestException({ message: "Notification not created to process" });
+            }
 
-            if (result.affected === 0) {
+            const result = await axios.put(
+                `${MAIN_SERVER_URL}/notification/${notificationId}`,
+                {
+                    data: {
+                        message: notification.data.data.message,
+                        status: "SENT",
+                        senderId: notification.data.data.sender.id,
+                        createdAt: notification.data.data.createdAt,
+                        conversationId: notification.data.data.conversation.id
+                    }
+                },
+                {
+                    headers: {
+                        'x-internal-secret': secret
+                    }
+                }
+            )
+
+            if (!result.data.success) {
                 return;
             }
 
             console.log(
-                `Sending notification to ${notification.conversation}`,
+                `Sending notification to ${notification.data.data.conversation.id}`,
             );
 
-            if (result.affected !== undefined && result.affected !== null && result.affected > 0) {
-                this.notificationSseService.sendSuccess(
-                    notificationId, notification.message, notification.sender.id, notification.createdAt, notification.conversation.id, "SENT"
-                );
-            }
-
         } catch (err) {
-            const updateNotificationStatus = await this.repo.update(notificationId, {
-                status: 'FAILED',
-            });
+            console.log(err.message);
 
-            if (updateNotificationStatus.affected !== undefined && updateNotificationStatus.affected !== null && updateNotificationStatus.affected > 0) {
-                this.notificationSseService.sendError(
-                    notificationId, err, "FAILED"
-                );
-            }
-
-            throw new InternalServerErrorException(err.message || 'Failed to send notification');
+            await axios.put(
+                `${MAIN_SERVER_URL}/notification/${notificationId}`,
+                {
+                    data: {
+                        message: err.message,
+                        status: "FAILED",
+                    }
+                },
+                {
+                    headers: {
+                        'x-internal-secret': secret
+                    }
+                }
+            )
         }
     }
 }
