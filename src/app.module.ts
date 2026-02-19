@@ -7,6 +7,8 @@ import { PdfModule } from './pdf/pdf.module';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from './cache/cache.module';
 import { QueueModule } from './queue/queue.module';
+import { VideoModule } from './video/video.module';
+import { FfmpegModule } from './ffmpeg/ffmpeg.module';
 
 @Module({
   imports: [PdfModule, CacheModule, QueueModule, ConfigModule.forRoot({
@@ -28,6 +30,8 @@ import { QueueModule } from './queue/queue.module';
         };
       }
     }),
+    VideoModule,
+    FfmpegModule
   ],
   controllers: [AppController],
   providers: [AppService],

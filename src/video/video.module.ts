@@ -1,16 +1,16 @@
-import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
 
 @Module({
     providers: [],
     exports: [],
     imports: [
         BullModule.registerQueue({
-            name: 'notifications',
+            name: 'video-processing',
             connection: {
                 url: "redis://localhost:6379"
             }
         })
     ],
 })
-export class NotificationModule { }
+export class VideoModule {}
