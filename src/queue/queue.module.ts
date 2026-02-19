@@ -6,7 +6,6 @@ import { NotificationService } from '../notification/notification.service';
 import { NotificationModule } from '../notification/notification.module';
 // import { NotificationProcessor } from '../notification/notification.processor';
 import { Notification } from '../notification/entities/notification.entity';
-import { VideoProcessor } from '../video/video.processor';
 import { Video } from '../video/entities/video.entity';
 import { VideoModule } from '../video/video.module';
 import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
@@ -23,6 +22,6 @@ import { PdfModule } from '../pdf/pdf.module';
         TypeOrmModule.forFeature([Notification, Video]),
         BullModule.registerQueue({ name: 'notifications' }, { name: 'video-processing' }, { name: "pdf" }),
     ],
-    providers: [NotificationService, VideoProcessor],
+    providers: [NotificationService],
 })
 export class QueueModule { }

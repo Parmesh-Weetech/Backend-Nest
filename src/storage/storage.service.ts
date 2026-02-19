@@ -39,8 +39,6 @@ export class StorageService {
                 .from(this.bucket)
                 .upload(`videos/${videoId}${relative}`, fs.createReadStream(file), { upsert: true });
         }
-
-        return `videos/${videoId}`;
     }
 
     async download(path: string): Promise<Readable> {

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +11,7 @@ import { StorageService } from '../storage/storage.service';
 import { User } from '../user/entities/user.entity';
 
 import { Video } from './entities/video.entity';
+import { VideoSseService } from './videoSse.service';
 
 @Injectable()
 export class VideoService {
@@ -22,8 +23,14 @@ export class VideoService {
 
         @InjectQueue('video-processing')
         private readonly videoQueue: Queue,
+
+        private readonly videoSseService: VideoSseService
     ) { }
     async enqueue(file: Express.Multer.File, user: User): Promise<APIResponse> {
+        if (file.size >= 5 * 1024 * 1024) {
+            throw new BadRequestException('File size must be less than 5MB');
+        }
+
         const videoId = randomUUID();
 
         const videoMetadata = this.videoRepository.create({
@@ -65,12 +72,20 @@ export class VideoService {
             },
         );
 
+        const updateVideoStatus = await this.videoRepository.update(
+            videoId,
+            {
+                status: "PROCESSING"
+            }
+        )
+
+        if (updateVideoStatus.affected === 0) throw new InternalServerErrorException({ message: "Failed to update status to processing" });
 
         return {
             success: true,
             data: {
                 id: videoId,
-                status: "PENDING"
+                status: "PROCESSING"
             },
             expired: false,
             message: "Video Uploaded Successfully",
@@ -132,11 +147,50 @@ export class VideoService {
     }
 
     async getVideoById(videoId: string) {
-        return await this.videoRepository.findOne({ where: { id: videoId } });
+        const video = await this.videoRepository.findOne({ where: { id: videoId } });
+
+        if (!video) {
+            throw new NotFoundException({ message: "Video not found" });
+        }
+
+        return video;
     }
-    
+
     async getSignedUrl(videoPath: string, originalVideoName: string) {
         const ext = originalVideoName.split('.').pop();
         return this.storageService.getSignedUrl(`${videoPath}/original.${ext}`);
+    }
+
+    async deleteVideoById(videoId: string): Promise<void> {
+        await this.getVideoById(videoId);
+
+        const affectedRow = await this.videoRepository.delete(videoId);
+
+        if (affectedRow.affected === 0) {
+            throw new InternalServerErrorException({ message: "Failed to delete video" });
+        }
+    }
+
+    async updateVideoStatus(videoId: string, status: "PENDING" | "PROCESSING" | "ACTIVE" | "FAILED", masterPath: string | undefined, error: string | undefined) {
+        await this.getVideoById(videoId);
+
+        const affectedRow = await this.videoRepository.update(
+            videoId,
+            {
+                path: masterPath,
+                bucket: this.configService.get("SUPABASE_BUCKET"),
+                status: status
+            }
+        )
+
+        if (affectedRow.affected === 0) throw new InternalServerErrorException({ message: "Failed to update status of video" });
+
+        if (status === "ACTIVE") {
+            this.videoSseService.sendSuccess(videoId, status);
+        } else if (status === "FAILED") {
+            this.videoSseService.sendError(videoId, error || "Internal Server Error", status);
+        } else {
+            this.videoSseService.sendProcess(videoId, status);
+        }
     }
 }

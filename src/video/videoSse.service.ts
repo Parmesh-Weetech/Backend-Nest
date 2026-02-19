@@ -16,5 +16,9 @@ export class VideoSseService {
     sendError(videoId: string, error: string, status: string) {
         this.videoEvents.next(<MessageEvent>{ data: { videoId, status: status, error } });
     }
+
+    sendProcess(videoId: string, status: string) {
+        this.videoEvents.next(<MessageEvent>{ data: { videoId, status } });
+    }
 }
 
