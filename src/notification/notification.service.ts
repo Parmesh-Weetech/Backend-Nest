@@ -8,6 +8,7 @@ import { DateTime } from "luxon";
 
 import { Notification } from './entities/notification.entity';
 import { APIResponse } from 'src/common/response/response.dto';
+import { NotificationSseService } from './notificationSse.service';
 
 @Injectable()
 export class NotificationService {
@@ -17,6 +18,8 @@ export class NotificationService {
 
         @InjectRepository(Notification)
         private readonly notificationRepository: Repository<Notification>,
+
+        private readonly notificationSseService: NotificationSseService
     ) { }
 
     async create(
@@ -48,7 +51,7 @@ export class NotificationService {
 
         if (!notification) throw new InternalServerErrorException('Failed to create notification');
 
-        await this.queue.add(
+        const job = await this.queue.add(
             'send-notification',
             { notificationId: notification.id },
             {
@@ -67,10 +70,20 @@ export class NotificationService {
             },
         );
 
+        if (!job.id) throw new InternalServerErrorException({ message: "Failed to send notification" });
+
+        const updateNotificationRecord = await this.notificationRepository.update(notification.id, {
+            status: "PROCESSING"
+        });
+
+        if (updateNotificationRecord.affected === 0) {
+            throw new InternalServerErrorException({ message: "Failed to process the notification" });
+        }
+
         return {
             data: {
                 notificationId: notification.id,
-                status: 'PENDING'
+                status: 'PROCESSING'
             },
             success: true,
             expired: false,
@@ -99,7 +112,8 @@ export class NotificationService {
         }
     }
 
-    async updateNotificationById(notificationId: string, status: "SENT" | "FAILED" | "PENDING"): Promise<APIResponse> {
+    async updateNotificationById(notificationId: string, message: string, status: "SENT" | "FAILED" | "PENDING", senderId?: string, createdAt?: Date, conversationId?: string): Promise<APIResponse> {
+
         const result = await this.notificationRepository.createQueryBuilder()
             .update(Notification)
             .set({
@@ -118,6 +132,16 @@ export class NotificationService {
                 message: "Internal Server Error while updating notification",
                 statusCode: 500
             }
+        }
+
+        if (status === "SENT") {
+            this.notificationSseService.sendSuccess(
+                notificationId, message, senderId!, createdAt!, conversationId!, "SENT"
+            )
+        } else if (status === "FAILED") {
+            this.notificationSseService.sendError(
+                notificationId, message, status
+            )
         }
 
         return {

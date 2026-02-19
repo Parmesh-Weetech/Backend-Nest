@@ -23,6 +23,9 @@ export class Pdf {
     @JoinColumn({ name: 'userId' })
     user: User;
 
+    @Column({ default: "1", unique: true })
+    jobId: string;
+
     @Column({ nullable: true })
     filePath: string;
 

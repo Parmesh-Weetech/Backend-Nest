@@ -11,10 +11,9 @@ import { NotificationService } from './notification.service';
 import { NotificationSseService } from './notificationSse.service';
 import { NotificationController } from './notification.controller';
 import { NotificationSseController } from './notificationSse.controller';
-import { NotificationGateway } from './notification.gateway';
-
+// import { NotificationSubscriberService } from './NotificationSubscriber.service';
 @Module({
-  providers: [NotificationService, NotificationSseService, CurrentUserInterceptor, NotificationGateway],
+  providers: [NotificationService, NotificationSseService, CurrentUserInterceptor],
   controllers: [NotificationController, NotificationSseController],
   exports: [NotificationService, NotificationSseService],
   imports: [

@@ -9,10 +9,11 @@ import { PdfController } from './pdf.controller';
 import { BullModule } from '@nestjs/bullmq';
 import { Pdf } from './entities/pdf.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PdfSubscriberService } from './PdfSubscriber.service';
 
 @Module({
   controllers: [PdfController],
-  providers: [PdfService],
+  providers: [PdfService, PdfSubscriberService],
   imports: [CartModule, UserModule, AuthModule, TypeOrmModule.forFeature([Pdf]), BullModule.registerQueue({
     name: 'pdf',
     connection: {

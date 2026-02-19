@@ -35,7 +35,7 @@ export class Notification {
     message: string;
 
     @Column({ default: 'PENDING' })
-    status: 'PENDING' | 'SENT' | 'FAILED';
+    status: 'PENDING' | 'SENT' | 'FAILED' | 'PROCESSING';
 
     @Column({ type: 'timestamptz', nullable: true })
     scheduledAt: Date;

@@ -47,7 +47,8 @@ export class PdfService {
 
     const pdfRecord = await this.pdfRepository.save({
       status: "PROCESSING",
-      user: user
+      user: user,
+      jobId: job.id
     });
 
     if (!pdfRecord) throw new InternalServerErrorException({ message: "Internal Server Error while processing pdf " });
@@ -61,6 +62,25 @@ export class PdfService {
       expired: false,
       message: "Pdf generation is under way. Please wait few seconds...",
       statusCode: 201
+    }
+  }
+
+  async updatePdfRecord(status: "PENDING" | "FAILED" | "GENERATED" | "PROCESSING", jobId: string, filePath?: string): Promise<APIResponse> {
+    const updatedRecord = await this.pdfRepository.update({ jobId: jobId }, {
+      filePath: filePath,
+      status: status
+    });
+
+    if (updatedRecord.affected === 0) {
+      throw new InternalServerErrorException({ message: "Internal Server Error while updating pdf record with updated status" });
+    }
+
+    return {
+      success: true,
+      data: null,
+      expired: false,
+      message: "Pdf record updated successfully",
+      statusCode: 200
     }
   }
 

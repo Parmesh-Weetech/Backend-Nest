@@ -8,13 +8,13 @@ import { APIResponse } from '../common/response/response.dto';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('notification')
-@UseGuards(AuthGuard)
 export class NotificationController {
     constructor(
         private readonly notificationService: NotificationService,
         private readonly configService: ConfigService
     ) { }
 
+    @UseGuards(AuthGuard)
     @Post()
     async send(@Body() body: NotificationDto): Promise<APIResponse> {
         return await this.notificationService.create(
@@ -36,10 +36,14 @@ export class NotificationController {
     }
 
     @Put(":notificationId")
-    async updateNotificationById(@Body() data: { status: "SENT" | "FAILED" | "PENDING" }, @Param("notificationId") notificationId: string, @Headers("x-internal-secret") secret: string): Promise<APIResponse> {
+    async updateNotificationById(
+        @Body() body: { data: { message: string, status: "SENT" | "FAILED" | "PENDING", senderId?: string, createdAt?: Date, conversationId?: string } },
+        @Param("notificationId") notificationId: string,
+        @Headers("x-internal-secret") secret: string): Promise<APIResponse> {
+
         const secret_code = this.configService.get<string>("SECRET");
         if (secret !== secret_code) throw new UnauthorizedException({ message: "Unauthorized access!" });
 
-        return await this.notificationService.updateNotificationById(notificationId, data.status);
+        return await this.notificationService.updateNotificationById(notificationId, body.data.message, body.data.status, body.data.senderId, body.data.createdAt, body.data.conversationId);
     }
 }
