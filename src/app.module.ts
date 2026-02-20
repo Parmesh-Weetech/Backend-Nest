@@ -9,12 +9,15 @@ import { CacheModule } from './cache/cache.module';
 import { QueueModule } from './queue/queue.module';
 import { VideoModule } from './video/video.module';
 import { FfmpegModule } from './ffmpeg/ffmpeg.module';
+import { GeoLocationModule } from './geo_location/geo_location.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [PdfModule, CacheModule, QueueModule, ConfigModule.forRoot({
     isGlobal: true,
     cache: true,
   }),
+    ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -31,7 +34,8 @@ import { FfmpegModule } from './ffmpeg/ffmpeg.module';
       }
     }),
     VideoModule,
-    FfmpegModule
+    FfmpegModule,
+    GeoLocationModule
   ],
   controllers: [AppController],
   providers: [AppService],
