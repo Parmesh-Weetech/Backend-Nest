@@ -19,9 +19,9 @@ export class AutoUpdateService {
     }
 
     async downloadGeoLiteTar(accountId: string, licenseKey: string) {
-        const url =
-            'https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz';
-        const destPath = path.join(process.cwd(), 'assets', 'tar.gz', 'GeoLite2-City.tar.gz');
+        const url = this.configService.get("DOWNLOAD_COMMAND")!;
+        const tar_file = this.configService.get("TAR_FILE")!;
+        const destPath = path.join(process.cwd(), 'assets', 'tar.gz', tar_file);
 
         const res = await fetch(url, {
             headers: {
@@ -40,6 +40,7 @@ export class AutoUpdateService {
     }
 
     async extractAndMoveMMDB(tarPath: string) {
+        const mmdb_file = this.configService.get("MMDB_FILE")!;
         const extractDir = path.join(process.cwd(), 'temp_maxmind');
         await fsExtra.ensureDir(extractDir);
 
@@ -47,14 +48,14 @@ export class AutoUpdateService {
 
         const files = await fs.promises.readdir(extractDir);
         const innerFolder = path.join(extractDir, files[0]);
-        const mmdbFile = path.join(innerFolder, 'GeoLite2-City.mmdb');
+        const mmdbFile = path.join(innerFolder, mmdb_file);
 
         if (!(await fsExtra.pathExists(mmdbFile))) throw new Error('.mmdb file not found');
 
         const finalDir = path.join(process.cwd(), 'assets', 'maxmind');
         await fsExtra.ensureDir(finalDir);
 
-        const finalPath = path.join(finalDir, 'GeoLite2-City.mmdb');
+        const finalPath = path.join(finalDir, mmdb_file);
         await fsExtra.move(mmdbFile, finalPath, { overwrite: true });
 
         await fsExtra.remove(extractDir);
