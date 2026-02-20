@@ -4,6 +4,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { ScheduleModule } from '@nestjs/schedule';
+import Redis from 'ioredis';
+import { APP_GUARD } from '@nestjs/core';
 
 import AppConfig from './config/app.config';
 import DatabaseConfig from './config/database.config';
@@ -24,8 +27,6 @@ import { NotificationModule } from './notification/notification.module';
 import { QueueModule } from './queue/queue.module';
 import { VideoModule } from './video/video.module';
 import { CartModule } from './cart/cart.module';
-import Redis from 'ioredis';
-import { APP_GUARD } from '@nestjs/core';
 import { GeoModule } from './geo/geo.module';
 
 @Module({
@@ -75,6 +76,7 @@ import { GeoModule } from './geo/geo.module';
         )
       })
     }),
+    ScheduleModule.forRoot(),
     UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule, GeoModule],
   controllers: [AppController],
   providers: [
