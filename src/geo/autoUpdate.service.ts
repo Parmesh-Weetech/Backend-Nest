@@ -44,7 +44,7 @@ export class AutoUpdateService {
         const extractDir = path.join(process.cwd(), 'temp_maxmind');
         await fsExtra.ensureDir(extractDir);
 
-        await tar.x({ file: tarPath, cwd: extractDir }); // ✅ fixed
+        await tar.x({ file: tarPath, cwd: extractDir });
 
         const files = await fs.promises.readdir(extractDir);
         const innerFolder = path.join(extractDir, files[0]);
