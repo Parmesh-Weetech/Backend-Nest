@@ -59,6 +59,8 @@ async function bootstrap() {
 
     const pdfQueue = app.get<Queue>("BullQueue_pdf")
 
+    const webScrapingQueue = app.get<Queue>("BullQueue_web-scraping")
+
     createBullBoard({
       queues: [
         new BullMQAdapter(notificationQueue),

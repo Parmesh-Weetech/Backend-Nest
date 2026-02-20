@@ -11,6 +11,7 @@ import { VideoModule } from '../video/video.module';
 import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
 import { StorageModule } from '../storage/storage.module';
 import { PdfModule } from '../pdf/pdf.module';
+import { WebScrapingModule } from 'src/web-scraping/web-scraping.module';
 
 @Module({
     imports: [
@@ -19,8 +20,9 @@ import { PdfModule } from '../pdf/pdf.module';
         FfmpegModule,
         StorageModule,
         PdfModule,
+        WebScrapingModule,
         TypeOrmModule.forFeature([Notification, Video]),
-        BullModule.registerQueue({ name: 'notifications' }, { name: 'video-processing' }, { name: "pdf" }),
+        BullModule.registerQueue({ name: 'notifications' }, { name: 'video-processing' }, { name: "pdf" }, { name: 'web-scraping' }),
     ],
     providers: [NotificationService],
 })

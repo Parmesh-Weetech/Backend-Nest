@@ -27,6 +27,7 @@ import { CartModule } from './cart/cart.module';
 import Redis from 'ioredis';
 import { APP_GUARD } from '@nestjs/core';
 import { PdfModule } from './pdf/pdf.module';
+import { WebScrapingModule } from './web-scraping/web-scraping.module';
 
 @Module({
   imports: [
@@ -75,7 +76,7 @@ import { PdfModule } from './pdf/pdf.module';
         )
       })
     }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule, PdfModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule, PdfModule, WebScrapingModule],
   controllers: [AppController],
   providers: [
     AppService,
