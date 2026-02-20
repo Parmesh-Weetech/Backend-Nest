@@ -8,7 +8,7 @@ export class GeoController {
 
     @Get()
     getIpInfo(@Req() req: Request) {
-        const ip = '8.8.8.8';
+        const ip = '116.72.16.18';
 
         if(!ip) throw new UnauthorizedException({ message: "Unauthorized request"});
 

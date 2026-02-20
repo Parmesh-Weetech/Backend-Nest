@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ForbiddenException, Injectable, OnModuleInit } from '@nestjs/common';
 import * as maxmind from 'maxmind';
 import { Reader } from 'maxmind';
 import * as path from 'path';
@@ -44,9 +44,12 @@ export class GeoService implements OnModuleInit {
 
         return {
             country: country?.country?.iso_code,
-            city: city?.continent?.names?.en,
+            continent: city?.continent?.names?.en,
+            state: city?.subdivisions[0].iso_code,
+            city: city?.city?.names?.en,
             latitude: city?.location?.latitude,
             longitude: city?.location?.longitude,
+            postal_code: city?.postal?.code,
             asn: asn?.autonomous_system_number,
             organization: asn?.autonomous_system_organization,
         };
