@@ -6,13 +6,16 @@ import { PdfProcessor } from '../pdf/pdf.processor';
 import { NotificationProcessor } from '../notifications/notification.processor';
 import { VideoProcessor } from '../video/video.processor';
 import { FfmpegModule } from '../ffmpeg/ffmpeg.module';
+import { WebScrapingProcessor } from 'src/web-scraping/web-scraping.processor';
+import { WebScrapingModule } from 'src/web-scraping/web-scraping.module';
 
 @Module({
     imports: [
         PdfModule,
         FfmpegModule,
-        BullModule.registerQueue({ name: "pdf" }, { name: "notifications" }, { name: "video-processing" }),
+        WebScrapingModule,
+        BullModule.registerQueue({ name: "pdf" }, { name: "notifications" }, { name: "video-processing" }, { name: 'web-scraping' }),
     ],
-    providers: [PdfProcessor, NotificationProcessor, VideoProcessor],
+    providers: [PdfProcessor, NotificationProcessor, VideoProcessor, WebScrapingProcessor],
 })
 export class QueueModule { }

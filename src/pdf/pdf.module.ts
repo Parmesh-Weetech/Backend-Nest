@@ -8,7 +8,7 @@ import { PdfProcessor } from './pdf.processor';
 
 @Module({
   providers: [PdfService, BrowserService],
-  exports: [PdfService],
+  exports: [PdfService, BrowserService],
   imports: [
     BullModule.registerQueue({
       name: 'pdf',

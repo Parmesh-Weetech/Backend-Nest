@@ -11,6 +11,7 @@ import { VideoModule } from './video/video.module';
 import { FfmpegModule } from './ffmpeg/ffmpeg.module';
 import { GeoLocationModule } from './geo_location/geo_location.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { WebScrapingModule } from './web-scraping/web-scraping.module';
 
 @Module({
   imports: [PdfModule, CacheModule, QueueModule, ConfigModule.forRoot({
@@ -35,7 +36,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     VideoModule,
     FfmpegModule,
-    GeoLocationModule
+    GeoLocationModule,
+    WebScrapingModule
   ],
   controllers: [AppController],
   providers: [AppService],
