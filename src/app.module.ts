@@ -26,6 +26,7 @@ import { VideoModule } from './video/video.module';
 import { CartModule } from './cart/cart.module';
 import Redis from 'ioredis';
 import { APP_GUARD } from '@nestjs/core';
+import { GeoModule } from './geo/geo.module';
 
 @Module({
   imports: [
@@ -74,7 +75,7 @@ import { APP_GUARD } from '@nestjs/core';
         )
       })
     }),
-    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule],
+    UserModule, AuthModule, RoleModule, PermissionModule, PostModule, OrganizationModule, HCaptchaModule, WebsocketModule, ProductModule, CacheModule, NotificationModule, QueueModule, VideoModule, CartModule, GeoModule],
   controllers: [AppController],
   providers: [
     AppService,
