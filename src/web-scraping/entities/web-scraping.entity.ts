@@ -18,8 +18,8 @@ export enum ScrapeStatus {
 @Entity('scrape_jobs')
 @Index(['subUrl'], { unique: true })
 export class ScrapeJob {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn("uuid")
+    id: string;
 
     @Column({
         type: 'enum',

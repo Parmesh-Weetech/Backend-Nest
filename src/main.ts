@@ -52,20 +52,17 @@ async function bootstrap() {
     const serverAdapter = new ExpressAdapter();
     serverAdapter.setBasePath('/admin/queues');
 
-    const notificationQueue =
-      app.get<Queue>('BullQueue_notifications');
-
+    const notificationQueue = app.get<Queue>('BullQueue_notifications');
     const videoProcessingQueue = app.get<Queue>('BullQueue_video-processing')
-
     const pdfQueue = app.get<Queue>("BullQueue_pdf")
-
     const webScrapingQueue = app.get<Queue>("BullQueue_web-scraping")
 
     createBullBoard({
       queues: [
         new BullMQAdapter(notificationQueue),
         new BullMQAdapter(videoProcessingQueue),
-        new BullMQAdapter(pdfQueue)
+        new BullMQAdapter(pdfQueue),
+        new BullMQAdapter(webScrapingQueue)
       ],
       serverAdapter,
     });
