@@ -32,8 +32,78 @@ export class MongoPostRepository implements IPostRepository {
     }
 
     async findAll(userId: string) {
-        const documents = await this.postModel.find({ userId }).lean().exec();
-        return documents.map((document: any) => this.toPlain(document));
+        let posts = await this.postModel.aggregate([
+            { $match: { userId } },
+            {
+                $lookup: {
+                    from: "users",
+                    let: { userIdStr: "$userId" },   // post.userId
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$_id", { $toObjectId: "$$userIdStr" }] }
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "roles",
+                                as: "role",
+                                let: { roleId: "$roles" },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: {
+                                                $in: [
+                                                    "$_id",
+                                                    {
+                                                        $map: {
+                                                            input: "$$roleId",   // the array of strings
+                                                            as: "r",
+                                                            in: { $toObjectId: "$$r" } // convert each string individually
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "organizations",
+                                            as: "organization",
+                                            let: { orgId: "$organization" },
+                                            pipeline: [
+                                                {
+                                                    $match: {
+                                                        $expr: {
+                                                            $eq: ["$_id", { $toObjectId: "$$orgId" }]
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                    ],
+                    as: "user",
+                }
+            },
+            { $unwind: "$user" }
+        ]);
+
+        posts = Array.isArray(posts) ? posts.map((post) => {
+            post.user.roles = post.user.role.map((r) => {
+                r.organization = r.organization.map((org) => this.toPlain(org))
+                return this.toPlain(r);
+            });
+            post.user = this.toPlain(post.user);
+            return this.toPlain(post);
+        }) : [];
+
+
+
+        return posts;
     }
 
     async findOne(id: string) {
@@ -41,8 +111,37 @@ export class MongoPostRepository implements IPostRepository {
             return null;
         }
 
-        const document = await this.postModel.findById(id).lean().exec();
-        return this.toPlain(document);
+        const [post] = await this.postModel.aggregate([
+            { $match: { _id: new Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: "users",
+                    as: "user",
+                    let: { userId: "$userId" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$_id", { $toObjectId: "$$userId" }]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $unwind: {
+                    path: "$user",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $limit: 1
+            }
+        ]);
+
+        post.user = this.toPlain(post.user);
+        return this.toPlain(post);
     }
 
     async update(id: string, data: any) {

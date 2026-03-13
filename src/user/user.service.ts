@@ -1,8 +1,6 @@
 import { ConflictException, ForbiddenException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Not, Repository } from 'typeorm';
 import { CreateUserDTO } from './dtos/create-user.dto';
 import { updateUserDTO } from './dtos/update-user.dto';
 import { RoleService } from '../role/role.service';
@@ -74,6 +72,7 @@ export class UserService {
                     id: u.id,
                     name: u.name,
                     email: u.email,
+                    posts: u.posts
                 })),
                 expired: false,
                 message: 'Users fetched successfully.',
@@ -124,7 +123,13 @@ export class UserService {
 
             return {
                 success: true,
-                data: fetchedUser,
+                data: {
+                    name: fetchedUser.name,
+                    email: fetchedUser.email,
+                    id: fetchedUser.id,
+                    posts: fetchedUser.posts,
+                    products: fetchedUser.products
+                },
                 expired: false,
                 message: 'User fetched successfully.',
                 statusCode: 200,

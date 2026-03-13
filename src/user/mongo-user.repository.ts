@@ -112,18 +112,85 @@ export class MongoUserRepository implements IUserRepository {
     }
 
     async findAll(userId: string) {
-        let users: any[] = [];
+        let matchStage;
+
         if (Types.ObjectId.isValid(userId)) {
-            users = await this.userModel.find({ _id: { $ne: new Types.ObjectId(userId) } }).lean().exec();
+            matchStage = { _id: { $ne: new Types.ObjectId(userId) } }
         } else {
-            users = await this.userModel.find({ id: { $ne: userId } }).lean().exec();
+            matchStage = { _id: { $ne: userId } }
         }
 
-        return Promise.all(users.map((user: any) => this.hydrateUser(user)));
+        const users = await this.userModel.aggregate([
+            {
+                $match: matchStage
+            },
+            {
+                $lookup: {
+                    from: "posts",
+                    let: { userId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$userId", { $toString: "$$userId" }]
+                                }
+                            }
+                        }
+                    ],
+                    as: "posts"
+                }
+            }
+        ]);
+
+        return Promise.all(users.map(async (user: any) => {
+            user.posts = Array.isArray(user.posts)
+                ? user.posts.map((post: any) => this.toPlain(post))
+                : [];
+
+            return this.hydrateUser(user);
+        }));
     }
 
     async findOne(id: string) {
-        const user = await this.userModel.findOne(this.byIdFilter(id)).lean().exec();
+        const [user] = await this.userModel.aggregate([
+            { $match: { _id: new Types.ObjectId(id) } },
+            { $limit: 1,  },
+            {
+                $lookup: {
+                    from: "posts",
+                    let: { userId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$userId", { $toString: "$$userId" }]
+                                }
+                            }
+                        }
+                    ],
+                    as: "posts"
+                }
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    let: { userId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$user", { $toString: "$$userId" }]
+                                }
+                            }
+                        }
+                    ],
+                    as: "products"
+                }
+            }
+        ]);
+
+        user.posts = Array.isArray(user.posts) ? user.posts.map((post: any) => this.toPlain(post)) : [];
+        user.products = Array.isArray(user.products) ? user.products.map((product: any) => this.toPlain(product)) : [];
         return this.hydrateUser(user);
     }
 
@@ -163,7 +230,7 @@ export class MongoUserRepository implements IUserRepository {
         let user = await this.userModel.findOne(filter).exec();
         user = await this.hydrateUser(user);
 
-        if(!user) return {
+        if (!user) return {
             success: true,
             expired: false,
             data: null,
